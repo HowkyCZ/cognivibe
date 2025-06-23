@@ -2,9 +2,9 @@ import React from "react";
 import { Button, Image } from "@heroui/react";
 import WavyBackground from "../ui/WavyBackground";
 import logotypeSvg from "../../assets/logotype.svg";
-import { navigateToHome } from "../../utils/navigation";
 import detectiveEmoji from "../../assets/emojis/animated/detective.png";
 import { IconHomeFilled } from "@tabler/icons-react";
+import { redirect } from "@tanstack/react-router";
 
 const ErrorPage: React.FC = () => {
   return (
@@ -44,7 +44,11 @@ const ErrorPage: React.FC = () => {
             color="primary"
             size="lg"
             startContent={<IconHomeFilled size={20} />}
-            onPress={navigateToHome}
+            onPress={() => {
+              redirect({
+                to: "/",
+              });
+            }}
           >
             Bring me back
           </Button>

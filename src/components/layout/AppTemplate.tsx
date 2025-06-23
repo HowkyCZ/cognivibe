@@ -1,7 +1,6 @@
 import React from "react";
 import { HeroUIProvider, ToastProvider } from "@heroui/react";
 import "../../App.css";
-
 interface AppTemplateProps {
   children: React.ReactNode;
 }

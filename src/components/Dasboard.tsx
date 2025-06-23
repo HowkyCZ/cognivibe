@@ -9,7 +9,7 @@ import {
   SettingsModal,
   WeeklyAssessmentCard,
   CustomNavbar,
-} from "../../components";
+} from ".";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 
 // Sample data for cognitive metrics throughout the day
@@ -135,15 +135,15 @@ function App() {
                     {currentCognitiveLoad < 4
                       ? "Low Load"
                       : currentCognitiveLoad < 7
-                      ? "Moderate Load"
-                      : "High Load"}
+                        ? "Moderate Load"
+                        : "High Load"}
                   </p>
                   <p className="text-sm text-gray-500 mt-2">
                     {currentCognitiveLoad < 4
                       ? "You're in a relaxed state"
                       : currentCognitiveLoad < 7
-                      ? "Optimal performance zone"
-                      : "Consider taking a break"}
+                        ? "Optimal performance zone"
+                        : "Consider taking a break"}
                   </p>
                 </div>
               </div>{" "}
