@@ -35,7 +35,6 @@ export const useAuth = (): UseAuthReturn => {
         });
       }
     });
-
     return () => subscription.unsubscribe();
   }, []);
   const signOut = async () => {
