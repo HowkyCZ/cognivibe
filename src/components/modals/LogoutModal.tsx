@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { IconLogout } from "@tabler/icons-react";
 import { useAuth } from "../../hooks/useAuth";
+import { redirect } from "@tanstack/react-router";
 
 interface LogoutModalProps {
   isOpen: boolean;
