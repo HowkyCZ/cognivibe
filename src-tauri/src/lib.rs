@@ -32,6 +32,7 @@ pub fn run() {
             // Register additional schemes at runtime if needed
             #[cfg(desktop)]
             {
+                app.handle().plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--flag1", "--flag2"]) /* arbitrary number of args to pass to your app */));
                 app.deep_link().register("cognivibe")?;
             }
 

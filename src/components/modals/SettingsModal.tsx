@@ -17,6 +17,7 @@ import {
   IconAlertTriangle,
   IconDeviceFloppy,
 } from "@tabler/icons-react";
+import { enable, isEnabled, disable } from "@tauri-apps/plugin-autostart";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -43,27 +44,48 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
-  // Load settings when modal opens (simulate loading from storage/API)
+  // Load settings when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Simulate loading settings from storage or API
-      const loadedSettings: SettingsData = {
-        startOnBoot: false,
-        autoStartMonitoring: true,
+      const loadSettings = async () => {
+        try {
+          const autostartEnabled = await isEnabled();
+          const loadedSettings: SettingsData = {
+            startOnBoot: autostartEnabled,
+            autoStartMonitoring: true, // This could be loaded from local storage or API
+          };
+          setSettings(loadedSettings);
+          setOriginalSettings(loadedSettings);
+        } catch (error) {
+          console.error("Error loading autostart status:", error);
+          // Fallback to default settings
+          setSettings(defaultSettings);
+          setOriginalSettings(defaultSettings);
+        }
       };
-      setSettings(loadedSettings);
-      setOriginalSettings(loadedSettings);
+      loadSettings();
     }
   }, [isOpen]);
 
   // Check if there are unsaved changes
   const hasChanges =
-    JSON.stringify(settings) !== JSON.stringify(originalSettings);
-  // Handle saving settings
+    JSON.stringify(settings) !== JSON.stringify(originalSettings); // Handle saving settings
   const handleSave = async (closeAfterSave = false) => {
     setIsSaving(true);
     try {
-      // Simulate API call to save settings
+      // Handle autostart setting
+      if (settings.startOnBoot !== originalSettings.startOnBoot) {
+        if (settings.startOnBoot) {
+          await enable();
+        } else {
+          await disable();
+        }
+      }
+
+      // Here you would save other settings like autoStartMonitoring to local storage or API
+      // For example: localStorage.setItem('autoStartMonitoring', settings.autoStartMonitoring.toString());
+
+      // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Update original settings to match current settings
