@@ -10,12 +10,20 @@
 
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as DashboardRouteRouteImport } from "./routes/dashboard/route"
+import { Route as R404RouteRouteImport } from "./routes/404/route"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as AuthLoginRouteRouteImport } from "./routes/auth/login/route"
+import { Route as AuthErrorRouteRouteImport } from "./routes/auth/error/route"
+import { Route as AuthCallbackRouteRouteImport } from "./routes/auth/callback/route"
 
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R404RouteRoute = R404RouteRouteImport.update({
+  id: "/404",
+  path: "/404",
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -28,34 +36,75 @@ const AuthLoginRouteRoute = AuthLoginRouteRouteImport.update({
   path: "/auth/login",
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthErrorRouteRoute = AuthErrorRouteRouteImport.update({
+  id: "/auth/error",
+  path: "/auth/error",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRouteRoute = AuthCallbackRouteRouteImport.update({
+  id: "/auth/callback",
+  path: "/auth/callback",
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
+  "/404": typeof R404RouteRoute
   "/dashboard": typeof DashboardRouteRoute
+  "/auth/callback": typeof AuthCallbackRouteRoute
+  "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
+  "/404": typeof R404RouteRoute
   "/dashboard": typeof DashboardRouteRoute
+  "/auth/callback": typeof AuthCallbackRouteRoute
+  "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
+  "/404": typeof R404RouteRoute
   "/dashboard": typeof DashboardRouteRoute
+  "/auth/callback": typeof AuthCallbackRouteRoute
+  "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/" | "/dashboard" | "/auth/login"
+  fullPaths:
+    | "/"
+    | "/404"
+    | "/dashboard"
+    | "/auth/callback"
+    | "/auth/error"
+    | "/auth/login"
   fileRoutesByTo: FileRoutesByTo
-  to: "/" | "/dashboard" | "/auth/login"
-  id: "__root__" | "/" | "/dashboard" | "/auth/login"
+  to:
+    | "/"
+    | "/404"
+    | "/dashboard"
+    | "/auth/callback"
+    | "/auth/error"
+    | "/auth/login"
+  id:
+    | "__root__"
+    | "/"
+    | "/404"
+    | "/dashboard"
+    | "/auth/callback"
+    | "/auth/error"
+    | "/auth/login"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  R404RouteRoute: typeof R404RouteRoute
   DashboardRouteRoute: typeof DashboardRouteRoute
+  AuthCallbackRouteRoute: typeof AuthCallbackRouteRoute
+  AuthErrorRouteRoute: typeof AuthErrorRouteRoute
   AuthLoginRouteRoute: typeof AuthLoginRouteRoute
 }
 
@@ -66,6 +115,13 @@ declare module "@tanstack/react-router" {
       path: "/dashboard"
       fullPath: "/dashboard"
       preLoaderRoute: typeof DashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/404": {
+      id: "/404"
+      path: "/404"
+      fullPath: "/404"
+      preLoaderRoute: typeof R404RouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/": {
@@ -82,12 +138,29 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthLoginRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/auth/error": {
+      id: "/auth/error"
+      path: "/auth/error"
+      fullPath: "/auth/error"
+      preLoaderRoute: typeof AuthErrorRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/auth/callback": {
+      id: "/auth/callback"
+      path: "/auth/callback"
+      fullPath: "/auth/callback"
+      preLoaderRoute: typeof AuthCallbackRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  R404RouteRoute: R404RouteRoute,
   DashboardRouteRoute: DashboardRouteRoute,
+  AuthCallbackRouteRoute: AuthCallbackRouteRoute,
+  AuthErrorRouteRoute: AuthErrorRouteRoute,
   AuthLoginRouteRoute: AuthLoginRouteRoute,
 }
 export const routeTree = rootRouteImport

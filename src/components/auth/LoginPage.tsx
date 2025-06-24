@@ -22,10 +22,11 @@ const LoginPage: React.FC<LoginPageProps> = () => {
     setIsLoading(true);
 
     try {
-      console.log("Sending magic link...");
-
       const { error } = await supabase.auth.signInWithOtp({
         email,
+        options: {
+          emailRedirectTo: "cognivibe://localhost/auth/callback",
+        },
       });
       if (error) {
         throw error;
@@ -69,12 +70,8 @@ const LoginPage: React.FC<LoginPageProps> = () => {
   return (
     <WavyBackground
       containerClassName="bg-black"
-      //   waveWidth={50}
       colors={["#a07cef", "#ff709b", "#5c6dfd", "#a07cef"]}
-      //   waveOpacity={0.2}
       backgroundFill="#14181b"
-      //   backgroundFill="transparent"
-      //   colors={["#38bdf8", "#818cf8", "#c084fc", "#e879f9", "#22d3ee"]}
     >
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
         <div className="flex flex-col items-center gap-2">

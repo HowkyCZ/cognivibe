@@ -84,8 +84,6 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
     fetchUserData();
   }, [userId, supabase]);
 
-  console.log("User data fetched:", userData);
-
   return {
     userData,
     loading,

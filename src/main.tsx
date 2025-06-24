@@ -9,10 +9,6 @@ import { ErrorPage } from "./components";
 // Create a new router instance
 const router = createRouter({
   routeTree,
-  context: {
-    // https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes
-    authSession: null!,
-  },
   defaultNotFoundComponent: () => {
     return <ErrorPage />;
   },
