@@ -38,7 +38,7 @@ const sessionData = [
   { start: "14:00", end: "16:00", name: "Focus Block" },
 ];
 
-function App() {
+function DashboardPage() {
   const [isMeasuring, setIsMeasuring] = useState(false);
   const currentCognitiveLoad = 6.8;
   const maxLoad = Math.max(
@@ -61,31 +61,6 @@ function App() {
     onOpen: onSettingsOpen,
     onOpenChange: onSettingsOpenChange,
   } = useDisclosure();
-
-  // Setup deep link listener
-  useEffect(() => {
-    const setupDeepLink = async () => {
-      try {
-        await onOpenUrl((urls) => {
-          console.log("Deep link received:", urls);
-          // Handle the deep link here
-          // For example, you could navigate to different parts of your app
-          // based on the URL structure
-          urls.forEach((url) => {
-            console.log("Processing URL:", url);
-            // Add your URL handling logic here
-          });
-        });
-      } catch (error) {
-        console.error("Failed to setup deep link listener:", error);
-      }
-    };
-
-    setupDeepLink();
-  }, []);
-
-  // when using `"withGlobalTauri": true`, you may use
-  // const { onOpenUrl } = window.__TAURI__.deepLink;
 
   return (
     <>
@@ -187,4 +162,4 @@ function App() {
   );
 }
 
-export default App;
+export default DashboardPage;

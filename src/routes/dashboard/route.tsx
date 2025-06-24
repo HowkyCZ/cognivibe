@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import App from "../../components/Dasboard";
+import DashboardPage from "../../components/DashboardPage";
 import { createSupabaseClient } from "../../utils/createSupabaseClient";
 
 // @ts-ignore
@@ -24,5 +24,5 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  return <App />;
+  return <DashboardPage />;
 }

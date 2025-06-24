@@ -3,7 +3,7 @@ import { Button, Image } from "@heroui/react";
 import WavyBackground from "../../components/ui/WavyBackground";
 import logotypeSvg from "../../assets/logotype.svg";
 import detectiveEmoji from "../../assets/emojis/animated/detective.png";
-import { IconHomeFilled, IconArrowLeft } from "@tabler/icons-react";
+import { IconHomeFilled } from "@tabler/icons-react";
 
 export const Route = createFileRoute("/404")({
   component: RouteComponent,

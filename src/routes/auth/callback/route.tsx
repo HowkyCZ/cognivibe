@@ -59,8 +59,8 @@ function RouteComponent() {
                   refresh_token: refreshToken,
                 })
                 .then(() => {
-                  // Redirect to dashboard after successful authentication
-                  router.navigate({ to: "/dashboard" as any });
+                  // Redirect to home after successful authentication
+                  router.navigate({ to: "/" as any });
                 })
                 .catch((error) => {
                   console.error("Error setting session:", error);
@@ -94,8 +94,8 @@ function RouteComponent() {
             } as any,
           });
         } else if (data.session) {
-          // Success - redirect to dashboard
-          router.navigate({ to: "/dashboard" as any });
+          // Success - redirect to home
+          router.navigate({ to: "/" as any });
         } else {
           // No session found
           router.navigate({
