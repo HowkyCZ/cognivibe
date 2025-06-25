@@ -17,8 +17,6 @@ export const Route = createFileRoute("/dashboard")({
       throw redirect({
         to: "/auth/login",
       });
-    } else {
-      console.log("Dashboard route loaded with session:", session.user?.email);
     }
   },
 });
