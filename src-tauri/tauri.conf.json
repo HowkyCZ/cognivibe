@@ -17,7 +17,9 @@
         "width": 800,
         "height": 600,
         "minWidth": 800,
-        "minHeight": 600      }
+        "minHeight": 600,
+        "theme": "Dark"
+      }
     ],
     "security": {
       "csp": null
