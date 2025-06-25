@@ -6,7 +6,21 @@ import detectiveEmoji from "../../assets/emojis/animated/detective.png";
 import { IconHomeFilled } from "@tabler/icons-react";
 import { redirect } from "@tanstack/react-router";
 
-const ErrorPage: React.FC = () => {
+interface ErrorPageProps {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonIcon?: React.ReactNode;
+  onButtonPress?: () => void;
+}
+
+const ErrorPage: React.FC<ErrorPageProps> = ({
+  title = "Page Not Found",
+  description = "Oops! The page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL.",
+  buttonText = "Bring me back",
+  buttonIcon = <IconHomeFilled size={20} />,
+  onButtonPress = () => redirect({ to: "/" }),
+}) => {
   return (
     <WavyBackground
       containerClassName="bg-black"
@@ -27,15 +41,12 @@ const ErrorPage: React.FC = () => {
               alt="Detective Emoji"
               width={64}
               height={64}
-            />
-            <h2 className="text-xl font-medium text-default-700">
-              Page Not Found
-            </h2>
+            />{" "}
+            <h2 className="text-xl font-medium text-default-700">{title}</h2>
           </div>
 
           <p className="text-small text-default-500 text-center max-w-sm">
-            Oops! The page you're looking for doesn't exist. It might have been
-            moved, deleted, or you entered the wrong URL.
+            {description}
           </p>
         </div>{" "}
         <div className="flex flex-col gap-3">
@@ -43,14 +54,10 @@ const ErrorPage: React.FC = () => {
             className="w-full"
             color="primary"
             size="lg"
-            startContent={<IconHomeFilled size={20} />}
-            onPress={() => {
-              redirect({
-                to: "/",
-              });
-            }}
+            startContent={buttonIcon}
+            onPress={onButtonPress}
           >
-            Bring me back
+            {buttonText}
           </Button>
         </div>
       </div>
