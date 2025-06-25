@@ -48,7 +48,7 @@ const CogniVibeNavbar: React.FC<CogniVibeNavbarProps> = ({
       : displayName;
 
   return (
-    <Navbar className="pt-4 ">
+    <Navbar className="py-4 ">
       <NavbarBrand>
         <img
           src={logotypeSvg}
