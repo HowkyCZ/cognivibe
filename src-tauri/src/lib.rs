@@ -1,38 +1,19 @@
-use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_deep_link::DeepLinkExt;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-fn handle_deep_link(app: &AppHandle, urls: Vec<String>) {
-    println!("Received deep links: {:?}", urls);
-
-    // Focus the main window
-    focus_main_window(app);
-
-    // Emit the deep links to the frontend
-    let _ = app.emit("deep-links", urls);
-}
-
-fn focus_main_window(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.set_focus();
-        let _ = window.show();
-        let _ = window.unminimize();
-    } else {
-        println!("Main window not found");
-        return;
-    }
-}
+mod functions;
+use functions::{focus_main_window, get_running_apps, handle_deep_link, start_global_keystroke_listener};
 
 pub fn run() {
-    let mut builder = tauri::Builder::default();
-
+    let builder = tauri::Builder::default();
     #[cfg(desktop)]
     builder
-        .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+        .invoke_handler(tauri::generate_handler![get_running_apps])
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             focus_main_window(app);
         }))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
             #[cfg(desktop)]
             // Autostart
@@ -50,12 +31,16 @@ pub fn run() {
                 handle_deep_link(&app_handle, urls);
             });
 
+            // Start global keystroke listener
+            start_global_keystroke_listener(app.handle().clone());
+
             // * Used for deeplinks at runtime for development
             #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
                 app.deep_link().register_all()?;
             }
+
             Ok(())
         })
         .run(tauri::generate_context!())
