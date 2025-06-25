@@ -1,7 +1,9 @@
 use tauri_plugin_deep_link::DeepLinkExt;
 
 mod functions;
-use functions::{focus_main_window, get_running_apps, handle_deep_link, start_global_keystroke_listener};
+use functions::{
+    focus_main_window, get_running_apps, handle_deep_link, start_global_keystroke_listener,
+};
 
 pub fn run() {
     let builder = tauri::Builder::default();
