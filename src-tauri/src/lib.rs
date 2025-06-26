@@ -36,7 +36,7 @@ pub fn run() {
             // Start global keystroke listener
             start_global_keystroke_listener(app.handle().clone());
 
-            // * Used for deeplinks at runtime for development
+            // * Used for deeplinks at runtime for development, does not work on macos
             #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
