@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { createSupabaseClient } from "../utils/createSupabaseClient";
 import { useRouter } from "@tanstack/react-router";
+import { ROUTES } from "../utils/constants";
 
 interface UseAuthReturn {
   session: Session | null;
@@ -25,13 +26,11 @@ export const useAuth = (): UseAuthReturn => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setLoading(false);
-
-      // If session becomes null (user signed out), invalidate router and navigate to login
+      setLoading(false); // If session becomes null (user signed out), invalidate router and navigate to login
       if (!session) {
         router.invalidate();
         router.navigate({
-          to: "/auth/login",
+          to: ROUTES.LOGIN,
         });
       }
     });
@@ -45,7 +44,7 @@ export const useAuth = (): UseAuthReturn => {
       // Invalidate all router cache and reload tabs
       router.invalidate();
       router.navigate({
-        to: "/auth/login",
+        to: ROUTES.LOGIN,
       });
     }
   };

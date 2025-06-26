@@ -1,4 +1,5 @@
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+import { ROUTES } from "./constants";
 
 /**
  * Sets up deep link handling for the application
@@ -19,23 +20,20 @@ export const setupDeepLinkHandler = async (
         const urlObj = new URL(url);
         const path = urlObj.pathname;
 
-        console.log("Deep link path:", path);
-
-        // Define valid routes that exist in your app
+        console.log("Deep link path:", path); // Define valid routes that exist in your app
         const validRoutes = [
-          "/auth/error",
-          "/auth/callback",
-          "/auth/login",
-          "/dashboard",
-          "/404",
-          "/",
+          ROUTES.ERROR,
+          ROUTES.CALLBACK,
+          ROUTES.LOGIN,
+          ROUTES.DASHBOARD,
+          ROUTES.NOT_FOUND,
+          ROUTES.HOME,
         ];
-
-        if (validRoutes.includes(path)) {
-          if (path === "/auth/error") {
+        if (validRoutes.includes(path as any)) {
+          if (path === ROUTES.ERROR) {
             const searchParams = urlObj.searchParams;
             navigate({
-              to: "/auth/error",
+              to: ROUTES.ERROR,
               search: {
                 error: searchParams.get("error") || "unknown",
                 error_code: searchParams.get("error_code") || undefined,
@@ -43,23 +41,22 @@ export const setupDeepLinkHandler = async (
                   searchParams.get("error_description") || "An error occurred",
               },
             });
-          } else if (path === "/auth/callback") {
-            navigate({ to: "/auth/callback" });
+          } else if (path === ROUTES.CALLBACK) {
+            navigate({ to: ROUTES.CALLBACK });
           } else {
             navigate({ to: path });
           }
         } else {
-          // Route not found - redirect to error page
-          console.log("Invalid route detected:", path);
+          // Route not found - redirect to error page          console.log("Invalid route detected:", path);
           navigate({
-            to: "/404",
+            to: ROUTES.NOT_FOUND,
           });
         }
       } catch (parseError) {
         // Invalid URL format - redirect to error page
         console.error("Failed to parse deep link URL:", parseError);
         navigate({
-          to: "/auth/error",
+          to: ROUTES.ERROR,
           search: {
             error: "invalid_url",
             error_code: "400",

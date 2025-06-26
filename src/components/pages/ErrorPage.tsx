@@ -1,10 +1,11 @@
 import React from "react";
 import { Button, Image } from "@heroui/react";
 import WavyBackground from "../layout/WavyBackground";
-import logotypeSvg from "@assets/logotype.svg";
-import detectiveEmoji from "@emojis/animated/detective.png";
+import logotypeSvg from "../../assets/logotype.svg";
+import detectiveEmoji from "../../assets/emojis/animated/detective.png";
 import { IconHomeFilled } from "@tabler/icons-react";
 import { redirect } from "@tanstack/react-router";
+import { ROUTES } from "../../utils/constants";
 
 interface ErrorPageProps {
   title?: string;
@@ -19,7 +20,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
   description = "Oops! The page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL.",
   buttonText = "Bring me back",
   buttonIcon = <IconHomeFilled size={20} />,
-  onButtonPress = () => redirect({ to: "/" }),
+  onButtonPress = () => redirect({ to: ROUTES.HOME }),
 }) => {
   return (
     <WavyBackground

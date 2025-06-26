@@ -1,12 +1,15 @@
 import { redirect } from "@tanstack/react-router";
 import { createSupabaseClient } from "./createSupabaseClient";
+import { ROUTES } from "./constants";
 
 /**
  * Utility function to check if user is already authenticated
  * and redirect to dashboard if they are. Use this in beforeLoad
  * for routes that should not be accessible when logged in.
  */
-export const redirectIfAuthenticated = async (redirectTo: string = "/") => {
+export const redirectIfAuthenticated = async (
+  redirectTo: string = ROUTES.HOME
+) => {
   const supabase = createSupabaseClient();
   const {
     data: { session },
@@ -26,7 +29,7 @@ export const redirectIfAuthenticated = async (redirectTo: string = "/") => {
  * for protected routes that require authentication.
  */
 export const requireAuthentication = async (
-  loginRedirectTo: string = "/auth/login"
+  loginRedirectTo: string = ROUTES.LOGIN
 ) => {
   const supabase = createSupabaseClient();
   const {
@@ -47,8 +50,8 @@ export const requireAuthentication = async (
  * Use this for root/landing routes that act as authentication-based redirects.
  */
 export const redirectByAuthStatus = async (
-  authenticatedRedirectTo: string = "/dashboard",
-  unauthenticatedRedirectTo: string = "/auth/login"
+  authenticatedRedirectTo: string = ROUTES.DASHBOARD,
+  unauthenticatedRedirectTo: string = ROUTES.LOGIN
 ) => {
   const supabase = createSupabaseClient();
   const {

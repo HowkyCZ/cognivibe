@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { redirectByAuthStatus } from "../utils/userService";
-import { SpinnerPage } from "@pages";
+import { SpinnerPage } from "../components";
 
-// @ts-ignore
 export const Route = createFileRoute("/")({
   component: Main,
   beforeLoad: async () => {

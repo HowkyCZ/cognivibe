@@ -1,6 +1,7 @@
 import { createFileRoute, useSearch, useRouter } from "@tanstack/react-router";
 import { IconLogin } from "@tabler/icons-react";
 import ErrorPage from "../../../components/pages/ErrorPage";
+import { ROUTES } from "../../../utils/constants";
 
 type ErrorSearch = {
   error?: string;
@@ -8,7 +9,7 @@ type ErrorSearch = {
   error_description?: string;
 };
 
-export const Route = createFileRoute("/auth/error" as any)({
+export const Route = createFileRoute(ROUTES.ERROR)({
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): ErrorSearch => {
     return {
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/auth/error" as any)({
 function RouteComponent() {
   const router = useRouter();
   const { error, error_code, error_description } = useSearch({
-    from: "/auth/error" as any,
+    from: ROUTES.ERROR,
   });
 
   const getErrorMessage = () => {
@@ -44,7 +45,7 @@ function RouteComponent() {
       buttonText="Go back to login"
       buttonIcon={<IconLogin size={20} />}
       onButtonPress={() => {
-        router.navigate({ to: "/auth/login" as any });
+        router.navigate({ to: ROUTES.LOGIN });
       }}
     />
   );

@@ -1,9 +1,9 @@
 import { LoginPage } from "../../../components";
 import { createFileRoute } from "@tanstack/react-router";
 import { redirectIfAuthenticated } from "../../../utils/userService";
+import { ROUTES } from "../../../utils/constants";
 
-// @ts-ignore
-export const Route = createFileRoute("/auth/login")({
+export const Route = createFileRoute(ROUTES.LOGIN)({
   component: Login,
   beforeLoad: async () => {
     await redirectIfAuthenticated();

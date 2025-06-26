@@ -1,5 +1,3 @@
-"use client";
-
 import WavyBackground from "../layout/WavyBackground";
 
 import React from "react";
@@ -7,6 +5,7 @@ import { Button, Input, Link, Form, Divider, addToast } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import logotypeSvg from "../../assets/logotype.svg";
 import { createSupabaseClient } from "../../utils/createSupabaseClient";
+import { ROUTES } from "../../utils/constants";
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
@@ -25,7 +24,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: "cognivibe://localhost/auth/callback",
+          emailRedirectTo: `cognivibe://localhost/${ROUTES.CALLBACK}`,
         },
       });
       if (error) {

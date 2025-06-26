@@ -3,8 +3,9 @@ import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { createSupabaseClient } from "../../../utils/createSupabaseClient";
 import { useEffect } from "react";
 import { SpinnerPage } from "../../../components/pages";
+import { ROUTES } from "../../../utils/constants";
 
-export const Route = createFileRoute("/auth/callback" as any)({
+export const Route = createFileRoute(ROUTES.CALLBACK)({
   component: RouteComponent,
 });
 
@@ -35,7 +36,7 @@ function RouteComponent() {
 
             // Redirect to error page with error details
             router.navigate({
-              to: "/auth/error" as any,
+              to: ROUTES.ERROR,
               search: {
                 error: errorType || "unknown",
                 ...(errorCode && { error_code: errorCode }),
@@ -60,12 +61,12 @@ function RouteComponent() {
                 })
                 .then(() => {
                   // Redirect to home after successful authentication
-                  router.navigate({ to: "/" as any });
+                  router.navigate({ to: ROUTES.HOME });
                 })
                 .catch((error) => {
                   console.error("Error setting session:", error);
                   router.navigate({
-                    to: "/auth/error" as any,
+                    to: ROUTES.ERROR,
                     search: {
                       error: "session_error",
                       error_description:
@@ -86,7 +87,7 @@ function RouteComponent() {
           console.log("Error fetching session:", error);
           // Redirect to error page for session errors
           router.navigate({
-            to: "/auth/error" as any,
+            to: ROUTES.ERROR,
             search: {
               error: "session_error",
               error_description:
@@ -95,11 +96,11 @@ function RouteComponent() {
           });
         } else if (data.session) {
           // Success - redirect to home
-          router.navigate({ to: "/" as any });
+          router.navigate({ to: ROUTES.HOME });
         } else {
           // No session found
           router.navigate({
-            to: "/auth/error" as any,
+            to: ROUTES.ERROR,
             search: {
               error: "no_session",
               error_description:
@@ -110,7 +111,7 @@ function RouteComponent() {
       } catch (err) {
         console.error("Callback error:", err);
         router.navigate({
-          to: "/auth/error" as any,
+          to: ROUTES.ERROR,
           search: {
             error: "unexpected_error",
             error_description:
