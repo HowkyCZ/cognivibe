@@ -42,7 +42,7 @@ function RouteComponent() {
                 ...(errorCode && { error_code: errorCode }),
                 error_description:
                   errorDescription || "An error occurred during authentication",
-              } as any,
+              },
             });
             return;
           }
@@ -71,7 +71,7 @@ function RouteComponent() {
                       error: "session_error",
                       error_description:
                         "Failed to set authentication session.",
-                    } as any,
+                    },
                   });
                 });
               return;
@@ -92,7 +92,7 @@ function RouteComponent() {
               error: "session_error",
               error_description:
                 "Failed to authenticate. Please try logging in again.",
-            } as any,
+            },
           });
         } else if (data.session) {
           // Success - redirect to home
@@ -105,7 +105,7 @@ function RouteComponent() {
               error: "no_session",
               error_description:
                 "No valid session found. Please try logging in again.",
-            } as any,
+            },
           });
         }
       } catch (err) {
@@ -116,7 +116,7 @@ function RouteComponent() {
             error: "unexpected_error",
             error_description:
               "An unexpected error occurred. Please try again.",
-          } as any,
+          },
         });
       }
     };

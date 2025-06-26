@@ -7,4 +7,6 @@ export const ROUTES = {
   NOT_FOUND: "/404",
 } as const;
 
+export type AcceptableRoutes = (typeof ROUTES)[keyof typeof ROUTES];
+
 export const isInDevelopment = import.meta.env.DEV;

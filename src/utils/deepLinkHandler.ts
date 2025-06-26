@@ -1,5 +1,5 @@
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
-import { ROUTES } from "./constants";
+import { AcceptableRoutes, ROUTES } from "./constants";
 
 /**
  * Sets up deep link handling for the application
@@ -29,7 +29,7 @@ export const setupDeepLinkHandler = async (
           ROUTES.NOT_FOUND,
           ROUTES.HOME,
         ];
-        if (validRoutes.includes(path as any)) {
+        if (validRoutes.includes(path as AcceptableRoutes)) {
           if (path === ROUTES.ERROR) {
             const searchParams = urlObj.searchParams;
             navigate({
