@@ -15,3 +15,6 @@ Update only the app-icon.png file and run:
 npm run tauri icon
 ```
 
+# Tech opinions
+## Keylogging
+rdev is used
