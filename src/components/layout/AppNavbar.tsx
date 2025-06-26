@@ -37,7 +37,7 @@ const AppNavbar: React.FC<AppNavbarProps> = ({
   const { userData, loading: userLoading } = useUserData(session?.user?.id);
 
   const displayName = userData?.nickname;
-  const organizationName = "CogniVibe"; // Default organization name
+  const organizationName = userData?.organization?.brand_name || null;
   const displayEmail = session?.user?.email;
   const avatarSrc = userData?.avatar_url || undefined;
 

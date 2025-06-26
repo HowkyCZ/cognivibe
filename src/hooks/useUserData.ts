@@ -6,8 +6,7 @@ interface User {
   created_at: string;
   nickname: string;
   avatar_url: string | undefined;
-  organization_id: number | null;
-  organization?: Organization;
+  organization: Organization | null;
 }
 
 interface Organization {
@@ -45,8 +44,7 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
             created_at, 
             nickname, 
             avatar_url,
-            organization_id,
-            organizations!organization_id(organization_id, brand_name)
+            organization_id (organization_id, brand_name)
           `
           )
           .eq("user_id", userId)
@@ -57,18 +55,21 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
           setError(fetchError.message);
           setUserData(null);
         } else if (data) {
-          // Transform the data to match our interface
           const transformedData: User = {
             user_id: data.user_id,
             created_at: data.created_at,
             nickname: data.nickname,
             avatar_url: data.avatar_url,
-            organization_id: data.organization_id,
-            organization:
-              data.organizations && data.organizations.length > 0
-                ? data.organizations[0]
-                : undefined,
+            organization: data.organization_id
+              ? {
+                  // @ts-ignore
+                  organization_id: data.organization_id.organization_id!,
+                  // @ts-ignore
+                  brand_name: data.organization_id.brand_name!,
+                }
+              : null,
           };
+          console.log(transformedData);
           setUserData(transformedData);
         } else {
           setUserData(null);
