@@ -9,6 +9,8 @@ import {
   Input,
   addToast,
   Form,
+  Code,
+  Alert,
 } from "@heroui/react";
 import { useState, useEffect } from "react";
 import {
@@ -210,7 +212,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                       Danger Zone
                     </h4>
                     <div className="p-4 border border-danger-200 rounded-lg bg-danger-50">
-                      <p className="text-sm text-danger-600 mb-3">
+                      <p className="text-sm  mb-3">
                         Permanently delete your account and all associated data.
                         This action cannot be undone.
                       </p>
@@ -321,25 +323,25 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
               </ModalHeader>
               <ModalBody>
                 <div className="space-y-4">
-                  <div className="p-4 border border-danger-200 rounded-lg bg-danger-50">
-                    <p className="text-danger-700 font-semibold mb-2">
-                      ⚠️ This action is irreversible!
-                    </p>
-                    <p className="text-sm text-danger-600">
-                      Your account and all associated data will be permanently
-                      deleted. This includes your cognitive load history,
-                      settings, and all personal information.
-                    </p>
-                  </div>
+                  <Alert
+                    color="danger"
+                    variant="flat"
+                    className="mb-4"
+                    hideIcon
+                  >
+                    Are you sure you want to delete your account? This action is
+                    irreversible and will permanently remove all your data.
+                  </Alert>
 
                   <div>
-                    <p className="text-sm font-medium mb-2">
-                      To confirm deletion, please type
-                      <span className="font-mono bg-gray-100 px-1 rounded">
+                    <span className="flex items-center mb-2 gap-1">
+                      <p className="text-sm font-medium">
+                        To confirm deletion, please type
+                      </p>
+                      <Code color="danger" size="sm">
                         DELETE MY ACCOUNT
-                      </span>
-                      in the field below:
-                    </p>
+                      </Code>
+                    </span>
                     <Input
                       value={deleteConfirmText}
                       onValueChange={setDeleteConfirmText}

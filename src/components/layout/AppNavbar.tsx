@@ -76,8 +76,8 @@ const AppNavbar: React.FC<AppNavbarProps> = () => {
             <Avatar
               isBordered
               as="button"
-              className="transition-transform cursor-pointer hover:scale-105"
-              color="secondary"
+              className="transition-transform cursor-pointer hover:scale-105 select-none"
+              color="primary"
               name={displayName}
               size="sm"
               src={avatarSrc}
@@ -91,7 +91,13 @@ const AppNavbar: React.FC<AppNavbarProps> = () => {
               isReadOnly
             >
               <div className="flex gap-2 items-center">
-                <Avatar size="sm" src={avatarSrc} name={displayName} />
+                <Avatar
+                  size="sm"
+                  src={avatarSrc}
+                  name={displayName}
+                  color="primary"
+                  className="select-none"
+                />
                 <div className="flex flex-col">
                   <p className="text-small">
                     {userLoading ? "Loading..." : formattedDisplayName}

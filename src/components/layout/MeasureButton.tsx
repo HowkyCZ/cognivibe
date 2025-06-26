@@ -1,14 +1,10 @@
 import React from "react";
 import { useMeasuring } from "../../hooks";
 
-interface MeasureButtonProps {
-  // No props needed - component manages its own state
-}
-
-const MeasureButton: React.FC<MeasureButtonProps> = () => {
+const MeasureButton: React.FC = () => {
   const { isMeasuring, toggleMeasuring, loading } = useMeasuring();
   return (
-    <div className="flex justify-center hover:scale-105 transition-all">
+    <div className="flex justify-center hover:scale-105 transition-all active:scale-95">
       <button
         onClick={toggleMeasuring}
         disabled={loading}
@@ -28,17 +24,17 @@ const MeasureButton: React.FC<MeasureButtonProps> = () => {
         >
           {loading ? (
             <>
-              <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-bounce"></div>
+              <div className="w-2 h-2 bg-warning-400 rounded-full mr-2 animate-bounce"></div>
               Loading...
             </>
           ) : isMeasuring ? (
             <>
-              <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+              <div className="w-2 h-2 bg-success-400 rounded-full mr-2 animate-pulse"></div>
               Measuring
             </>
           ) : (
             <>
-              <div className="w-2 h-2 bg-slate-400 rounded-full mr-2"></div>
+              <div className="w-2 h-2 bg-primary-100 rounded-full mr-2"></div>
               Start Measuring
             </>
           )}
