@@ -17,79 +17,48 @@ import {
   IconAlertTriangle,
   IconDeviceFloppy,
 } from "@tabler/icons-react";
-import { enable, isEnabled, disable } from "@tauri-apps/plugin-autostart";
+import { useAppSettings, AppSettings } from "../../hooks";
 
 interface SettingsModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
 }
 
-interface SettingsData {
-  startOnBoot: boolean;
-  autoStartMonitoring: boolean;
-}
-
 const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
-  // Default settings
-  const defaultSettings: SettingsData = {
-    startOnBoot: false,
-    autoStartMonitoring: false,
-  };
-  const [settings, setSettings] = useState<SettingsData>(defaultSettings);
-  const [originalSettings, setOriginalSettings] =
-    useState<SettingsData>(defaultSettings);
+  const {
+    settings: appSettings,
+    updateSettings,
+    loading: settingsLoading,
+  } = useAppSettings();
+  const [localSettings, setLocalSettings] = useState<AppSettings | null>(null);
+  const [originalSettings, setOriginalSettings] = useState<AppSettings | null>(
+    null
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
-
   // Load settings when modal opens
   useEffect(() => {
-    if (isOpen) {
-      const loadSettings = async () => {
-        try {
-          const autostartEnabled = await isEnabled();
-          const loadedSettings: SettingsData = {
-            startOnBoot: autostartEnabled,
-            autoStartMonitoring: true, // This could be loaded from local storage or API
-          };
-          setSettings(loadedSettings);
-          setOriginalSettings(loadedSettings);
-        } catch (error) {
-          console.error("Error loading autostart status:", error);
-          // Fallback to default settings
-          setSettings(defaultSettings);
-          setOriginalSettings(defaultSettings);
-        }
-      };
-      loadSettings();
+    if (isOpen && appSettings) {
+      setLocalSettings(appSettings);
+      setOriginalSettings(appSettings);
     }
-  }, [isOpen]);
+  }, [isOpen, appSettings]);
 
   // Check if there are unsaved changes
   const hasChanges =
-    JSON.stringify(settings) !== JSON.stringify(originalSettings); // Handle saving settings
+    localSettings && originalSettings
+      ? JSON.stringify(localSettings) !== JSON.stringify(originalSettings)
+      : false; // Handle saving settings
   const handleSave = async (closeAfterSave = false) => {
+    if (!localSettings) return;
+
     setIsSaving(true);
     try {
-      // Handle autostart setting
-      if (settings.startOnBoot !== originalSettings.startOnBoot) {
-        if (settings.startOnBoot) {
-          await enable();
-        } else {
-          await disable();
-        }
-      }
-
-      // Here you would save other settings like autoStartMonitoring to local storage or API
-      // For example: localStorage.setItem('autoStartMonitoring', settings.autoStartMonitoring.toString());
-
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Update original settings to match current settings
-      setOriginalSettings({ ...settings });
+      await updateSettings(localSettings);
+      setOriginalSettings({ ...localSettings });
 
       addToast({
         title: "Settings saved successfully",
@@ -176,10 +145,11 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
       }
     }
   };
-
   // Handle leaving without saving
   const handleLeaveWithoutSaving = () => {
-    setSettings({ ...originalSettings }); // Reset to original settings
+    if (originalSettings) {
+      setLocalSettings({ ...originalSettings }); // Reset to original settings
+    }
     setShowUnsavedChangesModal(false);
     onOpenChange();
   };
@@ -211,26 +181,25 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                     <h4 className="text-lg font-semibold">
                       Application Settings
                     </h4>
-
                     <Checkbox
-                      isSelected={settings.startOnBoot}
+                      isSelected={localSettings?.start_on_boot ?? false}
                       onValueChange={(value) =>
-                        setSettings((prev) => ({ ...prev, startOnBoot: value }))
+                        setLocalSettings((prev) =>
+                          prev ? { ...prev, start_on_boot: value } : null
+                        )
                       }
-                      isDisabled={isSaving || isDeleting}
+                      isDisabled={isSaving || isDeleting || settingsLoading}
                     >
                       Start CogniVibe on computer boot
                     </Checkbox>
-
                     <Checkbox
-                      isSelected={settings.autoStartMonitoring}
+                      isSelected={localSettings?.auto_start_measuring ?? false}
                       onValueChange={(value) =>
-                        setSettings((prev) => ({
-                          ...prev,
-                          autoStartMonitoring: value,
-                        }))
+                        setLocalSettings((prev) =>
+                          prev ? { ...prev, auto_start_measuring: value } : null
+                        )
                       }
-                      isDisabled={isSaving || isDeleting}
+                      isDisabled={isSaving || isDeleting || settingsLoading}
                     >
                       Auto start monitoring when app opens
                     </Checkbox>

@@ -1,13 +1,34 @@
+use crate::AppState;
 use chrono::Local;
 use rdev::{listen, Event, EventType};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 
-// Global app handle storage for keystroke events
-static mut APP_HANDLE: Option<Arc<Mutex<AppHandle>>> = None;
+// Global app handle storage for keystroke events using OnceLock for thread safety
+static APP_HANDLE: OnceLock<Arc<Mutex<AppHandle>>> = OnceLock::new();
 
 fn keystroke_callback(event: Event) {
+    // Check if we should log keystrokes (only when measuring is active)
+    let should_log = if let Some(app_handle_arc) = APP_HANDLE.get() {
+        if let Ok(app_handle) = app_handle_arc.lock() {
+            if let Ok(app_state) = app_handle.state::<Mutex<AppState>>().lock() {
+                app_state.is_measuring
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+
+    // Only proceed if measuring is active
+    if !should_log {
+        return;
+    }
+
     let timestamp = Local::now();
     let timezone_hours = timestamp.offset().local_minus_utc() / 3600;
     let formatted_time = format!(
@@ -25,15 +46,12 @@ fn keystroke_callback(event: Event) {
             let keystroke_data = serde_json::json!({
                 "timestamp": timestamp.to_rfc3339(),
                 "event_type": "press",
-                "key": key_name
-            });
+                "key": key_name            });
 
             // Emit to frontend using global app handle
-            unsafe {
-                if let Some(app_handle_arc) = &APP_HANDLE {
-                    if let Ok(app_handle) = app_handle_arc.lock() {
-                        let _ = app_handle.emit("keystroke", &keystroke_data);
-                    }
+            if let Some(app_handle_arc) = APP_HANDLE.get() {
+                if let Ok(app_handle) = app_handle_arc.lock() {
+                    let _ = app_handle.emit("keystroke", &keystroke_data);
                 }
             }
         }
@@ -46,14 +64,10 @@ fn keystroke_callback(event: Event) {
                 "timestamp": timestamp.to_rfc3339(),
                 "event_type": "release",
                 "key": key_name
-            });
-
-            // Emit to frontend using global app handle
-            unsafe {
-                if let Some(app_handle_arc) = &APP_HANDLE {
-                    if let Ok(app_handle) = app_handle_arc.lock() {
-                        let _ = app_handle.emit("keystroke", &keystroke_data);
-                    }
+            }); // Emit to frontend using global app handle
+            if let Some(app_handle_arc) = APP_HANDLE.get() {
+                if let Ok(app_handle) = app_handle_arc.lock() {
+                    let _ = app_handle.emit("keystroke", &keystroke_data);
                 }
             }
         }
@@ -62,10 +76,8 @@ fn keystroke_callback(event: Event) {
 }
 
 pub fn start_global_keystroke_listener(app_handle: AppHandle) {
-    // Store app handle globally
-    unsafe {
-        APP_HANDLE = Some(Arc::new(Mutex::new(app_handle)));
-    }
+    // Store app handle globally using OnceLock
+    let _ = APP_HANDLE.set(Arc::new(Mutex::new(app_handle)));
 
     thread::spawn(move || {
         if let Err(error) = listen(keystroke_callback) {

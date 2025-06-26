@@ -8,6 +8,7 @@ import {
   Dropdown,
   DropdownMenu,
   Avatar,
+  useDisclosure,
 } from "@heroui/react";
 import {
   IconSettingsFilled,
@@ -17,31 +18,39 @@ import {
 } from "@tabler/icons-react";
 import logotypeSvg from "../../assets/logotype.svg";
 import { useAuth, useUserData } from "../../hooks";
+import MeasureButton from "./MeasureButton";
+import { HelpModal, LogoutModal, SettingsModal } from "../modals";
 
 interface AppNavbarProps {
-  isMeasuring: boolean;
-  onMeasuringToggle: () => void;
-  onHelpOpen: () => void;
-  onLogoutOpen: () => void;
-  onSettingsOpen: () => void;
+  // No props needed - component manages its own modal states
 }
 
-const AppNavbar: React.FC<AppNavbarProps> = ({
-  isMeasuring,
-  onMeasuringToggle,
-  onHelpOpen,
-  onLogoutOpen,
-  onSettingsOpen,
-}) => {
+const AppNavbar: React.FC<AppNavbarProps> = () => {
   const { session } = useAuth();
   const { userData, loading: userLoading } = useUserData(session?.user?.id);
+
+  // Modal states managed within the component
+  const {
+    isOpen: isHelpOpen,
+    onOpen: onHelpOpen,
+    onOpenChange: onHelpOpenChange,
+  } = useDisclosure();
+  const {
+    isOpen: isLogoutOpen,
+    onOpen: onLogoutOpen,
+    onOpenChange: onLogoutOpenChange,
+  } = useDisclosure();
+  const {
+    isOpen: isSettingsOpen,
+    onOpen: onSettingsOpen,
+    onOpenChange: onSettingsOpenChange,
+  } = useDisclosure();
 
   const displayName = userData?.nickname;
   const organizationName = userData?.organization?.brand_name || null;
   const displayEmail = session?.user?.email;
   const avatarSrc = userData?.avatar_url || undefined;
 
-  // Format display name with organization
   const formattedDisplayName =
     displayName && organizationName
       ? `${displayName} | ${organizationName}`
@@ -58,38 +67,7 @@ const AppNavbar: React.FC<AppNavbarProps> = ({
       </NavbarBrand>
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem>
-          {/* Measuring Toggle Button */}
-          <div className=" flex justify-center hover:scale-105 transition-all ">
-            <button
-              onClick={onMeasuringToggle}
-              className={`relative inline-flex h-12 w-48 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 transition-all duration-300 ${
-                isMeasuring ? "shadow-lg shadow-purple-500/25" : ""
-              }`}
-            >
-              {isMeasuring && (
-                <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-              )}
-              <span
-                className={`inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full px-6 py-1 text-sm font-medium backdrop-blur-3xl transition-all duration-300 ${
-                  isMeasuring
-                    ? "bg-slate-950 text-white"
-                    : "bg-white text-slate-950 border border-slate-300 hover:bg-slate-50"
-                }`}
-              >
-                {isMeasuring ? (
-                  <>
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                    Measuring
-                  </>
-                ) : (
-                  <>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full mr-2"></div>
-                    Start Measuring
-                  </>
-                )}
-              </span>
-            </button>
-          </div>
+          <MeasureButton />
         </NavbarItem>
       </NavbarContent>
       <NavbarContent as="div" justify="end">
@@ -156,6 +134,13 @@ const AppNavbar: React.FC<AppNavbarProps> = ({
           </DropdownMenu>
         </Dropdown>
       </NavbarContent>
+      {/* Modals */}
+      <HelpModal isOpen={isHelpOpen} onOpenChange={onHelpOpenChange} />
+      <LogoutModal isOpen={isLogoutOpen} onOpenChange={onLogoutOpenChange} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onOpenChange={onSettingsOpenChange}
+      />
     </Navbar>
   );
 };
