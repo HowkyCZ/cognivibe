@@ -78,12 +78,12 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             src={logotypeSvg}
             alt="CogniVibe Logo"
             className="h-12 mb-2 object-contain"
-          />{" "}
+          />
           <h1 className="text-large font-medium">Welcome to CogniVibe</h1>
           <p className="text-small text-default-500 text-center">
             Sign in or create an account to start monitoring your cognitive
             performance
-          </p>{" "}
+          </p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -144,20 +144,20 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             {isLoading ? "Sending magiclink" : "Send magic link"}
           </Button>
           <p className="text-center text-tiny text-default-500">
-            By continuing, you agree to our{" "}
+            By continuing, you agree to our
             <Link
               href="https://cognivibe.com/terms"
               className="text-primary text-tiny"
             >
               Terms of Service
-            </Link>{" "}
-            and{" "}
+            </Link>
+            and
             <Link
               href="https://cognivibe.com/privacy"
               className="text-primary text-tiny"
             >
               Privacy Policy
-            </Link>{" "}
+            </Link>
           </p>
         </Form>
       </div>

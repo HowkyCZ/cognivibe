@@ -91,7 +91,7 @@ const AppNavbar: React.FC<AppNavbarProps> = ({
             </button>
           </div>
         </NavbarItem>
-      </NavbarContent>{" "}
+      </NavbarContent>
       <NavbarContent as="div" justify="end">
         <Dropdown placement="bottom-end" backdrop="blur">
           <DropdownTrigger>

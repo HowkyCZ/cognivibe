@@ -129,7 +129,7 @@ const WeeklyAssessmentModal: React.FC<WeeklyAssessmentModalProps> = ({
                 <IconBrain className="h-6 w-6 mr-2 text-primary" />
                 Weekly Cognitive Assessment
               </div>
-            </ModalHeader>{" "}
+            </ModalHeader>
             <ModalBody className="gap-6">
               <div className="space-y-4">
                 <div>
@@ -157,7 +157,6 @@ const WeeklyAssessmentModal: React.FC<WeeklyAssessmentModalProps> = ({
                   renderValue={({ children, ...props }) => (
                     <output {...props}>
                       <div className="flex flex-col items-center">
-                        {" "}
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-3xl">
                             {getEmoji(formData.overallScore)}
@@ -201,7 +200,7 @@ const WeeklyAssessmentModal: React.FC<WeeklyAssessmentModalProps> = ({
                 isDisabled={isSubmitting}
               >
                 Cancel
-              </Button>{" "}
+              </Button>
               <Button
                 color="primary"
                 onPress={handleSubmit}

@@ -66,7 +66,6 @@ const LogoutModal = ({ isOpen, onOpenChange }: LogoutModalProps) => {
         }
       }}
     >
-      {" "}
       <ModalContent>
         {() => (
           <>
@@ -81,7 +80,7 @@ const LogoutModal = ({ isOpen, onOpenChange }: LogoutModalProps) => {
                 Are you sure you want to log out of CogniVibe? You will need to
                 sign in again to access your dashboard.
               </p>
-            </ModalBody>{" "}
+            </ModalBody>
             <ModalFooter>
               <Button
                 color="default"

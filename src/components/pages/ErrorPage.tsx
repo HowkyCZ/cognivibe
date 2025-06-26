@@ -42,14 +42,14 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
               alt="Detective Emoji"
               width={64}
               height={64}
-            />{" "}
+            />
             <h2 className="text-xl font-medium text-default-700">{title}</h2>
           </div>
 
           <p className="text-small text-default-500 text-center max-w-sm">
             {description}
           </p>
-        </div>{" "}
+        </div>
         <div className="flex flex-col gap-3">
           <Button
             className="w-full"

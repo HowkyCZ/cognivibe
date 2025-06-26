@@ -244,7 +244,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                       <p className="text-sm text-danger-600 mb-3">
                         Permanently delete your account and all associated data.
                         This action cannot be undone.
-                      </p>{" "}
+                      </p>
                       <Button
                         color="danger"
                         variant="bordered"
@@ -272,7 +272,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                   isDisabled={isSaving || isDeleting}
                 >
                   Cancel
-                </Button>{" "}
+                </Button>
                 <Button
                   color="primary"
                   onPress={() => handleSave(true)}
@@ -365,12 +365,12 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
 
                   <div>
                     <p className="text-sm font-medium mb-2">
-                      To confirm deletion, please type{" "}
+                      To confirm deletion, please type
                       <span className="font-mono bg-gray-100 px-1 rounded">
                         DELETE MY ACCOUNT
-                      </span>{" "}
+                      </span>
                       in the field below:
-                    </p>{" "}
+                    </p>
                     <Input
                       value={deleteConfirmText}
                       onValueChange={setDeleteConfirmText}
@@ -394,7 +394,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                   isDisabled={isDeleting}
                 >
                   Cancel
-                </Button>{" "}
+                </Button>
                 <Button
                   color="danger"
                   onPress={handleConfirmDeleteAccount}

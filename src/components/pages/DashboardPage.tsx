@@ -131,7 +131,7 @@ function DashboardPage() {
                         : "Consider taking a break"}
                   </p>
                 </div>
-              </div>{" "}
+              </div>
             </CardBody>
           </Card>
         </div>
@@ -149,15 +149,15 @@ function DashboardPage() {
             <CardBody className="text-center">
               <h4 className="text-lg font-semibold mb-2">Focus Time</h4>
               <p className="text-3xl font-bold text-green-600">4.2h</p>
-            </CardBody>{" "}
+            </CardBody>
           </Card>
           <Card className="p-4">
             <CardBody className="text-center">
               <h4 className="text-lg font-semibold mb-2">Break Time</h4>
               <p className="text-3xl font-bold text-orange-600">1.8h</p>
             </CardBody>
-          </Card>{" "}
-        </div>{" "}
+          </Card>
+        </div>
         <HelpModal isOpen={isOpen} onOpenChange={onOpenChange} />
         <LogoutModal isOpen={isLogoutOpen} onOpenChange={onLogoutOpenChange} />
         <SettingsModal

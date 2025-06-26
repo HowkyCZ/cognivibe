@@ -42,7 +42,7 @@ const LazyChart = lazy(() =>
               strokeOpacity={0.5}
               strokeDasharray="2 2"
             />
-          ))}{" "}
+          ))}
           <recharts.Line
             type="natural"
             dataKey="focus"
@@ -51,7 +51,7 @@ const LazyChart = lazy(() =>
             dot={false}
             activeDot={{ r: 6 }}
             name="Focus"
-          />{" "}
+          />
           <recharts.Line
             type="natural"
             dataKey="strain"
@@ -60,7 +60,7 @@ const LazyChart = lazy(() =>
             dot={false}
             activeDot={{ r: 6 }}
             name="Strain"
-          />{" "}
+          />
           <recharts.Line
             type="natural"
             dataKey="energy"
@@ -93,7 +93,6 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   return (
     <Card className="p-4">
       <CardHeader className="pb-4">
-        {" "}
         <div>
           <h3 className="text-xl font-semibold">Cognitive Metrics Today</h3>
           <p className="text-sm text-gray-500">
@@ -113,7 +112,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
           >
             <LazyChart data={data} sessions={sessions} />
           </Suspense>
-        </div>{" "}
+        </div>
         <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
           <div className="flex items-center gap-4">
             <span>Peak: {maxLoad}/10</span>

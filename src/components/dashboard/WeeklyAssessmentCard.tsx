@@ -25,7 +25,6 @@ const WeeklyAssessmentCard: React.FC = () => {
 
   return (
     <>
-      {" "}
       <ActionCard
         title={
           hasCompletedAssessment
