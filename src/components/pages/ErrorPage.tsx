@@ -4,7 +4,7 @@ import WavyBackground from "../layout/WavyBackground";
 import logotypeSvg from "../../assets/logotype.svg";
 import detectiveEmoji from "../../assets/emojis/animated/detective.png";
 import { IconHomeFilled } from "@tabler/icons-react";
-import { redirect } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { ROUTES } from "../../utils/constants";
 
 interface ErrorPageProps {
@@ -20,8 +20,14 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
   description = "Oops! The page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL.",
   buttonText = "Bring me back",
   buttonIcon = <IconHomeFilled size={20} />,
-  onButtonPress = () => redirect({ to: ROUTES.HOME }),
+  onButtonPress,
 }) => {
+  const navigate = useNavigate();
+  const handleButtonPress =
+    onButtonPress ||
+    (() => {
+      navigate({ to: ROUTES.HOME });
+    });
   return (
     <WavyBackground
       containerClassName="bg-black"
@@ -42,21 +48,21 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
               alt="Detective Emoji"
               width={64}
               height={64}
-            />
+            />{" "}
             <h2 className="text-xl font-medium text-default-700">{title}</h2>
           </div>
 
           <p className="text-small text-default-500 text-center max-w-sm">
             {description}
           </p>
-        </div>
+        </div>{" "}
         <div className="flex flex-col gap-3">
           <Button
             className="w-full"
             color="primary"
             size="lg"
             startContent={buttonIcon}
-            onPress={onButtonPress}
+            onPress={handleButtonPress}
           >
             {buttonText}
           </Button>

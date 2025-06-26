@@ -24,7 +24,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `cognivibe://localhost/${ROUTES.CALLBACK}`,
+          emailRedirectTo: `cognivibe://localhost${ROUTES.CALLBACK}`,
         },
       });
       if (error) {

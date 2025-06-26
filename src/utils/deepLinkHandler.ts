@@ -42,7 +42,39 @@ export const setupDeepLinkHandler = async (
               },
             });
           } else if (path === ROUTES.CALLBACK) {
-            navigate({ to: ROUTES.CALLBACK });
+            // Check if the URL contains error parameters
+            const hashPart = url.split("#")[1];
+            const searchPart = url.split("?")[1];
+            const urlParams = new URLSearchParams(hashPart || searchPart || "");
+
+            if (url.includes("error=")) {
+              const errorType = urlParams.get("error");
+              const errorCode = urlParams.get("error_code");
+              const errorDescription = urlParams.get("error_description");
+
+              // Redirect to error page with error details
+              navigate({
+                to: ROUTES.ERROR,
+                search: {
+                  error: errorType || "unknown",
+                  ...(errorCode && { error_code: errorCode }),
+                  error_description:
+                    errorDescription ||
+                    "An error occurred during authentication",
+                },
+              });
+            } else {
+              // No error, proceed to callback with all parameters
+              const searchObj: Record<string, any> = {};
+              urlParams.forEach((value, key) => {
+                searchObj[key] = value;
+              });
+
+              navigate({
+                to: ROUTES.CALLBACK,
+                search: searchObj,
+              });
+            }
           } else {
             navigate({ to: path });
           }

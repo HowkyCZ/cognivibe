@@ -1,5 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+import { createFileRoute, useRouter, useSearch } from "@tanstack/react-router";
 import { createSupabaseClient } from "../../../utils/createSupabaseClient";
 import { useEffect } from "react";
 import { SpinnerPage } from "../../../components/pages";
@@ -7,81 +6,58 @@ import { ROUTES } from "../../../utils/constants";
 
 export const Route = createFileRoute(ROUTES.CALLBACK)({
   component: RouteComponent,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      access_token: (search.access_token as string) || undefined,
+      refresh_token: (search.refresh_token as string) || undefined,
+      error: (search.error as string) || undefined,
+      error_code: (search.error_code as string) || undefined,
+      error_description: (search.error_description as string) || undefined,
+    };
+  },
 });
 
 function RouteComponent() {
   const router = useRouter();
+  const searchParams = useSearch({ from: ROUTES.CALLBACK });
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
         const supabase = createSupabaseClient();
 
-        // Listen for deep links
-        await onOpenUrl((urls) => {
-          console.log("deep link:", urls);
+        console.log("Search params:", searchParams);
 
-          const url = urls[0];
-          if (!url) return;
+        // Check if URL contains success tokens
+        const accessToken = searchParams.access_token;
+        const refreshToken = searchParams.refresh_token;
 
-          const hashPart = url.split("#")[1];
-          const searchPart = url.split("?")[1];
-          const urlParams = new URLSearchParams(hashPart || searchPart || "");
-
-          // Check if the URL contains error parameters
-          if (url.includes("error=")) {
-            const errorType = urlParams.get("error");
-            const errorCode = urlParams.get("error_code");
-            const errorDescription = urlParams.get("error_description");
-
-            // Redirect to error page with error details
-            router.navigate({
-              to: ROUTES.ERROR,
-              search: {
-                error: errorType || "unknown",
-                ...(errorCode && { error_code: errorCode }),
-                error_description:
-                  errorDescription || "An error occurred during authentication",
-              },
+        if (accessToken && refreshToken) {
+          // Set the session with the tokens
+          supabase.auth
+            .setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            })
+            .then(() => {
+              // Redirect to home after successful authentication
+              router.navigate({ to: ROUTES.HOME });
+            })
+            .catch((error) => {
+              console.error("Error setting session:", error);
+              router.navigate({
+                to: ROUTES.ERROR,
+                search: {
+                  error: "session_error",
+                  error_description: "Failed to set authentication session.",
+                },
+              });
             });
-            return;
-          }
-
-          // Check if URL contains success tokens
-          if (url.includes("access_token") && url.includes("refresh_token")) {
-            const accessToken = urlParams.get("access_token");
-            const refreshToken = urlParams.get("refresh_token");
-
-            if (accessToken && refreshToken) {
-              // Set the session with the tokens
-              supabase.auth
-                .setSession({
-                  access_token: accessToken,
-                  refresh_token: refreshToken,
-                })
-                .then(() => {
-                  // Redirect to home after successful authentication
-                  router.navigate({ to: ROUTES.HOME });
-                })
-                .catch((error) => {
-                  console.error("Error setting session:", error);
-                  router.navigate({
-                    to: ROUTES.ERROR,
-                    search: {
-                      error: "session_error",
-                      error_description:
-                        "Failed to set authentication session.",
-                    },
-                  });
-                });
-              return;
-            }
-          }
-        });
+          return;
+        }
 
         // If no tokens or errors in deep link, check existing session
         const { data, error } = await supabase.auth.getSession();
-        console.log("Current session data:", data);
 
         if (error) {
           console.log("Error fetching session:", error);
