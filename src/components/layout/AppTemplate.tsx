@@ -8,10 +8,8 @@ interface AppTemplateProps {
 const AppTemplate: React.FC<AppTemplateProps> = ({ children }) => {
   return (
     <HeroUIProvider>
-      <div className="dark text-foreground bg-background">
-        {children}
-        <ToastProvider placement="top-center" toastOffset={40} />
-      </div>
+      {children}
+      <ToastProvider placement="top-center" toastOffset={40} />
     </HeroUIProvider>
   );
 };
