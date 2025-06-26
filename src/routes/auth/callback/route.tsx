@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { createSupabaseClient } from "../../../utils/createSupabaseClient";
 import { useEffect } from "react";
-import { Spinner } from "@heroui/react";
+import { SpinnerPage } from "../../../components/pages";
 
 export const Route = createFileRoute("/auth/callback" as any)({
   component: RouteComponent,
@@ -33,7 +33,7 @@ function RouteComponent() {
             const errorCode = urlParams.get("error_code");
             const errorDescription = urlParams.get("error_description");
 
-            // Redirect to error page with error details using TanStack Router
+            // Redirect to error page with error details
             router.navigate({
               to: "/auth/error" as any,
               search: {
@@ -123,9 +123,5 @@ function RouteComponent() {
     handleCallback();
   }, [router]);
 
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Spinner size="lg" />
-    </div>
-  );
+  return <SpinnerPage />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import WavyBackground from "../ui/WavyBackground";
+import WavyBackground from "../layout/WavyBackground";
 
 import React from "react";
 import { Button, Input, Link, Form, Divider, addToast } from "@heroui/react";

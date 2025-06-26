@@ -1,8 +1,8 @@
 import React from "react";
 import { Button, Image } from "@heroui/react";
-import WavyBackground from "../ui/WavyBackground";
-import logotypeSvg from "../../assets/logotype.svg";
-import detectiveEmoji from "../../assets/emojis/animated/detective.png";
+import WavyBackground from "../layout/WavyBackground";
+import logotypeSvg from "@assets/logotype.svg";
+import detectiveEmoji from "@emojis/animated/detective.png";
 import { IconHomeFilled } from "@tabler/icons-react";
 import { redirect } from "@tanstack/react-router";
 

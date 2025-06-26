@@ -1,3 +1,3 @@
 export { default as AppTemplate } from "./AppTemplate";
-export { default as CustomNavbar } from "./CustomNavbar";
-export { default as ErrorPage } from "./ErrorPage";
+export { default as AppNavbar } from "./AppNavbar";
+export { default as WavyBackground } from "../layout/WavyBackground";

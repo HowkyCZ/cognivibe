@@ -1,23 +1,12 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import DashboardPage from "../../components/DashboardPage";
-import { createSupabaseClient } from "../../utils/createSupabaseClient";
+import { createFileRoute } from "@tanstack/react-router";
+import DashboardPage from "../../components/pages/DashboardPage";
+import { requireAuthentication } from "../../utils/userService";
 
 // @ts-ignore
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
   beforeLoad: async () => {
-    const supabase = createSupabaseClient();
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (!session || error) {
-      console.log("No session found, redirecting to login");
-      throw redirect({
-        to: "/auth/login",
-      });
-    }
+    await requireAuthentication();
   },
 });
 

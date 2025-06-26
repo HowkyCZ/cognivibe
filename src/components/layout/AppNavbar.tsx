@@ -18,7 +18,7 @@ import {
 import logotypeSvg from "../../assets/logotype.svg";
 import { useAuth, useUserData } from "../../hooks";
 
-interface CogniVibeNavbarProps {
+interface AppNavbarProps {
   isMeasuring: boolean;
   onMeasuringToggle: () => void;
   onHelpOpen: () => void;
@@ -26,7 +26,7 @@ interface CogniVibeNavbarProps {
   onSettingsOpen: () => void;
 }
 
-const CogniVibeNavbar: React.FC<CogniVibeNavbarProps> = ({
+const AppNavbar: React.FC<AppNavbarProps> = ({
   isMeasuring,
   onMeasuringToggle,
   onHelpOpen,
@@ -160,4 +160,4 @@ const CogniVibeNavbar: React.FC<CogniVibeNavbarProps> = ({
   );
 };
 
-export default CogniVibeNavbar;
+export default AppNavbar;

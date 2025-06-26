@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "../../utils/wawy";
+import { cn } from "../../utils/wavy_bg_helper";
 import { useEffect, useRef, useState } from "react";
 import { createNoise3D } from "simplex-noise";
 

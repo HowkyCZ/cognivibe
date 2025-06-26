@@ -1,16 +1,16 @@
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Divider } from "@heroui/divider";
-import { useDisclosure } from "@heroui/react";
-import { useState, useEffect } from "react";
+import { Button, useDisclosure } from "@heroui/react";
+import { useState } from "react";
 import {
   CognitiveLoadChart,
   HelpModal,
   LogoutModal,
   SettingsModal,
   WeeklyAssessmentCard,
-  CustomNavbar,
-} from ".";
-import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+  AppNavbar,
+} from "..";
+import { invoke } from "@tauri-apps/api/core";
 
 // Sample data for cognitive metrics throughout the day
 const cognitiveLoadData = [
@@ -62,27 +62,37 @@ function DashboardPage() {
     onOpenChange: onSettingsOpenChange,
   } = useDisclosure();
 
+  const fetchRunningApps = async () => {
+    const apps = await invoke("get_running_apps");
+    console.log(apps);
+  };
+
+  fetchRunningApps();
+
   return (
     <>
-      <CustomNavbar
+      <AppNavbar
         isMeasuring={isMeasuring}
         onMeasuringToggle={() => setIsMeasuring(!isMeasuring)}
         onHelpOpen={onOpen}
         onLogoutOpen={onLogoutOpen}
         onSettingsOpen={onSettingsOpen}
       />
-      {/* Main Dashboard Content */}
       <main className="container mx-auto p-8">
-        {" "}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Cognitive Load Chart Card */}{" "}
+          <Button
+            variant="solid"
+            onPress={() => fetchRunningApps()}
+            className="mb-4"
+          >
+            Fetch Running Apps
+          </Button>
           <CognitiveLoadChart
             data={cognitiveLoadData}
             sessions={sessionData}
             maxLoad={maxLoad}
             avgLoad={avgLoad}
           />
-          {/* Current Cognitive Load Big Number Card */}
           <Card className="p-4">
             <CardHeader className="pb-4">
               <div>
@@ -125,11 +135,9 @@ function DashboardPage() {
             </CardBody>
           </Card>
         </div>
-        {/* Weekly Assessment Section */}
         <div className="mt-6">
           <WeeklyAssessmentCard />
         </div>
-        {/* Additional Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <Card className="p-4">
             <CardBody className="text-center">
@@ -150,7 +158,6 @@ function DashboardPage() {
             </CardBody>
           </Card>{" "}
         </div>{" "}
-        {/* Modal Components */}
         <HelpModal isOpen={isOpen} onOpenChange={onOpenChange} />
         <LogoutModal isOpen={isLogoutOpen} onOpenChange={onLogoutOpenChange} />
         <SettingsModal

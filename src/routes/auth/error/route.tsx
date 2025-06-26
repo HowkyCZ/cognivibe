@@ -1,6 +1,6 @@
 import { createFileRoute, useSearch, useRouter } from "@tanstack/react-router";
 import { IconLogin } from "@tabler/icons-react";
-import ErrorPage from "../../../components/layout/ErrorPage";
+import ErrorPage from "../../../components/pages/ErrorPage";
 
 type ErrorSearch = {
   error?: string;
