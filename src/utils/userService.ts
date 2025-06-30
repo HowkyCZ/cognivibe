@@ -37,6 +37,8 @@ export const requireAuthentication = async (
     error,
   } = await supabase.auth.getSession();
 
+  console.log(session);
+
   if (!session || error) {
     console.log("No session found, redirecting to login");
     throw redirect({

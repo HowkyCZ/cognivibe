@@ -29,6 +29,7 @@ chrono = "0.4.41"
 # For system information, current open apps
 sysinfo = "0.32"
 tauri-plugin-store = "2.2.1"
+tauri-plugin-http = "2"
 
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
 tauri-plugin-single-instance = { version = "2.0.0", features = ["deep-link"] }

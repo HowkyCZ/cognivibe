@@ -1,0 +1,10 @@
+{
+  "app": {
+    "security": {
+      "csp": {
+        "default-src": "'self' cognivibe://localhost http://localhost:1420",
+        "connect-src": "'self' https://server.cognivibe.tech https://cognivibe-server.vercel.app https://fctvbjzcjsycheklmnfh.supabase.co"
+      }
+    }
+  }
+}

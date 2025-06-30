@@ -11,6 +11,9 @@ import {
 } from "@heroui/react";
 import { useState } from "react";
 import { IconHelpCircleFilled, IconMailFilled } from "@tabler/icons-react";
+import { useAuth } from "../../hooks";
+import { fetch } from "@tauri-apps/plugin-http";
+import { API_CONFIG } from "../../utils/apiConfig";
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -20,14 +23,58 @@ interface HelpModalProps {
 const HelpModal = ({ isOpen, onOpenChange }: HelpModalProps) => {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { session } = useAuth();
 
-  // Dummy async function to simulate sending feedback
+  // API function to send feedback
   const submitFeedback = async (message: string) => {
-    console.log("Submitting feedback:", message);
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log("Feedback submitted successfully!");
-    return { success: true };
+    try {
+      // Check if user is authenticated
+      if (!session) {
+        throw new Error("Authentication required. Please log in again.");
+      }
+
+      if (!session.user?.id) {
+        throw new Error("User ID not found in session.");
+      }
+
+      console.log("Submitting feedback:", {
+        message,
+        userId: session.user.id,
+        jwt: session.access_token,
+      });
+
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SEND_FEEDBACK}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: message,
+            jwt: session.access_token,
+            userId: session.user.id,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to send feedback");
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      throw error;
+    }
   };
 
   // Handle form submission
@@ -51,9 +98,11 @@ const HelpModal = ({ isOpen, onOpenChange }: HelpModalProps) => {
         handleModalClose(false);
       } catch (error) {
         console.error("Error submitting feedback:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Please try again later.";
         addToast({
           title: "Error sending feedback",
-          description: "Please try again later.",
+          description: errorMessage,
           color: "danger",
           timeout: 5000,
           variant: "flat",
@@ -101,7 +150,7 @@ const HelpModal = ({ isOpen, onOpenChange }: HelpModalProps) => {
               isRequired
               isDisabled={isSubmitting}
               minLength={10}
-              maxLength={1000}
+              maxLength={5000}
               rows={4}
               autoFocus
               errorMessage={(value) => {
