@@ -140,7 +140,6 @@ const AppNavbar: React.FC<AppNavbarProps> = () => {
           </DropdownMenu>
         </Dropdown>
       </NavbarContent>
-      {/* Modals */}
       <HelpModal isOpen={isHelpOpen} onOpenChange={onHelpOpenChange} />
       <LogoutModal isOpen={isLogoutOpen} onOpenChange={onLogoutOpenChange} />
       <SettingsModal
