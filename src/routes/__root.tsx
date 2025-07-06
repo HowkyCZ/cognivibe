@@ -10,7 +10,7 @@ export const Route = createRootRoute({
     const navigate = useNavigate();
     useEffect(() => {
       setupDeepLinkHandler(navigate);
-    }, [navigate]);
+    }, []);
 
     return (
       <AppTemplate>
