@@ -1,13 +1,40 @@
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
+use tauri_plugin_deep_link::DeepLinkExt;
 
 use super::focus_main_window::focus_main_window;
 
-pub fn handle_deep_link(app: &AppHandle, urls: Vec<String>) {
-    println!("Received deep links: {:?}", urls);
+// Unified function to set up deep link handling for the app
+pub fn setup_deep_link_handlers(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+    // Register deep link protocol
+    app.deep_link().register("cognivibe")?;
 
-    // Focus the main window
-    focus_main_window(app);
+    // Set up URL event handler
+    let app_handle = app.clone();
+    app.deep_link().on_open_url(move |event| {
+        // Get all URLs first to avoid ownership issues
+        let all_urls = event.urls();
+        
+        // Filter for cognivibe protocol URLs and take only the first one
+        let cognivibe_url = all_urls
+            .iter()
+            .find(|url| url.as_str().starts_with("cognivibe://"))
+            .map(|url| url.to_string());
+        
+        if let Some(url) = cognivibe_url {
+            println!("Processing cognivibe deep link: {}", url);
 
-    // Emit the deep links to the frontend
-    let _ = app.emit("deep-links", urls);
+            // Focus the main window
+            focus_main_window(&app_handle);
+        } else {
+            println!("No cognivibe deep links found in: {:?}", all_urls);
+        }
+    });
+
+    // Register all deep links for development (doesn't work on macOS)
+    #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
+    {
+        app.deep_link().register_all()?;
+    }
+
+    Ok(())
 }

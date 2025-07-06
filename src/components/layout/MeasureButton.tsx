@@ -24,7 +24,7 @@ const MeasureButton: React.FC = () => {
         >
           {loading ? (
             <>
-              <div className="w-2 h-2 bg-warning-400 rounded-full mr-2 animate-bounce"></div>
+              <div className="w-2 h-2 bg-warning-400 rounded-full mr-2"></div>
               Loading...
             </>
           ) : isMeasuring ? (
