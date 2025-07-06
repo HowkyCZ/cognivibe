@@ -144,14 +144,14 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             {isLoading ? "Sending magiclink" : "Send magic link"}
           </Button>
           <p className="text-center text-tiny text-default-500">
-            By continuing, you agree to our
+            By continuing, you agree to our{" "}
             <Link
               href="https://cognivibe.com/terms"
               className="text-primary text-tiny"
             >
               Terms of Service
-            </Link>
-            and
+            </Link>{" "}
+            and{" "}
             <Link
               href="https://cognivibe.com/privacy"
               className="text-primary text-tiny"
