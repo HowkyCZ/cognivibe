@@ -1,11 +1,13 @@
+import { isInDevelopment } from "./constants";
+
 /**
  * Get the API base URL based on the current environment
  * @returns The appropriate API base URL for production or development
  */
 export const getApiBaseUrl = (): string => {
-  return import.meta.env.PROD
-    ? "https://server.cognivibe.tech"
-    : "https://cognivibe-server.vercel.app";
+  return isInDevelopment
+    ? "https://cognivibe-server.vercel.app"
+    : "https://server.cognivibe.tech";
 };
 
 /**
