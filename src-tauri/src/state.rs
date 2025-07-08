@@ -25,10 +25,12 @@ pub fn toggle_measuring(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle
     }
 
     if is_starting_measurement {
+        #[cfg(debug_assertions)]
         println!("Started measuring");
         // Reset mouse and keyboard tracking data when starting measurement
         reset_input_data(&app);
     } else {
+        #[cfg(debug_assertions)]
         println!("Stopped measuring");
     }
 

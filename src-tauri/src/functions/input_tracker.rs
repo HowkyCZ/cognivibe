@@ -58,6 +58,7 @@ fn input_callback(event: Event) {
                 if let Ok(app_handle) = app_handle_arc.lock() {
                     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                         app_state.mouse_data.mouse_downs += 1;
+                        #[cfg(debug_assertions)]
                         println!(
                             "Mouse down detected. Total downs: {}",
                             app_state.mouse_data.mouse_downs
@@ -71,6 +72,7 @@ fn input_callback(event: Event) {
                 if let Ok(app_handle) = app_handle_arc.lock() {
                     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                         app_state.mouse_data.mouse_ups += 1;
+                        #[cfg(debug_assertions)]
                         println!(
                             "Mouse up detected. Total ups: {}",
                             app_state.mouse_data.mouse_ups
@@ -97,6 +99,7 @@ fn input_callback(event: Event) {
                         app_state.mouse_data.last_y = y as f64;
 
                         // Only print occasionally to avoid spam (every 100 pixels of movement)
+                        #[cfg(debug_assertions)]
                         if app_state.mouse_data.total_distance as u64 % 100 == 0 {
                             println!(
                                 "Mouse distance: {:.1} pixels",
@@ -112,6 +115,7 @@ fn input_callback(event: Event) {
                 if let Ok(app_handle) = app_handle_arc.lock() {
                     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                         app_state.keyboard_data.key_downs += 1;
+                        #[cfg(debug_assertions)]
                         println!(
                             "Key down detected. Total key downs: {}",
                             app_state.keyboard_data.key_downs
@@ -125,6 +129,7 @@ fn input_callback(event: Event) {
                 if let Ok(app_handle) = app_handle_arc.lock() {
                     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                         app_state.keyboard_data.key_ups += 1;
+                        #[cfg(debug_assertions)]
                         println!(
                             "Key up detected. Total key ups: {}",
                             app_state.keyboard_data.key_ups
@@ -164,6 +169,7 @@ fn start_minute_logger(app_handle: AppHandle) {
                         let mouse_data = app_state.mouse_data.clone();
                         let keyboard_data = app_state.keyboard_data.clone();
 
+                        #[cfg(debug_assertions)]
                         println!(
                             "[{}] Minute {} - Mouse Downs: {}, Mouse Ups: {}, Distance: {:.1}px, Key Downs: {}, Key Ups: {}",
                             Local::now().format("%Y-%m-%d %H:%M:%S"),
@@ -197,6 +203,7 @@ pub fn start_global_input_tracker(app_handle: AppHandle) {
     // Start the input event listener (handles both mouse and keyboard events)
     thread::spawn(move || {
         if let Err(error) = listen(input_callback) {
+            #[cfg(debug_assertions)]
             println!("Error starting global input tracker: {:?}", error);
         }
     });
@@ -243,6 +250,7 @@ pub fn reset_input_data(app_handle: &AppHandle) {
     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
         app_state.mouse_data = MouseData::default();
         app_state.keyboard_data = KeyboardData::default();
+        #[cfg(debug_assertions)]
         println!("Mouse and keyboard tracking data reset");
     }
 }
