@@ -10,6 +10,7 @@ jobs:
   publish-tauri:
     permissions:
       contents: write
+    environment: Production
     strategy:
       fail-fast: false
       matrix:
@@ -45,43 +46,34 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
-      - name: load environment variables
-        run: |
-          if (Test-Path .env) { Get-Content .env | ForEach-Object { if ($_ -match '^([^=]+)=(.*)$') { [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process') } } }
-          if (Test-Path .env.production.local) { Get-Content .env.production.local | ForEach-Object { if ($_ -match '^([^=]+)=(.*)$') { [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process') } } }
-        shell: pwsh
-        if: matrix.platform == 'windows-latest'
-
-      - name: load environment variables (unix)
-        run: |
-          [ -f .env ] && export $(cat .env | xargs)
-          [ -f .env.production.local ] && export $(cat .env.production.local | xargs)
-        if: matrix.platform != 'windows-latest'
-
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: "Cognivibe v__VERSION__"
           releaseBody: |
             ## 🎉 Cognivibe v__VERSION__
-            
+
             A productivity tool designed to help you measure and improve your cognitive performance.
-            
+
             ### 📥 Installation
             - **Windows**: Download the `.exe` installer
             - **macOS (Intel)**: Download the `.dmg` file for Intel Macs
             - **macOS (Apple Silicon)**: Download the `.dmg` file for M1/M2/M3 Macs
-            
+
             ### ✨ What's New
             See the [CHANGELOG.md](https://github.com/Marilok/cognivibe/blob/main/CHANGELOG.md) for detailed changes.
-            
+
             ### 🔄 Auto-Updates
             This version includes auto-update functionality. Future updates will be installed automatically.
-            
+
             ---
-            
+
             **Full Changelog**: https://github.com/Marilok/cognivibe/blob/main/CHANGELOG.md
           releaseDraft: false
           prerelease: false
