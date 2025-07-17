@@ -18,9 +18,14 @@
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://cognivibe-server.vercel.app" },
-        { "url": "https://server.cognivibe.tech" }
+        {
+          "url": "https://cognivibe-server.vercel.app"
+        },
+        {
+          "url": "https://server.cognivibe.tech"
+        }
       ]
-    }
+    },
+    "updater:default"
   ]
 }

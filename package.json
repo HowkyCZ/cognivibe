@@ -1,7 +1,7 @@
 {
   "name": "cognivibe",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev --config src-tauri/tauri.dev.conf.json",
-    "tauri:build": "tauri build"
+    "tauri:build": "dotenv -e .env -e .env.production.local -- tauri build"
   },
   "dependencies": {
     "@heroui/react": "^2.8.0-beta.7",
@@ -39,13 +39,14 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
+    "@tanstack/react-router-devtools": "^1.121.34",
     "@tanstack/router-plugin": "^1.121.34",
     "@tauri-apps/cli": "^2",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "dotenv-cli": "^8.0.0",
     "typescript": "~5.6.2",
-    "vite": "^6.0.3",
-    "@tanstack/react-router-devtools": "^1.121.34"
+    "vite": "^6.0.3"
   }
 }
