@@ -23,7 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Build directories
+# Build directories and lock files
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 Cargo.lock
+*.lock
 
