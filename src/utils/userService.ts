@@ -17,7 +17,6 @@ export const redirectIfAuthenticated = async (
   } = await supabase.auth.getSession();
 
   if (session && !error) {
-    console.log("Session found, redirecting to dashboard");
     throw redirect({
       to: redirectTo,
     });
@@ -40,7 +39,6 @@ export const requireAuthentication = async (
   console.log(session);
 
   if (!session || error) {
-    console.log("No session found, redirecting to login");
     throw redirect({
       to: loginRedirectTo,
     });
@@ -62,12 +60,10 @@ export const redirectByAuthStatus = async (
   } = await supabase.auth.getSession();
 
   if (!session || error) {
-    console.log("No session found, redirecting to login");
     throw redirect({
       to: unauthenticatedRedirectTo,
     });
   } else {
-    console.log("Session found, redirecting to dashboard");
     throw redirect({
       to: authenticatedRedirectTo,
     });

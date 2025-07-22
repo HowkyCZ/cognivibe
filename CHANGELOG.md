@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-07-22
+
+### Added
+- Auto-updater modal with progress tracking
+- Download progress visualization
+- Automatic app restart after updates
+
+### Fixed
+- macOS M1 compatibility issues with input tracking
+- TypeScript type safety for updater components
+- Platform-specific build optimizations
+
+### Changed
+- Improved update notification user experience
+- Enhanced error handling for update process
+- Non-dismissible update modal for critical updates
+
 ## [1.0.0] - 2025-07-17
 
 ### Added
