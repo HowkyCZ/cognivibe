@@ -202,9 +202,30 @@ pub fn start_global_input_tracker(app_handle: AppHandle) {
 
     // Start the input event listener (handles both mouse and keyboard events)
     thread::spawn(move || {
+        #[cfg(target_os = "macos")]
+        {
+            println!("🍎 Starting input tracker on macOS");
+            println!("ℹ️  If input tracking doesn't work, please:");
+            println!("   1. Go to System Preferences → Security & Privacy → Privacy → Accessibility");
+            println!("   2. Add 'Cognivibe' to the list and enable the checkbox");
+            println!("   3. Restart the application");
+        }
+
         if let Err(error) = listen(input_callback) {
             #[cfg(debug_assertions)]
             println!("Error starting global input tracker: {:?}", error);
+            
+            #[cfg(target_os = "macos")]
+            {
+                println!("❌ Input tracking failed on macOS");
+                println!("This is likely due to missing Accessibility permissions.");
+                println!("Please grant Accessibility permission in System Preferences and restart the app.");
+            }
+            
+            #[cfg(not(target_os = "macos"))]
+            {
+                println!("❌ Input tracking failed: {:?}", error);
+            }
         }
     });
 
