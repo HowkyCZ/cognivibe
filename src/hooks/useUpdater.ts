@@ -12,7 +12,9 @@ interface UseUpdaterReturn {
   updateInfo: UpdateInfo | null;
   isChecking: boolean;
   error: string | null;
-  downloadAndInstall: (onProgress: (event: DownloadEvent) => void) => Promise<void>;
+  downloadAndInstall: (
+    onProgress: (event: DownloadEvent) => void
+  ) => Promise<void>;
   checkForUpdates: () => Promise<void>;
 }
 
@@ -48,7 +50,9 @@ export const useUpdater = (): UseUpdaterReturn => {
       }
     } catch (err) {
       console.error("Error checking for updates:", err);
-      setError(err instanceof Error ? err.message : "Failed to check for updates");
+      setError(
+        err instanceof Error ? err.message : "Failed to check for updates"
+      );
       setIsUpdateAvailable(false);
       setUpdateInfo(null);
       setUpdateInstance(null);
@@ -86,9 +90,12 @@ export const useUpdater = (): UseUpdaterReturn => {
 
   // Check for updates periodically (every 30 minutes)
   useEffect(() => {
-    const interval = setInterval(() => {
-      checkForUpdates();
-    }, 30 * 60 * 1000); // 30 minutes
+    const interval = setInterval(
+      () => {
+        checkForUpdates();
+      },
+      30 * 60 * 1000
+    ); // 30 minutes
 
     return () => clearInterval(interval);
   }, []);
