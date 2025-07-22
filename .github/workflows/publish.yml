@@ -45,6 +45,30 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
+      - name: Extract changelog for current version
+        id: changelog
+        shell: bash
+        run: |
+          # Extract version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Extracting changelog for version $VERSION"
+
+          # Use awk to extract the section between the current version and the next version header
+          # This will preserve the ### Added, ### Fixed, ### Changed headings
+          CHANGELOG_SECTION=$(awk "/^## \[$VERSION\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md | sed '/^$/d' || echo "")
+
+          # If changelog section is empty, provide default message
+          if [ -z "$CHANGELOG_SECTION" ]; then
+            CHANGELOG_SECTION="No changelog entries found for this version. See the [CHANGELOG.md](https://github.com/Marilok/cognivibe/blob/release/CHANGELOG.md) for more details."
+          fi
+
+          # Save to output using proper multiline syntax
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG_SECTION"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,22 +82,11 @@ jobs:
           releaseBody: |
             ## 🎉 Cognivibe v__VERSION__
 
-            A productivity tool designed to help you measure and improve your cognitive performance.
-
-            ### 📥 Installation
-            - **Windows**: Download the `.exe` installer
-            - **macOS (Intel)**: Download the `.dmg` file for Intel Macs
-            - **macOS (Apple Silicon)**: Download the `.dmg` file for M1/M2/M3 Macs
-
-            ### ✨ What's New
-            See the [CHANGELOG.md](https://github.com/Marilok/cognivibe/blob/main/CHANGELOG.md) for detailed changes.
-
-            ### 🔄 Auto-Updates
-            This version includes auto-update functionality. Future updates will be installed automatically.
+            ${{ steps.changelog.outputs.changelog }}
 
             ---
 
-            **Full Changelog**: https://github.com/Marilok/cognivibe/blob/main/CHANGELOG.md
+            **Full Changelog**: https://github.com/Marilok/cognivibe/blob/release/CHANGELOG.md
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
