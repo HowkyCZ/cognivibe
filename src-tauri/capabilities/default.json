@@ -26,6 +26,7 @@
         }
       ]
     },
-    "updater:default"
+    "updater:default",
+    "process:default"
   ]
 }

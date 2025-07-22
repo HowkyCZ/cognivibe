@@ -37,12 +37,6 @@ const HelpModal = ({ isOpen, onOpenChange }: HelpModalProps) => {
         throw new Error("User ID not found in session.");
       }
 
-      console.log("Submitting feedback:", {
-        message,
-        userId: session.user.id,
-        jwt: session.access_token,
-      });
-
       const response = await fetch(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SEND_FEEDBACK}`,
         {

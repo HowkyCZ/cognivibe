@@ -26,8 +26,6 @@ function RouteComponent() {
       try {
         const supabase = createSupabaseClient();
 
-        console.log("Search params:", searchParams);
-
         // Check if URL contains success tokens
         const accessToken = searchParams.access_token;
         const refreshToken = searchParams.refresh_token;
@@ -44,7 +42,7 @@ function RouteComponent() {
               router.navigate({ to: ROUTES.HOME });
             })
             .catch((error) => {
-              console.error("Error setting session:", error);
+              console.error("Failed to set session:", error);
               router.navigate({
                 to: ROUTES.ERROR,
                 search: {
@@ -60,7 +58,6 @@ function RouteComponent() {
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.log("Error fetching session:", error);
           // Redirect to error page for session errors
           router.navigate({
             to: ROUTES.ERROR,
@@ -85,7 +82,6 @@ function RouteComponent() {
           });
         }
       } catch (err) {
-        console.error("Callback error:", err);
         router.navigate({
           to: ROUTES.ERROR,
           search: {

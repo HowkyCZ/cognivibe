@@ -1,6 +1,6 @@
 [package]
 name = "cognivibe"
-version = "1.0.0"
+version = "1.0.1"
 description = "Cognivibe is a productivity tool designed to help you measure and improve your cognitive performance."
 authors = ["Cognivibe Team"]
 edition = "2021"
@@ -35,3 +35,4 @@ tauri-plugin-http = "2"
 tauri-plugin-single-instance = { version = "2.0.0", features = ["deep-link"] }
 tauri-plugin-autostart = "2"
 tauri-plugin-updater = "2"
+tauri-plugin-process = "2"

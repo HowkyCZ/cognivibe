@@ -1,6 +1,9 @@
 import React from "react";
 import { HeroUIProvider, ToastProvider } from "@heroui/react";
 import "../../App.css";
+import { useUpdater } from "../../hooks";
+import { UpdateModal } from "../modals";
+
 interface AppTemplateProps {
   children: React.ReactNode;
 }
@@ -15,6 +18,7 @@ declare module "@react-types/shared" {
 
 const AppTemplate: React.FC<AppTemplateProps> = ({ children }) => {
   let router = useRouter();
+  const { isUpdateAvailable, updateInfo, downloadAndInstall } = useUpdater();
 
   return (
     <HeroUIProvider
@@ -22,6 +26,14 @@ const AppTemplate: React.FC<AppTemplateProps> = ({ children }) => {
     >
       {children}
       <ToastProvider placement="top-center" toastOffset={40} />
+
+      {isUpdateAvailable && updateInfo && (
+        <UpdateModal
+          isOpen={isUpdateAvailable}
+          update={updateInfo}
+          onDownloadAndInstall={downloadAndInstall}
+        />
+      )}
     </HeroUIProvider>
   );
 };
