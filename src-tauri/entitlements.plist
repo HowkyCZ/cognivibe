@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Network access for Supabase and server communication -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    
+    <!-- Input monitoring for global input tracking (rdev library) -->
+    <key>com.apple.security.device.input-monitoring</key>
+    <true/>
+    
+    <!-- Apple Events for automation and auto-start functionality -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+    
+    <!-- File access for app data, settings, and user files -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    
+    <!-- Access to app's own executable and resources -->
+    <key>com.apple.security.files.user-selected.executable</key>
+    <true/>
+    
+    <!-- System information access for sysinfo crate (running apps, system stats) -->
+    <key>com.apple.security.temporary-exception.shared-preference.read-only</key>
+    <true/>
+    
+    <!-- Allow access to system preferences for gathering system info -->
+    <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+    <true/>
+    
+    <!-- Disable App Sandbox to allow full functionality -->
+    <!-- This is needed for global input tracking and system-level access -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+</dict>
+</plist>
+</dict>
+</plist>
