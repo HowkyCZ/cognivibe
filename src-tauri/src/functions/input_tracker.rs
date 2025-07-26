@@ -219,15 +219,24 @@ pub fn start_global_input_tracker(app_handle: AppHandle) {
 
             #[cfg(target_os = "macos")]
             {
-                println!("❌ Input tracking failed on macOS");
-                println!("This is likely due to missing Accessibility permissions.");
-                println!("Please grant Accessibility permission in System Preferences and restart the app.");
+                println!("❌ Input tracking failed on macOS: {:?}", error);
+                println!("This might be due to:");
+                println!("1. Missing Accessibility permissions");
+                println!("2. Incompatible rdev version with this macOS/hardware");
+                println!("3. System security restrictions");
+                println!("Please grant Accessibility permission in System Preferences.");
+                println!(
+                    "Note: The app will continue to work, but input tracking will be disabled."
+                );
             }
 
             #[cfg(not(target_os = "macos"))]
             {
                 println!("❌ Input tracking failed: {:?}", error);
+                println!("The app will continue to work, but input tracking will be disabled.");
             }
+        } else {
+            println!("✅ Input tracking started successfully");
         }
     });
 

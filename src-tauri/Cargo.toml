@@ -1,6 +1,6 @@
 [package]
 name = "cognivibe"
-version = "1.0.2"
+version = "1.0.3"
 description = "Cognivibe is a productivity tool designed to help you measure and improve your cognitive performance."
 authors = ["Cognivibe Team"]
 edition = "2021"
@@ -23,7 +23,7 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-deep-link = "2"
-rdev = "0.4"
+rdev = "0.5.3"
 # For keystroke logging
 chrono = "0.4.41"
 # For system information, current open apps
