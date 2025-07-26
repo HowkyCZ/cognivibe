@@ -65,7 +65,11 @@ pub fn run() {
             ));
 
             // Deep link setup
-            setup_deep_link_handlers(app.handle())?;
+            if let Err(e) = setup_deep_link_handlers(app.handle()) {
+                eprintln!("⚠️ Deep link setup failed: {}", e);
+                eprintln!("The app will continue without deep link support.");
+                // Don't return the error - let the app continue
+            }
 
             // Start global input tracker (this will handle all input events)
             start_global_input_tracker(app.handle().clone());
