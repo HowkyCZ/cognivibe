@@ -1,8 +1,6 @@
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Divider } from "@heroui/divider";
-import { Button } from "@heroui/react";
 import { CognitiveLoadChart, WeeklyAssessmentCard, AppNavbar } from "..";
-import { invoke } from "@tauri-apps/api/core";
 import { useDashboardData } from "../../hooks";
 
 function DashboardPage() {
@@ -16,24 +14,12 @@ function DashboardPage() {
     loading: dashboardLoading,
     error: dashboardError,
   } = useDashboardData();
-  const fetchRunningApps = async () => {
-    const apps = await invoke("get_running_apps");
-    console.log(apps);
-  };
 
-  fetchRunningApps();
   return (
     <>
       <AppNavbar />
       <main className="container mx-auto p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Button
-            variant="solid"
-            onPress={() => fetchRunningApps()}
-            className="mb-4"
-          >
-            Fetch Running Apps
-          </Button>
           {dashboardLoading ? (
             <Card className="p-4 flex items-center justify-center h-64">
               <div className="text-center">

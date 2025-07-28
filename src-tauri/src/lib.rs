@@ -1,16 +1,13 @@
 use std::sync::Mutex;
 use tauri::Manager;
 
-mod functions;
-mod state;
+mod modules;
 
-use functions::{
-    focus_main_window, get_keyboard_data_cmd, get_mouse_data_cmd, get_mouse_distance_cmd,
-    get_running_apps, get_settings_cmd, load_settings_from_store, reset_keyboard_tracking_cmd,
-    reset_mouse_tracking_cmd, setup_deep_link_handlers, start_global_input_tracker,
-    update_settings_cmd,
-};
-use state::{get_measuring_state, toggle_measuring, AppState};
+use modules::deeplinks::setup_deep_link_handlers;
+use modules::settings::{load_settings_from_store, update_settings_cmd};
+use modules::state::{get_measuring_state, get_settings_state, AppState};
+use modules::tracker::{start_global_input_tracker, toggle_measuring};
+use modules::utils::focus_main_window;
 
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -18,16 +15,10 @@ pub fn run() {
     builder
         .manage(Mutex::new(AppState::default()))
         .invoke_handler(tauri::generate_handler![
-            get_running_apps,
             toggle_measuring,
             get_measuring_state,
-            get_settings_cmd,
-            update_settings_cmd,
-            get_mouse_data_cmd,
-            reset_mouse_tracking_cmd,
-            get_keyboard_data_cmd,
-            reset_keyboard_tracking_cmd,
-            get_mouse_distance_cmd
+            get_settings_state,
+            update_settings_cmd
         ])
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // Focus main window

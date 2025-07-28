@@ -1,15 +1,21 @@
-use crate::{AppState, KeyboardData, MouseData};
-use chrono::{Local, Timelike};
-use rdev::{listen, Event, EventType};
+use rdev::{Event, EventType};
 use std::sync::{Arc, Mutex, OnceLock};
-use std::thread;
-use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
-// Global app handle storage for input events using OnceLock for thread safety
-static INPUT_APP_HANDLE: OnceLock<Arc<Mutex<AppHandle>>> = OnceLock::new();
+use crate::modules::state::AppState;
 
-fn input_callback(event: Event) {
+/// Global app handle storage for input events using OnceLock for thread safety
+pub static INPUT_APP_HANDLE: OnceLock<Arc<Mutex<AppHandle>>> = OnceLock::new();
+
+/// Callback function that processes input events (mouse and keyboard) from the system.
+/// 
+/// This function is called by the rdev library for every input event when tracking is active.
+/// It filters events based on whether measuring is currently enabled, then tracks:
+/// - Mouse button presses/releases and movement distance
+/// - Keyboard key presses/releases
+/// 
+/// The data is stored in the global app state for later logging and analysis.
+pub fn input_callback(event: Event) {
     // Check if we should track events (only when measuring is active)
     let should_track = if let Some(app_handle_arc) = INPUT_APP_HANDLE.get() {
         if let Ok(app_handle) = app_handle_arc.lock() {
@@ -37,6 +43,7 @@ fn input_callback(event: Event) {
                 if let Ok(app_handle) = app_handle_arc.lock() {
                     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                         app_state.mouse_data.mouse_downs += 1;
+                        #[cfg(debug_assertions)]
                         println!(
                             "Mouse down detected. Total downs: {}",
                             app_state.mouse_data.mouse_downs
@@ -50,6 +57,7 @@ fn input_callback(event: Event) {
                 if let Ok(app_handle) = app_handle_arc.lock() {
                     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                         app_state.mouse_data.mouse_ups += 1;
+                        #[cfg(debug_assertions)]
                         println!(
                             "Mouse up detected. Total ups: {}",
                             app_state.mouse_data.mouse_ups
@@ -76,6 +84,7 @@ fn input_callback(event: Event) {
                         app_state.mouse_data.last_y = y as f64;
 
                         // Only print occasionally to avoid spam (every 100 pixels of movement)
+                        #[cfg(debug_assertions)]
                         if app_state.mouse_data.total_distance as u64 % 100 == 0 {
                             println!(
                                 "Mouse distance: {:.1} pixels",
@@ -91,6 +100,7 @@ fn input_callback(event: Event) {
                 if let Ok(app_handle) = app_handle_arc.lock() {
                     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                         app_state.keyboard_data.key_downs += 1;
+                        #[cfg(debug_assertions)]
                         println!(
                             "Key down detected. Total key downs: {}",
                             app_state.keyboard_data.key_downs
@@ -104,6 +114,7 @@ fn input_callback(event: Event) {
                 if let Ok(app_handle) = app_handle_arc.lock() {
                     if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                         app_state.keyboard_data.key_ups += 1;
+                        #[cfg(debug_assertions)]
                         println!(
                             "Key up detected. Total key ups: {}",
                             app_state.keyboard_data.key_ups
@@ -115,80 +126,5 @@ fn input_callback(event: Event) {
         _ => {
             // Ignore all other events (wheel, etc.)
         }
-    }
-}
-
-fn start_minute_logger(app_handle: AppHandle) {
-    thread::spawn(move || {
-        loop {
-            let now = Local::now();
-            let current_second = now.second() as u8;
-            let _current_minute = now.minute() as u8;
-
-            // Calculate how many seconds until the next minute
-            let seconds_until_next_minute = 60 - current_second;
-
-            // Sleep until the next minute mark
-            thread::sleep(Duration::from_secs(seconds_until_next_minute as u64));
-
-            // Check if we should log (only when measuring is active)
-            if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
-                if app_state.is_measuring {
-                    let new_minute = Local::now().minute() as u8;
-
-                    // Only log if we haven't logged this minute yet
-                    if app_state.mouse_data.last_logged_minute != new_minute
-                        || app_state.keyboard_data.last_logged_minute != new_minute
-                    {
-                        let mouse_data = app_state.mouse_data.clone();
-                        let keyboard_data = app_state.keyboard_data.clone();
-
-                        println!(
-                            "[{}] Minute {} - Mouse Downs: {}, Mouse Ups: {}, Distance: {:.1}px, Key Downs: {}, Key Ups: {}",
-                            Local::now().format("%Y-%m-%d %H:%M:%S"),
-                            new_minute,
-                            mouse_data.mouse_downs,
-                            mouse_data.mouse_ups,
-                            mouse_data.total_distance,
-                            keyboard_data.key_downs,
-                            keyboard_data.key_ups
-                        );
-
-                        // Reset the counts after logging
-                        app_state.mouse_data.mouse_downs = 0;
-                        app_state.mouse_data.mouse_ups = 0;
-                        app_state.mouse_data.total_distance = 0.0;
-                        app_state.mouse_data.last_logged_minute = new_minute;
-                        app_state.keyboard_data.key_downs = 0;
-                        app_state.keyboard_data.key_ups = 0;
-                        app_state.keyboard_data.last_logged_minute = new_minute;
-                    }
-                }
-            }
-        }
-    });
-}
-
-pub fn start_global_mouse_tracker(app_handle: AppHandle) {
-    // Store app handle globally using OnceLock
-    let _ = INPUT_APP_HANDLE.set(Arc::new(Mutex::new(app_handle.clone())));
-
-    // Start the input event listener (handles both mouse and keyboard events)
-    thread::spawn(move || {
-        if let Err(error) = listen(input_callback) {
-            println!("Error starting global input tracker: {:?}", error);
-        }
-    });
-
-    // Start the minute logger
-    start_minute_logger(app_handle);
-}
-
-// Helper function to reset both mouse and keyboard data when measurement starts
-pub fn reset_input_data(app_handle: &AppHandle) {
-    if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
-        app_state.mouse_data = MouseData::default();
-        app_state.keyboard_data = KeyboardData::default();
-        println!("Mouse and keyboard tracking data reset");
     }
 }

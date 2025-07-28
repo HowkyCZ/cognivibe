@@ -1,31 +1,12 @@
 use chrono::{Local, Timelike};
 use rdev::{listen, Event, EventType};
-use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Manager, State};
 
-// Mouse tracking data
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct MouseData {
-    pub mouse_downs: u64,
-    pub mouse_ups: u64,
-    pub total_distance: f64,
-    pub last_x: f64,
-    pub last_y: f64,
-    pub last_logged_minute: u8,
-}
-
-// Keyboard tracking data
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct KeyboardData {
-    pub key_downs: u64,
-    pub key_ups: u64,
-    pub last_logged_minute: u8,
-}
-
 use crate::AppState;
+use crate::modules::tracker::types::{MouseData, KeyboardData};
 
 // Global app handle storage for input events using OnceLock for thread safety
 static INPUT_APP_HANDLE: OnceLock<Arc<Mutex<AppHandle>>> = OnceLock::new();

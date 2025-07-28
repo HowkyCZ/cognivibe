@@ -121,6 +121,23 @@ fn is_system_process(process_name: &str, process: &Process) -> bool {
 }
 
 #[tauri::command]
+/// Retrieves a list of currently running applications on the system.
+/// 
+/// This function scans all running processes and filters them to return only
+/// user applications (excluding system processes, background services, etc.).
+/// It provides enhanced display names by extracting meaningful information
+/// from executable paths and process arguments.
+/// 
+/// The returned data includes:
+/// - Process ID (pid)
+/// - Application name (enhanced for better readability)
+/// - Memory usage information
+/// - CPU usage statistics
+/// 
+/// This is used by the dashboard to show what applications the user is actively running.
+/// 
+/// # Returns
+/// A vector of JSON objects containing application information
 pub fn get_running_apps() -> Vec<serde_json::Value> {
     let mut system = System::new_all();
     system.refresh_all();

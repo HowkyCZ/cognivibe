@@ -1,16 +1,8 @@
-use crate::modules::settings::AppSettings;
-use crate::modules::tracker::{reset_input_data, KeyboardData, MouseData};
 use std::sync::Mutex;
 use tauri::State;
 
-// Application state to track measuring status
-#[derive(Debug, Default)]
-pub struct AppState {
-    pub is_measuring: bool,
-    pub settings: AppSettings,
-    pub mouse_data: MouseData,
-    pub keyboard_data: KeyboardData,
-}
+use crate::modules::state::AppState;
+use super::reset_input_data::reset_input_data;
 
 #[tauri::command]
 /// Toggles the measurement state of the application.
@@ -54,21 +46,4 @@ pub fn toggle_measuring(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle
 
     // Return the current measuring state
     current_state
-}
-
-#[tauri::command]
-/// Returns the current measuring state of the application.
-/// 
-/// This Tauri command provides a simple way for the frontend to check
-/// whether input tracking is currently active. Used by the UI to display
-/// the correct measuring status and update relevant controls.
-/// 
-/// # Arguments
-/// * `state` - The global app state containing the measuring flag
-/// 
-/// # Returns
-/// `true` if currently measuring input, `false` if measurement is stopped
-pub fn get_measuring_state(state: State<'_, Mutex<AppState>>) -> bool {
-    let state = state.lock().unwrap();
-    state.is_measuring
 }
