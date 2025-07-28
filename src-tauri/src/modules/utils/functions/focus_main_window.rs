@@ -1,0 +1,24 @@
+use tauri::{AppHandle, Manager};
+
+/// Brings the main application window to the foreground and ensures it's visible.
+/// 
+/// This function performs the following actions on the main window:
+/// - Sets focus to the window (brings it to the front)
+/// - Shows the window if it was hidden
+/// - Unminimizes the window if it was minimized
+/// 
+/// This is commonly used when the app is activated through deep links or
+/// single-instance enforcement to ensure the user can see and interact with the app.
+/// 
+/// # Arguments
+/// * `app` - Reference to the Tauri app handle for accessing windows
+pub fn focus_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.set_focus();
+        let _ = window.show();
+        let _ = window.unminimize();
+    } else {
+        println!("Main window not found");
+        return;
+    }
+}
