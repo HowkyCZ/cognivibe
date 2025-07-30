@@ -72,6 +72,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   name={displayName}
                   color="primary"
                   className="select-none"
+                  fallback={<IconBrain size={24} />}
                 />
                 <div className="flex flex-col">
                   <p className="text-base font-medium">

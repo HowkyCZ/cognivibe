@@ -15,6 +15,7 @@ import {
   SettingsModal,
   UserProfileModal,
 } from "../modals";
+import { IconBrain } from "@tabler/icons-react";
 
 interface AppNavbarProps {
   // No props needed - component manages its own modal states
@@ -72,6 +73,7 @@ const AppNavbar: React.FC<AppNavbarProps> = () => {
           name={displayName}
           size="sm"
           src={avatarSrc}
+          fallback={<IconBrain size={20} />}
           onClick={onProfileOpen}
         />
       </NavbarContent>
