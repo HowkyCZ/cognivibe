@@ -19,7 +19,7 @@ import {
   IconAlertTriangle,
   IconDeviceFloppy,
 } from "@tabler/icons-react";
-import { useAppSettings, AppSettings } from "../../hooks";
+import { useAppSettings, AppSettings, useAuth } from "../../hooks";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -32,6 +32,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
     updateSettings,
     loading: settingsLoading,
   } = useAppSettings();
+  const { deleteUser, signOut } = useAuth();
   const [localSettings, setLocalSettings] = useState<AppSettings | null>(null);
   const [originalSettings, setOriginalSettings] = useState<AppSettings | null>(
     null
@@ -87,6 +88,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
       setShowUnsavedChangesModal(false);
     }
   };
+
   // Handle account deletion - show confirmation modal first
   const handleDeleteAccount = () => {
     setShowDeleteConfirmModal(true);
@@ -96,8 +98,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
   const handleConfirmDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      // Simulate API call to delete account
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await deleteUser();
 
       addToast({
         title: "Account deleted successfully",
@@ -107,17 +108,24 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
         variant: "flat",
       });
 
-      // Close modals and redirect (in real app)
+      // Close modals
       setShowDeleteConfirmModal(false);
       setDeleteConfirmText("");
       onOpenChange();
+
+      await signOut();
     } catch (error) {
       console.error("Error deleting account:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Please try again later or contact support.";
+
       addToast({
         title: "Error deleting account",
-        description: "Please try again later or contact support.",
+        description: errorMessage,
         color: "danger",
-        timeout: 5000,
+        timeout: 10000,
         variant: "flat",
       });
     } finally {

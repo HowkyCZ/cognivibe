@@ -24,7 +24,7 @@ export const useAppSettings = (): UseAppSettingsReturn => {
       setError(null);
 
       // Load settings from backend
-      const backendSettings = await invoke<AppSettings>("get_settings_cmd");
+      const backendSettings = await invoke<AppSettings>("get_settings_state");
 
       // Check actual autostart status from system
       const autostartEnabled = await isEnabled();
