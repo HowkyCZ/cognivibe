@@ -42,11 +42,11 @@ const HelpModal = ({ isOpen, onOpenChange }: HelpModalProps) => {
         {
           method: "POST",
           headers: {
+            Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             message: message,
-            jwt: session.access_token,
             userId: session.user.id,
           }),
         }

@@ -56,7 +56,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       placement="center"
       backdrop="blur"
       size="md"
-
     >
       <ModalContent>
         {(onClose) => (

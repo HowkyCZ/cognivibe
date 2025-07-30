@@ -9,7 +9,12 @@ import {
 import logotypeSvg from "../../assets/logotype.svg";
 import { useAuth, useUserData } from "../../hooks";
 import MeasureButton from "./MeasureButton";
-import { HelpModal, LogoutModal, SettingsModal, UserProfileModal } from "../modals";
+import {
+  HelpModal,
+  LogoutModal,
+  SettingsModal,
+  UserProfileModal,
+} from "../modals";
 
 interface AppNavbarProps {
   // No props needed - component manages its own modal states

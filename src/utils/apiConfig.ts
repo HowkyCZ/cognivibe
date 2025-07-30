@@ -6,8 +6,8 @@ import { isInDevelopment } from "./constants";
  */
 export const getApiBaseUrl = (): string => {
   return isInDevelopment
-    ? "https://cognivibe-server.vercel.app"
-    : "https://server.cognivibe.tech";
+    ? import.meta.env.VITE_DEVELOPMENT_SERVER_URL
+    : import.meta.env.VITE_SERVER_URL;
 };
 
 /**
@@ -17,5 +17,6 @@ export const API_CONFIG = {
   BASE_URL: getApiBaseUrl(),
   ENDPOINTS: {
     SEND_FEEDBACK: "/api/sendFeedback",
+    DELETE_USER: "/api/user",
   },
 } as const;
