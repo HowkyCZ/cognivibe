@@ -1,11 +1,12 @@
 import WavyBackground from "../layout/WavyBackground";
 
 import React from "react";
-import { Button, Input, Link, Form, Divider, addToast } from "@heroui/react";
+import { Button, Input, Link, Form, addToast } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import logotypeSvg from "../../assets/logotype.svg";
 import { createSupabaseClient } from "../../utils/createSupabaseClient";
 import { ROUTES } from "../../utils/constants";
+import { openExternalUrl } from "../../utils/openExternalUrl";
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
@@ -55,17 +56,6 @@ const LoginPage: React.FC<LoginPageProps> = () => {
     }
   };
 
-  const handleOAuthLogin = async (provider: "google" | "github") => {
-    try {
-      // Simulate OAuth login
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // Redirect to main app on success
-      window.location.href = "/";
-    } catch (error) {
-      console.error(`${provider} login failed:`, error);
-    }
-  };
-
   return (
     <WavyBackground
       containerClassName="bg-black"
@@ -84,34 +74,6 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             Sign in or create an account to start monitoring your cognitive
             performance
           </p>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Button
-            startContent={<Icon icon="flat-color-icons:google" width={24} />}
-            variant="bordered"
-            onPress={() => handleOAuthLogin("google")}
-            // isDisabled={isLoading}
-            isDisabled
-          >
-            Continue with Google
-          </Button>
-          <Button
-            startContent={
-              <Icon className="text-default-500" icon="fe:github" width={24} />
-            }
-            variant="bordered"
-            onPress={() => handleOAuthLogin("github")}
-            // isDisabled={isLoading}
-            isDisabled
-          >
-            Continue with Github
-          </Button>
-        </div>
-        <div className="flex items-center gap-4 py-2">
-          <Divider className="flex-1" />
-          <p className="shrink-0 text-tiny text-default-500">OR</p>
-          <Divider className="flex-1" />
         </div>
 
         <Form
@@ -146,15 +108,15 @@ const LoginPage: React.FC<LoginPageProps> = () => {
           <p className="text-center text-tiny text-default-500">
             By continuing, you agree to our{" "}
             <Link
-              href="https://cognivibe.com/terms"
-              className="text-primary text-tiny"
+              onPress={async () => await openExternalUrl("/terms")}
+              className="text-primary text-tiny cursor-pointer"
             >
               Terms of Service
             </Link>{" "}
             and{" "}
             <Link
-              href="https://cognivibe.com/privacy"
-              className="text-primary text-tiny"
+              onPress={async () => await openExternalUrl("/privacy")}
+              className="text-primary text-tiny cursor-pointer"
             >
               Privacy Policy
             </Link>
