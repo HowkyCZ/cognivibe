@@ -4,19 +4,19 @@ use tauri_plugin_deep_link::DeepLinkExt;
 use crate::modules::utils::focus_main_window;
 
 /// Sets up deep link handling for the Cognivibe application.
-/// 
+///
 /// This function:
 /// - Registers the "cognivibe://" protocol with the system
 /// - Sets up event handlers for when deep links are opened
 /// - Automatically focuses the main window when a deep link is activated
-/// 
+///
 /// Deep links allow external applications or websites to open and interact
 /// with Cognivibe directly. When a cognivibe:// URL is opened, this handler
 /// will bring the app to the foreground for the user.
-/// 
+///
 /// # Arguments
 /// * `app` - Reference to the Tauri app handle for accessing deep link functionality
-/// 
+///
 /// # Returns
 /// * `Ok(())` if setup was successful
 /// * `Err(...)` if there was an error registering the protocol or setting up handlers

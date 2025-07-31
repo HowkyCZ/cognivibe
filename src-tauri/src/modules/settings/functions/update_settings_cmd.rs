@@ -2,22 +2,22 @@ use std::sync::Mutex;
 use tauri::{AppHandle, State};
 use tauri_plugin_store::StoreExt;
 
-use crate::modules::state::AppState;
 use super::super::types::AppSettings;
+use crate::modules::state::AppState;
 
 #[tauri::command]
 /// Updates the application settings and persists them to storage.
-/// 
+///
 /// This Tauri command:
 /// - Updates the global app state with new settings
 /// - Saves the settings to persistent storage using Tauri's store plugin
 /// - Ensures settings persist across app restarts
-/// 
+///
 /// # Arguments
 /// * `state` - The global app state to update
 /// * `app` - The Tauri app handle for accessing the store
 /// * `settings` - The new settings to apply and save
-/// 
+///
 /// # Returns
 /// * `Ok(())` if settings were successfully updated and saved
 /// * `Err(String)` if there was an error saving to storage

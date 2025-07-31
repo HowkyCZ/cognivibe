@@ -1,25 +1,25 @@
 use std::sync::Mutex;
 use tauri::State;
 
-use crate::modules::state::AppState;
 use super::reset_input_data::reset_input_data;
+use crate::modules::state::AppState;
 
 #[tauri::command]
 /// Toggles the measurement state of the application.
-/// 
+///
 /// This Tauri command switches between measuring and not measuring states.
 /// When starting measurement (turning ON):
 /// - Resets all input tracking data to start fresh
 /// - Logs the start of measurement
-/// 
+///
 /// When stopping measurement (turning OFF):
 /// - Stops data collection but preserves current data
 /// - Logs the stop of measurement
-/// 
+///
 /// # Arguments
 /// * `state` - The global app state containing the measuring flag
 /// * `app` - The Tauri app handle for resetting tracking data
-/// 
+///
 /// # Returns
 /// The new measuring state (true if now measuring, false if stopped)
 pub fn toggle_measuring(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle) -> bool {

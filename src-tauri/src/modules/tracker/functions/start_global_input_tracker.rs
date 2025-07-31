@@ -7,13 +7,13 @@ use super::input_callback::{input_callback, INPUT_APP_HANDLE};
 use super::start_minute_logger::start_minute_logger;
 
 /// Initializes and starts the global input tracking system.
-/// 
+///
 /// This function:
 /// - Stores the app handle globally for use by input callbacks
 /// - Starts a background thread that listens for all system input events
 /// - Provides platform-specific error messages and setup instructions
 /// - Starts the minute logger for periodic data logging
-/// 
+///
 /// On macOS, it provides helpful instructions for granting Accessibility permissions
 /// if the input tracking fails to start. The app will continue to work even if
 /// input tracking fails, but tracking functionality will be disabled.

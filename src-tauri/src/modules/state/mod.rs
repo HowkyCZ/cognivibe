@@ -1,5 +1,5 @@
-pub mod types;
 pub mod functions;
+pub mod types;
 
 // Re-export types for convenience
 pub use types::AppState;

@@ -8,12 +8,12 @@ use crate::modules::state::AppState;
 pub static INPUT_APP_HANDLE: OnceLock<Arc<Mutex<AppHandle>>> = OnceLock::new();
 
 /// Callback function that processes input events (mouse and keyboard) from the system.
-/// 
+///
 /// This function is called by the rdev library for every input event when tracking is active.
 /// It filters events based on whether measuring is currently enabled, then tracks:
 /// - Mouse button presses/releases and movement distance
 /// - Keyboard key presses/releases
-/// 
+///
 /// The data is stored in the global app state for later logging and analysis.
 pub fn input_callback(event: Event) {
     // Check if we should track events (only when measuring is active)

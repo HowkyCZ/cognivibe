@@ -7,13 +7,13 @@ use tauri::{AppHandle, Manager};
 use crate::modules::state::AppState;
 
 /// Starts a background thread that logs input tracking data every minute.
-/// 
+///
 /// This function creates a thread that:
 /// - Waits until the start of each new minute
 /// - Checks if measuring is currently active
 /// - Logs the accumulated mouse and keyboard data
 /// - Resets the counters after logging
-/// 
+///
 /// The logging only occurs when `is_measuring` is true in the app state.
 /// In debug builds, the data is printed to console with timestamps.
 pub fn start_minute_logger(app_handle: AppHandle) {
