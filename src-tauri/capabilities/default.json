@@ -28,6 +28,8 @@
       ]
     },
     "updater:default",
-    "process:default"
+    "process:default",
+    "macos-permissions:default",
+    "os:default"
   ]
 }

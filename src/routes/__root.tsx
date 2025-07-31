@@ -4,13 +4,17 @@ import { AppTemplate } from "../components";
 import { setupDeepLinkHandler } from "../utils/deepLinkHandler";
 import { isInDevelopment } from "../utils/constants";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { useMacOSPermissions } from "../hooks";
 
 export const Route = createRootRoute({
   component: () => {
     const navigate = useNavigate();
+
     useEffect(() => {
       setupDeepLinkHandler(navigate);
     }, []);
+
+    useMacOSPermissions();
 
     return (
       <AppTemplate>

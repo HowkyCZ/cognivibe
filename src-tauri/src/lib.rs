@@ -30,6 +30,8 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_macos_permissions::init())
+        .plugin(tauri_plugin_os::init())
         .setup(|app| {
             // Load settings from store and initialize app state
             let app_state = app.state::<Mutex<AppState>>();
