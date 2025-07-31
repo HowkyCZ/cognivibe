@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2025-07-31
+
+### Added
+- macOS permissions handling system with dedicated React hook
+- Enhanced external URL handling with proper browser opening
+- Brain icon fallback for user avatars
+- New macOS-specific permission requests and status checking
+
+### Fixed
+- Function name corrections for URL opening functionality
+- Proper external URL handling in default browser
+- Updated Tauri plugin dependencies to latest versions
+- Corrected rdev dependency to use rustdesk GitHub repository
+
+### Changed
+- Comprehensive code formatting across all Rust modules
+- Moved functions into organized module structure
+- Removed unused OAuth login buttons
+- Cleanup of unused settings and measuring state commands
+- Updated API configuration for user deletion functionality
+- Changed UI dropdown components to modal implementations
+- Enhanced macOS entitlements for better permission handling
+
+### Dependencies
+- Updated multiple Tauri plugins to latest versions
+- Updated rdev dependency for better macOS compatibility
+- Added new npm packages for macOS permissions handling
+
 ## [1.0.3] - 2025-07-25
 
 ### Added
