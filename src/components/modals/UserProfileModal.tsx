@@ -34,15 +34,11 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const { session } = useAuth();
   const { userData, loading: userLoading } = useUserData(session?.user?.id);
 
-  const displayName = userData?.nickname;
   const organizationName = userData?.organization?.brand_name || null;
   const displayEmail = session?.user?.email;
   const avatarSrc = userData?.avatar_url || undefined;
 
-  const formattedDisplayName =
-    displayName && organizationName
-      ? `${displayName} | ${organizationName}`
-      : displayName;
+  const formattedDisplayName = organizationName ? `${organizationName}` : "";
 
   const handleMenuAction = (action: () => void) => {
     action();
@@ -69,7 +65,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 <Avatar
                   size="md"
                   src={avatarSrc}
-                  name={displayName}
                   color="primary"
                   className="select-none"
                   fallback={<IconBrain size={24} />}
@@ -119,7 +114,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
               <Divider />
 
-              {/* Logout Button */}
               <Button
                 color="danger"
                 variant="flat"
@@ -130,9 +124,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 Log out
               </Button>
             </ModalBody>
-            <ModalFooter className="pt-0">
-              {/* Empty footer for proper bottom spacing */}
-            </ModalFooter>
           </>
         )}
       </ModalContent>

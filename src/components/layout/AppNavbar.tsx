@@ -47,7 +47,6 @@ const AppNavbar: React.FC<AppNavbarProps> = () => {
     onOpenChange: onProfileOpenChange,
   } = useDisclosure();
 
-  const displayName = userData?.nickname;
   const avatarSrc = userData?.avatar_url || undefined;
 
   return (
@@ -70,7 +69,6 @@ const AppNavbar: React.FC<AppNavbarProps> = () => {
           as="button"
           className="transition-transform cursor-pointer hover:scale-105 select-none"
           color="primary"
-          name={displayName}
           size="sm"
           src={avatarSrc}
           fallback={<IconBrain size={20} />}
