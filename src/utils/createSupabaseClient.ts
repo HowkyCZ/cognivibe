@@ -2,21 +2,21 @@ import { createClient } from "@supabase/supabase-js";
 
 interface SupabaseClientConfig {
   url: string;
-  anonKey: string;
+  apiKey: string;
 }
 
 const supabaseConfig: SupabaseClientConfig = {
   url: import.meta.env.VITE_SUPABASE_URL!,
-  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY!,
+  apiKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY!,
 };
 
-if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+if (!supabaseConfig.url || !supabaseConfig.apiKey) {
   throw new Error(
     "Supabase URL and anon key must be defined in environment variables."
   );
 }
 
-const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+const supabase = createClient(supabaseConfig.url, supabaseConfig.apiKey);
 
 export const createSupabaseClient = () => {
   return supabase;
