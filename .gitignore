@@ -40,3 +40,4 @@ Cargo.lock
 # will have schema files for capabilities auto-completion
 /src-tauri/gen/schemas
 /src-tauri/Cargo.lock
+src-tauri/Cargo.lock
