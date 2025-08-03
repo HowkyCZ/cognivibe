@@ -24,7 +24,7 @@ const HelpButton: React.FC<HelpButtonProps> = ({
         </div>
       }
     >
-      <Button isIconOnly size="sm" variant="light" className="ml-2">
+      <Button isIconOnly size="sm" variant="light" className="ml-1">
         <IconHelpCircle className="text-default-400" size={16} />
       </Button>
     </Tooltip>

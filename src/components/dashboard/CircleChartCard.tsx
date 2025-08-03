@@ -65,11 +65,11 @@ const CircleChartCard = React.forwardRef<
 
   return (
     <Card ref={ref} className="w-64 h-80 p-4" {...props}>
-      <CardHeader className="flex items-center justify-center">
-        <p className="text-xl font-medium text-center">{title}</p>
-        <HelpButton 
+      <CardHeader className="flex items-center justify-start">
+        <p className="text-xl font-medium text-left">{title}</p>
+        <HelpButton
           tooltipTitle="Cognitive Load Levels"
-          tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break" 
+          tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break"
         />
       </CardHeader>
       <CardBody className="flex items-center justify-center h-full">
