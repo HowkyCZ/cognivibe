@@ -13,19 +13,12 @@ export interface SessionData {
   name: string;
 }
 
-export interface DashboardStats {
-  sessionsToday: number;
-  focusTime: string;
-  breakTime: string;
-}
-
 interface UseDashboardDataReturn {
   cognitiveLoadData: CognitiveLoadDataPoint[];
   sessionData: SessionData[];
   currentCognitiveLoad: number;
   maxLoad: number;
   avgLoad: number;
-  stats: DashboardStats;
   loading: boolean;
   error: string | null;
 }
@@ -73,12 +66,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     ) /
     (cognitiveLoadData.length * 3);
 
-  const stats: DashboardStats = {
-    sessionsToday: 8,
-    focusTime: "4.2h",
-    breakTime: "1.8h",
-  };
-
   // TODO: Replace with actual data fetching
   const fetchDashboardData = async () => {
     try {
@@ -92,7 +79,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       // const cognitiveData = await invoke("get_cognitive_load_data");
       // const sessions = await invoke("get_session_data");
       // const currentLoad = await invoke("get_current_cognitive_load");
-      // const dashboardStats = await invoke("get_dashboard_stats");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch dashboard data";
@@ -114,7 +100,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     currentCognitiveLoad,
     maxLoad,
     avgLoad,
-    stats,
     loading,
     error,
   };

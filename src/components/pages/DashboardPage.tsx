@@ -10,7 +10,6 @@ function DashboardPage() {
     currentCognitiveLoad,
     maxLoad,
     avgLoad,
-    stats,
     loading: dashboardLoading,
     error: dashboardError,
   } = useDashboardData();
@@ -86,32 +85,6 @@ function DashboardPage() {
         </div>
         <div className="mt-6">
           <WeeklyAssessmentCard />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <Card className="p-4">
-            <CardBody className="text-center">
-              <h4 className="text-lg font-semibold mb-2">Sessions Today</h4>
-              <p className="text-3xl font-bold text-blue-600">
-                {stats.sessionsToday}
-              </p>
-            </CardBody>
-          </Card>
-          <Card className="p-4">
-            <CardBody className="text-center">
-              <h4 className="text-lg font-semibold mb-2">Focus Time</h4>
-              <p className="text-3xl font-bold text-green-600">
-                {stats.focusTime}
-              </p>
-            </CardBody>
-          </Card>
-          <Card className="p-4">
-            <CardBody className="text-center">
-              <h4 className="text-lg font-semibold mb-2">Break Time</h4>
-              <p className="text-3xl font-bold text-orange-600">
-                {stats.breakTime}
-              </p>
-            </CardBody>
-          </Card>
         </div>
       </main>
     </>
