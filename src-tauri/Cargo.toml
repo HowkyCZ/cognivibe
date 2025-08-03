@@ -27,14 +27,14 @@ rdev = { git = "https://github.com/rustdesk-org/rdev" }
 # For keystroke logging
 chrono = "0.4.41"
 # For system information, current open apps
-sysinfo = "0.32"
+sysinfo = "0.36"
 tauri-plugin-store = "2.2.1"
 tauri-plugin-http = "2"
 tauri-plugin-macos-permissions = "2.3.0"
 tauri-plugin-os = "2"
 
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
-tauri-plugin-single-instance = { version = "2.0.0", features = ["deep-link"] }
+tauri-plugin-single-instance = { version = "2.3.2", features = ["deep-link"] }
 tauri-plugin-autostart = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
