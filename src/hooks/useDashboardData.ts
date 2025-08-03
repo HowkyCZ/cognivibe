@@ -19,6 +19,11 @@ interface UseDashboardDataReturn {
   currentCognitiveLoad: number;
   maxLoad: number;
   avgLoad: number;
+  thresholds: {
+    low: number;
+    medium: number;
+    high: number;
+  };
   loading: boolean;
   error: string | null;
 }
@@ -52,7 +57,14 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     { start: "14:00", end: "16:00", name: "Focus Block" },
   ];
 
-  const currentCognitiveLoad = 6.8;
+  const currentCognitiveLoad = 82;
+
+  // Cognitive load thresholds
+  const thresholds = {
+    low: 40,
+    medium: 80,
+    high: 100,
+  };
 
   // Calculate derived values
   const maxLoad = Math.max(
@@ -100,6 +112,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     currentCognitiveLoad,
     maxLoad,
     avgLoad,
+    thresholds,
     loading,
     error,
   };
