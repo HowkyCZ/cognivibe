@@ -64,18 +64,19 @@ const CircleChartCard = React.forwardRef<
   const chartData = [{ name: "Current Load", value: currentCognitiveLoad }];
 
   return (
-    <Card ref={ref} className="w-64 h-80 p-4" {...props}>
-      <CardHeader className="flex items-center justify-start">
-        <p className="text-xl font-medium text-left">{title}</p>
-        <HelpButton
-          tooltipTitle="Cognitive Load Levels"
-          tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break"
-        />
+    <Card ref={ref} className={`w-64 p-4 bg-${color}/20 relative`} {...props}>
+      <HelpButton
+        tooltipTitle="Cognitive Load Levels"
+        className="absolute top-2 right-2 z-40"
+        tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break"
+      />
+      <CardHeader className="flex items-center justify-center">
+        <p className="text-xl font-medium text-center">{title}</p>
       </CardHeader>
       <CardBody className="flex items-center justify-center h-full">
         <ResponsiveContainer
-          className="[&_.recharts-surface]:outline-none"
-          height="100%"
+          className="[&_.recharts-surface]:outline-none min-h-40"
+          height={"100%"}
           width="100%"
         >
           <RadialBarChart
@@ -132,8 +133,8 @@ const CircleChartCard = React.forwardRef<
           </RadialBarChart>
         </ResponsiveContainer>
       </CardBody>
-      <CardFooter className="text-left">
-        <p className="text-sm text-default-500">{loadText}</p>
+      <CardFooter className="text-left min-h-12 grow pt-0">
+        <p className="text-sm text-default-700">{loadText}</p>
       </CardFooter>
     </Card>
   );

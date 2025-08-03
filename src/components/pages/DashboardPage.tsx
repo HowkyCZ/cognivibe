@@ -1,5 +1,4 @@
 import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Divider } from "@heroui/divider";
 import {
   CognitiveLoadChart,
   WeeklyAssessmentCard,
@@ -40,7 +39,7 @@ function DashboardPage() {
             />
           )}
           <div className="mt-6">
-            <CircleChartCard currentCognitiveLoad={30} />
+            <CircleChartCard currentCognitiveLoad={currentCognitiveLoad} />
           </div>
           <div className="mt-6">
             <WeeklyAssessmentCard />

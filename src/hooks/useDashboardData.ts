@@ -57,7 +57,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     { start: "14:00", end: "16:00", name: "Focus Block" },
   ];
 
-  const currentCognitiveLoad = 82;
+  const currentCognitiveLoad = Math.floor(Math.random() * 100) + 1;
 
   // Cognitive load thresholds
   const thresholds = {

@@ -6,11 +6,13 @@ import { IconHelpCircle } from "@tabler/icons-react";
 type HelpButtonProps = {
   tooltipTitle: string;
   tooltipText: string;
+  className?: string;
 };
 
 const HelpButton: React.FC<HelpButtonProps> = ({
   tooltipTitle,
   tooltipText,
+  className,
 }) => {
   return (
     <Tooltip
@@ -24,7 +26,12 @@ const HelpButton: React.FC<HelpButtonProps> = ({
         </div>
       }
     >
-      <Button isIconOnly size="sm" variant="light" className="ml-1">
+      <Button
+        isIconOnly
+        size="sm"
+        variant="light"
+        className={`ml-1 ${className}`}
+      >
         <IconHelpCircle className="text-default-400" size={16} />
       </Button>
     </Tooltip>
