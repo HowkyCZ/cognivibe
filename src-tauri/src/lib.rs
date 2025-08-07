@@ -35,7 +35,7 @@ pub fn run() {
         .setup(|app| {
             #[cfg(debug_assertions)]
             println!("{}Starting Cognivibe application setup", get_init_prefix());
-            
+
             // Load settings from store and initialize app state
             let app_state = app.state::<Mutex<AppState>>();
 
@@ -50,7 +50,10 @@ pub fn run() {
                 // Auto-start measuring if configured
                 if settings.should_autostart_measuring {
                     #[cfg(debug_assertions)]
-                    println!("{}Auto-starting measurement as configured", get_init_prefix());
+                    println!(
+                        "{}Auto-starting measurement as configured",
+                        get_init_prefix()
+                    );
                     state.is_measuring = true;
                     state.is_first_minute = true;
                 }
@@ -65,7 +68,10 @@ pub fn run() {
             // Deep link setup
             if let Err(e) = setup_deep_link_handlers(app.handle()) {
                 eprintln!("{}⚠️ Deep link setup failed: {}", get_init_prefix(), e);
-                eprintln!("{}The app will continue without deep link support.", get_init_prefix());
+                eprintln!(
+                    "{}The app will continue without deep link support.",
+                    get_init_prefix()
+                );
                 // Don't return the error - let the app continue
             }
 
@@ -75,7 +81,10 @@ pub fn run() {
             start_global_input_tracker(app.handle().clone());
 
             #[cfg(debug_assertions)]
-            println!("{}Cognivibe application setup completed successfully", get_init_prefix());
+            println!(
+                "{}Cognivibe application setup completed successfully",
+                get_init_prefix()
+            );
 
             Ok(())
         })
