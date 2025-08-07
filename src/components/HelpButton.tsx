@@ -7,12 +7,39 @@ type HelpButtonProps = {
   tooltipTitle: string;
   tooltipText: string;
   className?: string;
+  isInAbsoluteCard?: boolean;
 };
 
+/**
+ * HelpButton Component
+ * 
+ * A button that displays helpful information in a tooltip when hovered or clicked.
+ * 
+ * @param tooltipTitle - The title text for the tooltip
+ * @param tooltipText - The main content text for the tooltip (supports HTML)
+ * @param className - Additional CSS classes to apply to the button
+ * @param isInAbsoluteCard - If true, positions the button absolutely (top-2 right-2 z-40).
+ *                          When true, ensure the parent container has `relative` positioning.
+ * 
+ * @example
+ * // Basic usage
+ * <HelpButton tooltipTitle="Help" tooltipText="This is helpful information" />
+ * 
+ * @example
+ * // Usage in a card with absolute positioning
+ * <div className="relative">
+ *   <HelpButton 
+ *     tooltipTitle="Card Help" 
+ *     tooltipText="Information about this card"
+ *     isInAbsoluteCard={true}
+ *   />
+ * </div>
+ */
 const HelpButton: React.FC<HelpButtonProps> = ({
   tooltipTitle,
   tooltipText,
   className,
+  isInAbsoluteCard = false,
 }) => {
   return (
     <Tooltip
@@ -30,7 +57,7 @@ const HelpButton: React.FC<HelpButtonProps> = ({
         isIconOnly
         size="sm"
         variant="light"
-        className={`ml-1 ${className}`}
+        className={`ml-1 ${isInAbsoluteCard ? "absolute top-2 right-2 z-40" : ""} ${className || ""}`}
       >
         <IconHelpCircle className="text-default-400" size={16} />
       </Button>

@@ -13,9 +13,17 @@ export interface SessionData {
   name: string;
 }
 
+export interface MetricData {
+  title: string;
+  value: number;
+  color: "primary" | "secondary" | "danger" | "success" | "warning";
+  description: string;
+}
+
 interface UseDashboardDataReturn {
   cognitiveLoadData: CognitiveLoadDataPoint[];
   sessionData: SessionData[];
+  metricsData: MetricData[];
   currentCognitiveLoad: number;
   maxLoad: number;
   avgLoad: number;
@@ -55,6 +63,30 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   const sessionData: SessionData[] = [
     { start: "9:00", end: "11:00", name: "Deep Work Session" },
     { start: "14:00", end: "16:00", name: "Focus Block" },
+  ];
+
+  const metricsData: MetricData[] = [
+    {
+      title: "Frustration",
+      value: Math.floor(Math.random() * 100) + 1,
+      color: "primary",
+      description:
+        "Measures emotional stress and irritation levels during cognitive tasks",
+    },
+    {
+      title: "Pressure",
+      value: Math.floor(Math.random() * 100) + 1,
+      color: "secondary",
+      description:
+        "Indicates time constraints and external demands affecting performance",
+    },
+    {
+      title: "Concentration",
+      value: Math.floor(Math.random() * 100) + 1,
+      color: "danger",
+      description:
+        "Reflects ability to maintain focused attention on current tasks",
+    },
   ];
 
   const currentCognitiveLoad = Math.floor(Math.random() * 100) + 1;
@@ -109,6 +141,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   return {
     cognitiveLoadData,
     sessionData,
+    metricsData,
     currentCognitiveLoad,
     maxLoad,
     avgLoad,

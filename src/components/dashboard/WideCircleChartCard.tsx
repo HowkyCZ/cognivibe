@@ -1,0 +1,105 @@
+import type { CardProps } from "@heroui/react";
+
+import React from "react";
+import {
+  ResponsiveContainer,
+  RadialBarChart,
+  RadialBar,
+  Cell,
+  PolarAngleAxis,
+} from "recharts";
+import { Card, CardBody, CardHeader } from "@heroui/react";
+import HelpButton from "../HelpButton";
+
+type WideCircleChartCardProps = {
+  title: string;
+  value: number;
+  maxValue?: number;
+  color: "primary" | "secondary" | "danger" | "success" | "warning";
+  description?: string;
+};
+
+const formatValue = (value: number | undefined) => {
+  return value?.toLocaleString() ?? "0";
+};
+
+const WideCircleChartCard = React.forwardRef<
+  HTMLDivElement,
+  Omit<CardProps, "children"> & WideCircleChartCardProps
+>(({ title, value, maxValue = 100, color, description, ...props }, ref) => {
+  const chartData = [{ name: title, value }];
+
+  return (
+    <Card
+      ref={ref}
+      className={`w-80 h-auto bg-${color}/20 relative`}
+      {...props}
+    >
+      <HelpButton
+        tooltipTitle={`${title} Information`}
+        isInAbsoluteCard={true}
+        tooltipText={description!}
+      />
+      <CardBody className="flex flex-row items-center gap-4">
+        <div className="w-20 h-20">
+          <ResponsiveContainer height="100%" width="100%">
+            <RadialBarChart
+              barSize={6}
+              cx="50%"
+              cy="50%"
+              data={chartData}
+              endAngle={270}
+              innerRadius={"100%"}
+              startAngle={-90}
+            >
+              <PolarAngleAxis
+                angleAxisId={0}
+                domain={[0, maxValue]}
+                tick={false}
+                type="number"
+              />
+              <RadialBar
+                angleAxisId={0}
+                animationDuration={1000}
+                animationEasing="ease"
+                background={{
+                  fill: "hsl(var(--heroui-default-100))",
+                }}
+                cornerRadius={6}
+                dataKey="value"
+              >
+                {chartData.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={`hsl(var(--heroui-${color}))`}
+                  />
+                ))}
+              </RadialBar>
+
+              <g>
+                <text
+                  textAnchor="middle"
+                  x="50%"
+                  y="50%"
+                  dominantBaseline="middle"
+                >
+                  <tspan className="text-md font-bold fill-foreground">
+                    {formatValue(value)}
+                  </tspan>
+                </text>
+              </g>
+            </RadialBarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div>
+          <p className="text-lg font-semibold text-foreground truncate">
+            {title}
+          </p>
+        </div>
+      </CardBody>
+    </Card>
+  );
+});
+
+export default WideCircleChartCard;

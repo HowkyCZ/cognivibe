@@ -64,21 +64,21 @@ const CircleChartCard = React.forwardRef<
   const chartData = [{ name: "Current Load", value: currentCognitiveLoad }];
 
   return (
-    <Card ref={ref} className={`w-64 p-4 bg-${color}/20 relative`} {...props}>
+    <Card
+      ref={ref}
+      className={`w-64 max-h-92 p-4 bg-${color}/20 relative`}
+      {...props}
+    >
       <HelpButton
         tooltipTitle="Cognitive Load Levels"
-        className="absolute top-2 right-2 z-40"
+        isInAbsoluteCard={true}
         tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break"
       />
       <CardHeader className="flex items-center justify-center">
         <p className="text-xl font-medium text-center">{title}</p>
       </CardHeader>
-      <CardBody className="flex items-center justify-center h-full">
-        <ResponsiveContainer
-          className="[&_.recharts-surface]:outline-none min-h-40"
-          height={"100%"}
-          width="100%"
-        >
+      <CardBody className="flex items-center justify-center h-auto">
+        <ResponsiveContainer className="max-h-40 h-40 min-h-40" width="100%">
           <RadialBarChart
             barSize={10}
             cx="50%"
