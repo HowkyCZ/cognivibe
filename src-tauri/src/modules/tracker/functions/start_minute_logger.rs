@@ -5,6 +5,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
 use crate::modules::state::AppState;
+use crate::modules::utils::{get_tracker_prefix, TrackerColors};
 
 /// Helper function to reset only the counter data
 fn reset_counters(app_state: &mut AppState) {
@@ -37,8 +38,9 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                         // Log the current data
                         #[cfg(debug_assertions)]
                         println!(
-                            "🖲️ℹ️ [{}] Minute {} - Mouse: downs={}, ups={}, distance={:.1}px | Keys: downs={}, ups={}",
-                            now.format("%H:%M:%S"),
+                            "{}⏱️ [{}] Minute {} - Mouse: downs={}, ups={}, distance={:.1}px | Keys: downs={}, ups={}",
+                            get_tracker_prefix(),
+                            TrackerColors::timestamp(&now.format("%H:%M:%S").to_string()),
                             current_minute - 1,
                             app_state.mouse_data.mouse_downs,
                             app_state.mouse_data.mouse_ups,
@@ -52,7 +54,10 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                         // If this is the first measurement, just reset counters, since we don't have a full minute of data
                         reset_counters(&mut app_state);
                         #[cfg(debug_assertions)]
-                        println!("🖲️ℹ️ First measurement, not logging data yet");
+                        println!(
+                            "{}⏱️First measurement (incomplete minute), not logging data yet and resetting counters",
+                            get_tracker_prefix()
+                        );
                         app_state.is_first_minute = false;
                     }
                 }

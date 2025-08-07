@@ -3,6 +3,7 @@ use tauri::State;
 
 use super::reset_input_data::reset_input_data;
 use crate::modules::state::AppState;
+use crate::modules::utils::get_tracker_prefix;
 
 #[tauri::command]
 /**
@@ -23,11 +24,11 @@ pub fn toggle_measuring(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle
 
     if new_state {
         #[cfg(debug_assertions)]
-        println!("🖲️📊 Measurement started");
+        println!("{}🟢Measurement started", get_tracker_prefix());
         reset_input_data(&app);
     } else {
         #[cfg(debug_assertions)]
-        println!("🖲️⏹️ Measurement stopped");
+        println!("{}🛑Measurement stopped", get_tracker_prefix());
     }
 
     new_state

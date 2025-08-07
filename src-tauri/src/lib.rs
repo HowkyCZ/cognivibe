@@ -7,7 +7,7 @@ use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
 use modules::state::{get_measuring_state, get_settings_state, AppState};
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
-use modules::utils::focus_main_window;
+use modules::utils::{focus_main_window, get_init_prefix};
 
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -33,6 +33,9 @@ pub fn run() {
         .plugin(tauri_plugin_macos_permissions::init())
         .plugin(tauri_plugin_os::init())
         .setup(|app| {
+            #[cfg(debug_assertions)]
+            println!("{}Starting Cognivibe application setup", get_init_prefix());
+            
             // Load settings from store and initialize app state
             let app_state = app.state::<Mutex<AppState>>();
 
@@ -47,7 +50,7 @@ pub fn run() {
                 // Auto-start measuring if configured
                 if settings.should_autostart_measuring {
                     #[cfg(debug_assertions)]
-                    println!("Auto-starting measurement as configured");
+                    println!("{}Auto-starting measurement as configured", get_init_prefix());
                     state.is_measuring = true;
                     state.is_first_minute = true;
                 }
@@ -61,13 +64,18 @@ pub fn run() {
 
             // Deep link setup
             if let Err(e) = setup_deep_link_handlers(app.handle()) {
-                eprintln!("⚠️ Deep link setup failed: {}", e);
-                eprintln!("The app will continue without deep link support.");
+                eprintln!("{}⚠️ Deep link setup failed: {}", get_init_prefix(), e);
+                eprintln!("{}The app will continue without deep link support.", get_init_prefix());
                 // Don't return the error - let the app continue
             }
 
             // Start global input tracker (this will handle all input events)
+            #[cfg(debug_assertions)]
+            println!("{}Starting global input tracker", get_init_prefix());
             start_global_input_tracker(app.handle().clone());
+
+            #[cfg(debug_assertions)]
+            println!("{}Cognivibe application setup completed successfully", get_init_prefix());
 
             Ok(())
         })

@@ -4,6 +4,7 @@ use tauri_plugin_store::StoreExt;
 
 use super::super::types::AppSettings;
 use crate::modules::state::AppState;
+use crate::modules::utils::get_settings_prefix;
 
 #[tauri::command]
 /// Updates the application settings and persists them to storage.
@@ -29,6 +30,9 @@ pub fn update_settings_cmd(
     {
         let mut app_state = state.lock().unwrap();
         app_state.settings = settings.clone();
+        
+        #[cfg(debug_assertions)]
+        println!("{}Settings updated: {:?}", get_settings_prefix(), settings);
     }
 
     // Save settings to store
@@ -39,6 +43,9 @@ pub fn update_settings_cmd(
     store
         .save()
         .map_err(|e| format!("Failed to save store: {}", e))?;
+
+    #[cfg(debug_assertions)]
+    println!("{}Settings saved to store successfully", get_settings_prefix());
 
     Ok(())
 }

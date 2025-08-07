@@ -1,5 +1,7 @@
 use tauri::{AppHandle, Manager};
 
+use crate::modules::utils::get_utils_prefix;
+
 /// Brings the main application window to the foreground and ensures it's visible.
 ///
 /// This function performs the following actions on the main window:
@@ -14,11 +16,14 @@ use tauri::{AppHandle, Manager};
 /// * `app` - Reference to the Tauri app handle for accessing windows
 pub fn focus_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
+        #[cfg(debug_assertions)]
+        println!("{}Focusing main window", get_utils_prefix());
+        
         let _ = window.set_focus();
         let _ = window.show();
         let _ = window.unminimize();
     } else {
-        println!("Main window not found");
+        println!("{}Main window not found", get_utils_prefix());
         return;
     }
 }
