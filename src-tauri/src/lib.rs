@@ -45,7 +45,7 @@ pub fn run() {
                 state.settings = settings.clone();
 
                 // Auto-start measuring if configured
-                if settings.auto_start_measuring {
+                if settings.should_autostart_measuring {
                     #[cfg(debug_assertions)]
                     println!("Auto-starting measurement as configured");
                     state.is_measuring = true;

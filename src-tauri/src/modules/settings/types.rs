@@ -4,16 +4,16 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AppSettings {
     /// Whether the application should start automatically when the system boots
-    pub start_on_boot: bool,
+    pub should_start_on_boot: bool,
     /// Whether to automatically start measuring when the application launches
-    pub auto_start_measuring: bool,
+    pub should_autostart_measuring: bool,
 }
 
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
-            start_on_boot: true,
-            auto_start_measuring: true,
+            should_start_on_boot: true,
+            should_autostart_measuring: true,
         }
     }
 }

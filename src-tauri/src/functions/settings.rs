@@ -6,15 +6,15 @@ use tauri_plugin_store::StoreExt;
 // Application settings
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AppSettings {
-    pub start_on_boot: bool,
-    pub auto_start_measuring: bool,
+    pub should_start_on_boot: bool,
+    pub should_autostart_measuring: bool,
 }
 
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
-            start_on_boot: true,
-            auto_start_measuring: true,
+            should_start_on_boot: true,
+            should_autostart_measuring: true,
         }
     }
 }
@@ -25,7 +25,7 @@ use crate::AppState;
 /// Retrieves the current application settings.
 /// 
 /// This Tauri command returns a copy of the current app settings
-/// including preferences like start_on_boot and auto_start_measuring.
+/// including preferences like should_start_on_boot and should_autostart_measuring.
 /// Used by the frontend to display current settings in the UI.
 /// 
 /// # Arguments
