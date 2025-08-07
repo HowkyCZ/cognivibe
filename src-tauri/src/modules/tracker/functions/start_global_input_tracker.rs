@@ -1,5 +1,4 @@
 use rdev::listen;
-use std::sync::{Arc, Mutex};
 use std::thread;
 use tauri::AppHandle;
 
@@ -14,10 +13,9 @@ use super::start_minute_logger::start_minute_logger;
 /// - Provides platform-specific error messages and setup instructions
 /// - Starts the minute logger for periodic data logging
 ///
-/// On MacOs, it requires the user to enable accessibility permissions for the app.
 pub fn start_global_input_tracker(app_handle: AppHandle) {
     // Store app handle globally using OnceLock
-    let _ = INPUT_APP_HANDLE.set(Arc::new(Mutex::new(app_handle.clone())));
+    let _ = INPUT_APP_HANDLE.set(app_handle.clone());
 
     // Start the input event listener (handles both mouse and keyboard events)
     thread::spawn(move || {

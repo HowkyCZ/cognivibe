@@ -49,6 +49,7 @@ pub fn run() {
                     #[cfg(debug_assertions)]
                     println!("Auto-starting measurement as configured");
                     state.is_measuring = true;
+                    state.is_first_minute = true;
                 }
             }
 
