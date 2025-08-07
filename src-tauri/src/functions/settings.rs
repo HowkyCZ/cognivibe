@@ -23,14 +23,14 @@ use crate::AppState;
 
 #[tauri::command]
 /// Retrieves the current application settings.
-/// 
+///
 /// This Tauri command returns a copy of the current app settings
 /// including preferences like should_start_on_boot and should_autostart_measuring.
 /// Used by the frontend to display current settings in the UI.
-/// 
+///
 /// # Arguments
 /// * `state` - The global app state containing current settings
-/// 
+///
 /// # Returns
 /// A clone of the current AppSettings structure
 pub fn get_settings_cmd(state: State<'_, Mutex<AppState>>) -> AppSettings {
@@ -40,17 +40,17 @@ pub fn get_settings_cmd(state: State<'_, Mutex<AppState>>) -> AppSettings {
 
 #[tauri::command]
 /// Updates the application settings and persists them to storage.
-/// 
+///
 /// This Tauri command:
 /// - Updates the global app state with new settings
 /// - Saves the settings to persistent storage using Tauri's store plugin
 /// - Ensures settings persist across app restarts
-/// 
+///
 /// # Arguments
 /// * `state` - The global app state to update
 /// * `app` - The Tauri app handle for accessing the store
 /// * `settings` - The new settings to apply and save
-/// 
+///
 /// # Returns
 /// * `Ok(())` if settings were successfully updated and saved
 /// * `Err(String)` if there was an error saving to storage
@@ -77,20 +77,20 @@ pub fn update_settings_cmd(
 }
 
 /// Loads application settings from persistent storage.
-/// 
+///
 /// This function attempts to load settings from the "settings.json" store file.
 /// If no settings exist or there's an error loading them, it returns default
 /// settings instead. This ensures the app always has valid settings to work with.
-/// 
+///
 /// The loading process:
 /// 1. Attempts to open the settings store
 /// 2. Looks for the "app_settings" key
 /// 3. Deserializes the JSON data into AppSettings
 /// 4. Falls back to defaults if any step fails
-/// 
+///
 /// # Arguments
 /// * `app` - The Tauri app handle for accessing the store
-/// 
+///
 /// # Returns
 /// Either the loaded settings or default settings if loading fails
 pub fn load_settings_from_store(app: &AppHandle) -> AppSettings {

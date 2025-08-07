@@ -203,10 +203,14 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                       Start CogniVibe on computer boot
                     </Checkbox>
                     <Checkbox
-                      isSelected={localSettings?.should_autostart_measuring ?? false}
+                      isSelected={
+                        localSettings?.should_autostart_measuring ?? false
+                      }
                       onValueChange={(value) =>
                         setLocalSettings((prev) =>
-                          prev ? { ...prev, should_autostart_measuring: value } : null
+                          prev
+                            ? { ...prev, should_autostart_measuring: value }
+                            : null
                         )
                       }
                       isDisabled={isSaving || isDeleting || settingsLoading}

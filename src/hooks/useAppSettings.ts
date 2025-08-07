@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { 
-  enable as enableAutostart, 
-  isEnabled as isAutostartEnabled, 
-  disable as disableAutostart 
+import {
+  enable as enableAutostart,
+  isEnabled as isAutostartEnabled,
+  disable as disableAutostart,
 } from "@tauri-apps/plugin-autostart";
 
 export interface AppSettings {
@@ -55,7 +55,10 @@ export const useAppSettings = (): UseAppSettingsReturn => {
       setError(null);
 
       // Handle autostart setting if it changed
-      if (settings && newSettings.should_start_on_boot !== settings.should_start_on_boot) {
+      if (
+        settings &&
+        newSettings.should_start_on_boot !== settings.should_start_on_boot
+      ) {
         if (newSettings.should_start_on_boot) {
           await enableAutostart();
         } else {
