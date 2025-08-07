@@ -62,11 +62,11 @@ const WavyBackground = ({
   };
 
   const waveColors = colors ?? [
-    "#38bdf8",
-    "#818cf8",
-    "#c084fc",
-    "#e879f9",
-    "#22d3ee",
+    "#8C58EA",
+    "#2E4FFC",
+    "#8C58EA",
+    "#FF0A7C",
+    "#8C58EA",
   ];
   const drawWave = (n: number) => {
     nt += getSpeed();
@@ -85,7 +85,7 @@ const WavyBackground = ({
 
   let animationId: number;
   const render = () => {
-    ctx.fillStyle = backgroundFill || "black";
+    ctx.fillStyle = backgroundFill || "#1B063A";
     ctx.globalAlpha = waveOpacity || 0.5;
     ctx.fillRect(0, 0, w, h);
     drawWave(5);

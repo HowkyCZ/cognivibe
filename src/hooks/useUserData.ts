@@ -4,7 +4,6 @@ import { createSupabaseClient } from "../utils/createSupabaseClient";
 interface User {
   user_id: string;
   created_at: string;
-  nickname: string;
   avatar_url: string | undefined;
   organization: Organization | null;
 }
@@ -42,7 +41,6 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
             `
             user_id, 
             created_at, 
-            nickname, 
             avatar_url,
             organization_id (organization_id, brand_name)
           `
@@ -58,7 +56,6 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
           const transformedData: User = {
             user_id: data.user_id,
             created_at: data.created_at,
-            nickname: data.nickname,
             avatar_url: data.avatar_url,
             organization: data.organization_id
               ? {

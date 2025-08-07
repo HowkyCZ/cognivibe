@@ -192,10 +192,10 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                       Application Settings
                     </h4>
                     <Checkbox
-                      isSelected={localSettings?.start_on_boot ?? false}
+                      isSelected={localSettings?.should_start_on_boot ?? false}
                       onValueChange={(value) =>
                         setLocalSettings((prev) =>
-                          prev ? { ...prev, start_on_boot: value } : null
+                          prev ? { ...prev, should_start_on_boot: value } : null
                         )
                       }
                       isDisabled={isSaving || isDeleting || settingsLoading}
@@ -203,10 +203,14 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                       Start CogniVibe on computer boot
                     </Checkbox>
                     <Checkbox
-                      isSelected={localSettings?.auto_start_measuring ?? false}
+                      isSelected={
+                        localSettings?.should_autostart_measuring ?? false
+                      }
                       onValueChange={(value) =>
                         setLocalSettings((prev) =>
-                          prev ? { ...prev, auto_start_measuring: value } : null
+                          prev
+                            ? { ...prev, should_autostart_measuring: value }
+                            : null
                         )
                       }
                       isDisabled={isSaving || isDeleting || settingsLoading}
@@ -216,30 +220,22 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                   </div>
 
                   <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-danger">
-                      Danger Zone
-                    </h4>
-                    <div className="p-4 border border-danger-200 rounded-lg bg-danger-50">
-                      <p className="text-sm  mb-3">
-                        Permanently delete your account and all associated data.
-                        This action cannot be undone.
-                      </p>
-                      <Button
-                        color="danger"
-                        variant="bordered"
-                        startContent={
-                          !isDeleting ? (
-                            <IconTrash className="h-4 w-4" />
-                          ) : undefined
-                        }
-                        onPress={handleDeleteAccount}
-                        isDisabled={isSaving || isDeleting}
-                        isLoading={isDeleting}
-                        size="sm"
-                      >
-                        {isDeleting ? "Deleting Account..." : "Delete Account"}
-                      </Button>
-                    </div>
+                    <h4 className="text-lg font-semibold">Danger Zone</h4>
+                    <Button
+                      color="danger"
+                      variant="ghost"
+                      startContent={
+                        !isDeleting ? (
+                          <IconTrash className="h-4 w-4" />
+                        ) : undefined
+                      }
+                      onPress={handleDeleteAccount}
+                      isDisabled={isSaving || isDeleting}
+                      isLoading={isDeleting}
+                      size="sm"
+                    >
+                      {isDeleting ? "Deleting Account..." : "Delete Account"}
+                    </Button>
                   </div>
                 </Form>
               </ModalBody>
@@ -331,12 +327,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
               </ModalHeader>
               <ModalBody>
                 <div className="space-y-4">
-                  <Alert
-                    color="danger"
-                    variant="flat"
-                    className="mb-4"
-                    hideIcon
-                  >
+                  <Alert color="danger" className="mb-4" hideIcon>
                     Are you sure you want to delete your account? This action is
                     irreversible and will permanently remove all your data.
                   </Alert>

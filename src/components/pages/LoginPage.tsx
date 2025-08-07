@@ -32,7 +32,6 @@ const LoginPage: React.FC<LoginPageProps> = () => {
         throw error;
       }
 
-      // Show success toast
       addToast({
         title: "Magic link sent!",
         description:
@@ -57,11 +56,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
   };
 
   return (
-    <WavyBackground
-      containerClassName="bg-black"
-      colors={["#a07cef", "#ff709b", "#5c6dfd", "#a07cef"]}
-      backgroundFill="#14181b"
-    >
+    <WavyBackground>
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
         <div className="flex flex-col items-center gap-2">
           <img
@@ -86,6 +81,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             label="Email"
             name="email"
             type="email"
+            autoComplete="email"
             variant="bordered"
             isDisabled={isLoading}
             value={email}

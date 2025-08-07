@@ -8,7 +8,6 @@ pub struct MouseData {
     pub total_distance: f64,
     pub last_x: f64,
     pub last_y: f64,
-    pub last_logged_minute: u8,
 }
 
 // Keyboard tracking data
@@ -16,5 +15,4 @@ pub struct MouseData {
 pub struct KeyboardData {
     pub key_downs: u64,
     pub key_ups: u64,
-    pub last_logged_minute: u8,
 }

@@ -29,11 +29,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
       navigate({ to: ROUTES.HOME });
     });
   return (
-    <WavyBackground
-      containerClassName="bg-black"
-      colors={["#a07cef", "#ff709b", "#5c6dfd", "#a07cef"]}
-      backgroundFill="#14181b"
-    >
+    <WavyBackground>
       <div className="flex w-full max-w-md flex-col gap-6 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small text-center">
         <div className="flex flex-col items-center gap-4">
           <img

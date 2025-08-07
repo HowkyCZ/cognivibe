@@ -3,47 +3,33 @@ use tauri::State;
 
 use super::reset_input_data::reset_input_data;
 use crate::modules::state::AppState;
+use crate::modules::utils::get_tracker_prefix;
 
 #[tauri::command]
-/// Toggles the measurement state of the application.
-///
-/// This Tauri command switches between measuring and not measuring states.
-/// When starting measurement (turning ON):
-/// - Resets all input tracking data to start fresh
-/// - Logs the start of measurement
-///
-/// When stopping measurement (turning OFF):
-/// - Stops data collection but preserves current data
-/// - Logs the stop of measurement
-///
-/// # Arguments
-/// * `state` - The global app state containing the measuring flag
-/// * `app` - The Tauri app handle for resetting tracking data
-///
-/// # Returns
-/// The new measuring state (true if now measuring, false if stopped)
+/**
+Toggles the measurement state of the application.
+
+When starting measurement: resets all tracking data to start fresh.
+When stopping measurement: preserves current data but stops collection.
+
+Returns the new measuring state (true if now measuring, false if stopped).
+*/
 pub fn toggle_measuring(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle) -> bool {
-    let is_starting_measurement;
-    let current_state;
+    let mut app_state = state.lock().unwrap();
+    app_state.is_measuring = !app_state.is_measuring;
+    let new_state = app_state.is_measuring;
 
-    {
-        let mut app_state = state.lock().unwrap();
-        // Toggle the measuring state
-        app_state.is_measuring = !app_state.is_measuring;
-        is_starting_measurement = app_state.is_measuring;
-        current_state = app_state.is_measuring;
-    }
+    // Release the lock before calling reset_input_data
+    drop(app_state);
 
-    if is_starting_measurement {
+    if new_state {
         #[cfg(debug_assertions)]
-        println!("Started measuring");
-        // Reset mouse and keyboard tracking data when starting measurement
+        println!("{}🟢Measurement started", get_tracker_prefix());
         reset_input_data(&app);
     } else {
         #[cfg(debug_assertions)]
-        println!("Stopped measuring");
+        println!("{}🛑Measurement stopped", get_tracker_prefix());
     }
 
-    // Return the current measuring state
-    current_state
+    new_state
 }

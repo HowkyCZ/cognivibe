@@ -8,7 +8,7 @@ use crate::modules::state::AppState;
 /// Retrieves the current application settings from the global state.
 ///
 /// This Tauri command returns a copy of the current app settings
-/// including preferences like start_on_boot and auto_start_measuring.
+/// including preferences like should_start_on_boot and should_autostart_measuring.
 /// Used by the frontend to display current settings in the UI.
 ///
 /// This function is part of the state module since it's a pure state query

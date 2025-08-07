@@ -13,19 +13,25 @@ export interface SessionData {
   name: string;
 }
 
-export interface DashboardStats {
-  sessionsToday: number;
-  focusTime: string;
-  breakTime: string;
+export interface MetricData {
+  title: string;
+  value: number;
+  color: "primary" | "secondary" | "danger" | "success" | "warning";
+  description: string;
 }
 
 interface UseDashboardDataReturn {
   cognitiveLoadData: CognitiveLoadDataPoint[];
   sessionData: SessionData[];
+  metricsData: MetricData[];
   currentCognitiveLoad: number;
   maxLoad: number;
   avgLoad: number;
-  stats: DashboardStats;
+  thresholds: {
+    low: number;
+    medium: number;
+    high: number;
+  };
   loading: boolean;
   error: string | null;
 }
@@ -59,7 +65,38 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     { start: "14:00", end: "16:00", name: "Focus Block" },
   ];
 
-  const currentCognitiveLoad = 6.8;
+  const metricsData: MetricData[] = [
+    {
+      title: "Frustration",
+      value: Math.floor(Math.random() * 100) + 1,
+      color: "primary",
+      description:
+        "Measures emotional stress and irritation levels during cognitive tasks",
+    },
+    {
+      title: "Pressure",
+      value: Math.floor(Math.random() * 100) + 1,
+      color: "secondary",
+      description:
+        "Indicates time constraints and external demands affecting performance",
+    },
+    {
+      title: "Concentration",
+      value: Math.floor(Math.random() * 100) + 1,
+      color: "danger",
+      description:
+        "Reflects ability to maintain focused attention on current tasks",
+    },
+  ];
+
+  const currentCognitiveLoad = Math.floor(Math.random() * 100) + 1;
+
+  // Cognitive load thresholds
+  const thresholds = {
+    low: 40,
+    medium: 80,
+    high: 100,
+  };
 
   // Calculate derived values
   const maxLoad = Math.max(
@@ -72,12 +109,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       0
     ) /
     (cognitiveLoadData.length * 3);
-
-  const stats: DashboardStats = {
-    sessionsToday: 8,
-    focusTime: "4.2h",
-    breakTime: "1.8h",
-  };
 
   // TODO: Replace with actual data fetching
   const fetchDashboardData = async () => {
@@ -92,7 +123,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       // const cognitiveData = await invoke("get_cognitive_load_data");
       // const sessions = await invoke("get_session_data");
       // const currentLoad = await invoke("get_current_cognitive_load");
-      // const dashboardStats = await invoke("get_dashboard_stats");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch dashboard data";
@@ -111,10 +141,11 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   return {
     cognitiveLoadData,
     sessionData,
+    metricsData,
     currentCognitiveLoad,
     maxLoad,
     avgLoad,
-    stats,
+    thresholds,
     loading,
     error,
   };

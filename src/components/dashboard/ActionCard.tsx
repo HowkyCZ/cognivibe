@@ -94,6 +94,4 @@ const ActionCard = React.forwardRef<HTMLDivElement, ActionCardProps>(
   }
 );
 
-ActionCard.displayName = "ActionCard";
-
 export default ActionCard;

@@ -3,3 +3,4 @@ export * from "./pages";
 export * from "./layout";
 export * from "./dashboard";
 export * from "./modals";
+export { default as HelpButton } from "./HelpButton";
