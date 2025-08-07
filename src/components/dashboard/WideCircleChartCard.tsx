@@ -8,7 +8,7 @@ import {
   Cell,
   PolarAngleAxis,
 } from "recharts";
-import { Card, CardBody, CardHeader } from "@heroui/react";
+import { Card, CardBody } from "@heroui/react";
 import HelpButton from "../HelpButton";
 
 type WideCircleChartCardProps = {
