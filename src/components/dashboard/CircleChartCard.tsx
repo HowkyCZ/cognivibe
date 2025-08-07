@@ -30,9 +30,9 @@ const thresholds = {
 
 // Determine color based on cognitive load thresholds
 const getLoadColor = (value: number): ButtonProps["color"] => {
-  if (value <= thresholds.low) return "secondary"; // blue
-  if (value <= thresholds.medium) return "primary"; // purple
-  return "danger"; // red
+  if (value <= thresholds.low) return "secondary";
+  if (value <= thresholds.medium) return "primary";
+  return "danger";
 };
 
 // Get title based on cognitive load

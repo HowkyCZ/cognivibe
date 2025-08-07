@@ -3,3 +3,32 @@
 
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--heroui-background));
+  background-color: hsl(var(--heroui-background));
+  border: none;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--heroui-primary-500));
+  border-radius: var(--heroui-radius-small);
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--heroui-primary-400));
+}
+
+::-webkit-scrollbar-corner {
+  background: hsl(var(--heroui-background));
+  background-color: hsl(var(--heroui-background));
+}
