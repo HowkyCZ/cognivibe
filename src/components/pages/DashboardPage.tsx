@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Card } from "@heroui/card";
 import {
   CognitiveLoadChart,
   WeeklyAssessmentCard,
@@ -14,8 +14,6 @@ function DashboardPage() {
     sessionData,
     metricsData,
     currentCognitiveLoad,
-    maxLoad,
-    avgLoad,
     loading: dashboardLoading,
     error: dashboardError,
   } = useDashboardData();
@@ -32,12 +30,7 @@ function DashboardPage() {
             </div>
           </Card>
         ) : (
-          <CognitiveLoadChart
-            data={cognitiveLoadData}
-            sessions={sessionData}
-            maxLoad={maxLoad}
-            avgLoad={avgLoad}
-          />
+          <CognitiveLoadChart data={cognitiveLoadData} sessions={sessionData} />
         )}
         <div className="flex flex-row gap-4 my-4">
           <CircleChartCard currentCognitiveLoad={currentCognitiveLoad} />
