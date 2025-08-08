@@ -9,4 +9,4 @@ export const ROUTES = {
 
 export type AcceptableRoutes = (typeof ROUTES)[keyof typeof ROUTES];
 
-export const isInDevelopment = import.meta.env.DEV;
+export const isDevMode = import.meta.env.DEV;

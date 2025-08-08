@@ -2,7 +2,7 @@ import { createRootRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AppTemplate } from "../components";
 import { setupDeepLinkHandler } from "../utils/deepLinkHandler";
-import { isInDevelopment } from "../utils/constants";
+import { isDevMode } from "../utils/constants";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useMacOSPermissions } from "../hooks";
 
@@ -19,7 +19,7 @@ export const Route = createRootRoute({
     return (
       <AppTemplate>
         <Outlet />
-        {isInDevelopment && <TanStackRouterDevtools />}
+        {isDevMode && <TanStackRouterDevtools />}
       </AppTemplate>
     );
   },

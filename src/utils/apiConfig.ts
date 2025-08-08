@@ -1,11 +1,11 @@
-import { isInDevelopment } from "./constants";
+import { isDevMode } from "./constants";
 
 /**
  * Get the API base URL based on the current environment
  * @returns The appropriate API base URL for production or development
  */
 export const getApiBaseUrl = (): string => {
-  return isInDevelopment
+  return isDevMode
     ? import.meta.env.VITE_DEVELOPMENT_SERVER_URL
     : import.meta.env.VITE_SERVER_URL;
 };
