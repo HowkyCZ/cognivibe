@@ -43,43 +43,7 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                 if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                     if app_state.is_measuring && !app_state.is_first_minute {
                         #[cfg(debug_assertions)]
-                        {
-                            println!("{}", get_tracker_prefix());
-
-                            let mut table = Table::new();
-                            table
-                                .load_preset(UTF8_FULL)
-                                .apply_modifier(UTF8_ROUND_CORNERS)
-                                .set_content_arrangement(ContentArrangement::Dynamic)
-                                .set_width(120)
-                                .set_header(vec![
-                                    "Time",
-                                    "Left Clicks",
-                                    "Right Clicks",
-                                    "Other Clicks",
-                                    "Distance (px)",
-                                    "Wheel Scroll",
-                                    "Key Downs",
-                                    "Key Ups",
-                                    "Delete Downs",
-                                    "Delete Ups",
-                                ]);
-
-                            table.add_row(vec![
-                                &format!("{}:{:02}:00", now.hour(), current_minute - 1),
-                                &format!("{}", app_state.mouse_data.left_clicks),
-                                &format!("{}", app_state.mouse_data.right_clicks),
-                                &format!("{}", app_state.mouse_data.other_clicks),
-                                &format!("{:.1}", app_state.mouse_data.total_distance),
-                                &format!("{:.1}", app_state.mouse_data.wheel_scroll_distance),
-                                &format!("{}", app_state.keyboard_data.key_downs),
-                                &format!("{}", app_state.keyboard_data.key_ups),
-                                &format!("{}", app_state.keyboard_data.delete_downs),
-                                &format!("{}", app_state.keyboard_data.delete_ups),
-                            ]);
-
-                            println!("{}", table);
-                        }
+                        log_tracking_table(&app_state, now.hour(), current_minute - 1);
 
                         reset_counters(&mut app_state);
                     } else if app_state.is_measuring && app_state.is_first_minute {
@@ -100,4 +64,44 @@ pub fn start_minute_logger(app_handle: AppHandle) {
             thread::sleep(Duration::from_secs(1));
         }
     });
+}
+
+/// Logs the tracking data in a formatted table
+#[cfg(debug_assertions)]
+fn log_tracking_table(app_state: &AppState, hour: u32, minute: u8) {
+    println!("{}", get_tracker_prefix());
+
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_FULL)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_width(80)
+        .set_header(vec![
+            "Time",
+            "Left Clicks",
+            "Right Clicks",
+            "Other Clicks",
+            "Distance (px)",
+            "Wheel Scroll",
+            "Key Downs",
+            "Key Ups",
+            "Delete Downs",
+            "Delete Ups",
+        ]);
+
+    table.add_row(vec![
+        &format!("{}:{:02}:00", hour, minute),
+        &format!("{}", app_state.mouse_data.left_clicks),
+        &format!("{}", app_state.mouse_data.right_clicks),
+        &format!("{}", app_state.mouse_data.other_clicks),
+        &format!("{:.1}", app_state.mouse_data.total_distance),
+        &format!("{:.1}", app_state.mouse_data.wheel_scroll_distance),
+        &format!("{}", app_state.keyboard_data.key_downs),
+        &format!("{}", app_state.keyboard_data.key_ups),
+        &format!("{}", app_state.keyboard_data.delete_downs),
+        &format!("{}", app_state.keyboard_data.delete_ups),
+    ]);
+
+    println!("{}", table);
 }
