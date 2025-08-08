@@ -41,20 +41,21 @@ pub fn start_minute_logger(app_handle: AppHandle) {
             // Only log at the start of a new minute and avoid duplicate logging
             if now.second() == 0 && last_logged_minute != Some(current_minute) {
                 if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
-                    if app_state.is_measuring && !app_state.is_first_minute {
-                        #[cfg(debug_assertions)]
-                        log_tracking_table(&app_state, now.hour(), current_minute - 1);
+                    if app_state.is_measuring {
+                        if !app_state.is_first_minute {
+                            #[cfg(debug_assertions)]
+                            log_tracking_table(&app_state, now.hour(), current_minute - 1);
+                        } else {
+                            // If this is the first measurement, just reset counters, since we don't have a full minute of data
+                            #[cfg(debug_assertions)]
+                            println!(
+                                "{}⏱️First measurement (incomplete minute), not logging data yet and resetting counters",
+                                get_tracker_prefix()
+                            );
+                            app_state.is_first_minute = false;
+                        }
 
                         reset_counters(&mut app_state);
-                    } else if app_state.is_measuring && app_state.is_first_minute {
-                        // If this is the first measurement, just reset counters, since we don't have a full minute of data
-                        reset_counters(&mut app_state);
-                        #[cfg(debug_assertions)]
-                        println!(
-                            "{}⏱️First measurement (incomplete minute), not logging data yet and resetting counters",
-                            get_tracker_prefix()
-                        );
-                        app_state.is_first_minute = false;
                     }
                 }
                 last_logged_minute = Some(current_minute);
