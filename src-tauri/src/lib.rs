@@ -7,7 +7,10 @@ use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
 use modules::state::{get_measuring_state, get_settings_state, AppState};
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
+#[cfg(debug_assertions)]
 use modules::utils::{focus_main_window, get_init_prefix};
+#[cfg(not(debug_assertions))]
+use modules::utils::focus_main_window;
 
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -67,7 +70,9 @@ pub fn run() {
 
             // Deep link setup
             if let Err(e) = setup_deep_link_handlers(app.handle()) {
+                #[cfg(debug_assertions)]
                 eprintln!("{}⚠️ Deep link setup failed: {}", get_init_prefix(), e);
+                #[cfg(debug_assertions)]
                 eprintln!(
                     "{}The app will continue without deep link support.",
                     get_init_prefix()

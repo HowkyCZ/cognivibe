@@ -4,6 +4,7 @@ use tauri_plugin_store::StoreExt;
 
 use super::super::types::AppSettings;
 use crate::modules::state::AppState;
+#[cfg(debug_assertions)]
 use crate::modules::utils::get_settings_prefix;
 
 #[tauri::command]

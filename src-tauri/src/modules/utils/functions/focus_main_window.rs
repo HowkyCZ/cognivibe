@@ -1,5 +1,6 @@
 use tauri::{AppHandle, Manager};
 
+#[cfg(debug_assertions)]
 use crate::modules::utils::get_utils_prefix;
 
 /// Brings the main application window to the foreground and ensures it's visible.
@@ -23,6 +24,7 @@ pub fn focus_main_window(app: &AppHandle) {
         let _ = window.show();
         let _ = window.unminimize();
     } else {
+        #[cfg(debug_assertions)]
         println!("{}Main window not found", get_utils_prefix());
         return;
     }

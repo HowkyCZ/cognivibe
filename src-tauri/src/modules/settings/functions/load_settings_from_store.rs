@@ -2,6 +2,7 @@ use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
 
 use super::super::types::AppSettings;
+#[cfg(debug_assertions)]
 use crate::modules::utils::get_settings_prefix;
 
 /// Loads application settings from persistent storage.
@@ -28,15 +29,18 @@ pub fn load_settings_from_store(app: &AppHandle) -> AppSettings {
             match store.get("app_settings") {
                 Some(value) => match serde_json::from_value::<AppSettings>(value) {
                     Ok(settings) => {
+                        #[cfg(debug_assertions)]
                         println!("{}Loaded settings from store: {:?}", get_settings_prefix(), settings);
                         settings
                     }
                     Err(e) => {
+                        #[cfg(debug_assertions)]
                         println!("{}Failed to parse settings, using defaults: {}", get_settings_prefix(), e);
                         AppSettings::default()
                     }
                 },
                 None => {
+                    #[cfg(debug_assertions)]
                     println!("{}No settings found, creating defaults", get_settings_prefix());
                     let default_settings = AppSettings::default();
                     // Save default settings to store
@@ -50,6 +54,7 @@ pub fn load_settings_from_store(app: &AppHandle) -> AppSettings {
             }
         }
         Err(e) => {
+            #[cfg(debug_assertions)]
             println!("{}Failed to get store, using defaults: {}", get_settings_prefix(), e);
             AppSettings::default()
         }
