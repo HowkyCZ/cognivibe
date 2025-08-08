@@ -9,7 +9,7 @@ export default heroui({
     dark: {
       colors: {
         background: "#1B063A",
-        foreground: "#f0e7ff",
+        foreground: "#F2EFFD", // 950 from primary
         primary: {
           50: "#180535",
           100: "#250A4C",
@@ -21,7 +21,7 @@ export default heroui({
           700: "#B69EF3",
           800: "#CDBEF7",
           900: "#E5DFFB",
-          foreground: "#EBE5FC", // Text color to use ON TOP of primary colors, value of 900
+          foreground: "#F2EFFD", // Text color to use ON TOP of primary colors, value of 950
           DEFAULT: "#8C58EA", // Default 500 primary
         },
         secondary: {
@@ -36,7 +36,7 @@ export default heroui({
           800: "#B1B6FE",
           900: "#D8DAFF",
           DEFAULT: "#2E4FFC", // Default 500 secondary
-          foreground: "#D8DAFF", // Text color to use ON TOP of secondary colors, value of 900
+          foreground: "#ECEDFF", // 950
         },
         danger: {
           50: "#2B000F",
@@ -50,7 +50,7 @@ export default heroui({
           800: "#FFBDCD",
           900: "#FFDDE4",
           DEFAULT: "#FF0A7C", // Default 500 danger
-          foreground: "#FFDDE4", // Text color to use ON TOP of danger colors,
+          foreground: "#FFF0F3", // 950
         },
         success: {
           50: "#021D05",
@@ -64,7 +64,7 @@ export default heroui({
           800: "#9EFEA9",
           900: "#D4FED8",
           DEFAULT: "#35E057", // Default 500 success
-          foreground: "#D4FED8", // Text color to use ON TOP of success colors
+          foreground: "#EBFFEC", // 950
         },
         warning: {
           50: "#1E1704",
@@ -78,7 +78,7 @@ export default heroui({
           800: "#FCECCE",
           900: "#FEF6E8",
           DEFAULT: "#F9CF58", // Default 500 warning
-          foreground: "#FEF6E8", // Text color to use ON TOP of warning
+          foreground: "#FEF9F0", // 950
         },
         focus: "#A07CEF", // 600 from primary
       },
