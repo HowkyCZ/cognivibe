@@ -75,15 +75,3 @@ pub fn get_deeplinks_prefix() -> String {
             .bold()
     )
 }
-
-/// Color scheme for tracker logging
-#[cfg(debug_assertions)]
-pub struct TrackerColors;
-
-#[cfg(debug_assertions)]
-impl TrackerColors {
-    /// Returns the styled timestamp in cyan
-    pub fn timestamp(text: &str) -> String {
-        text.cyan().to_string()
-    }
-}
