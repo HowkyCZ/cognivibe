@@ -50,6 +50,36 @@ const validateDeepLinkUrl = (url: string): boolean => {
 };
 
 /**
+ * Extracts URL parameters from hash or search parts
+ */
+const extractUrlParams = (url: string): URLSearchParams => {
+  const hashPart = url.split("#")[1];
+  const searchPart = url.split("?")[1];
+  return new URLSearchParams(hashPart || searchPart || "");
+};
+
+/**
+ * Navigates to error page with sanitized parameters
+ */
+const navigateToError = (
+  navigate: (options: { to: string; search?: Record<string, any> }) => void,
+  urlParams: URLSearchParams,
+  defaultDescription: string = "An error occurred"
+) => {
+  const errorCode = sanitizeUrlParam(urlParams.get("error_code"));
+  navigate({
+    to: ROUTES.ERROR,
+    search: {
+      error: sanitizeUrlParam(urlParams.get("error")) || "unknown",
+      ...(errorCode && { error_code: errorCode }),
+      error_description:
+        sanitizeUrlParam(urlParams.get("error_description")) ||
+        defaultDescription,
+    },
+  });
+};
+
+/**
  * Sets up deep link handling for the application
  * @param navigate - The navigation function from useNavigate hook
  */
@@ -79,95 +109,64 @@ export const setupDeepLinkHandler = async (
       try {
         // Parse the URL to extract the path and parameters
         const urlObj = new URL(url);
-        const path = urlObj.pathname;
 
-        console.log("Deep link path:", path);
+        // For custom protocols, combine host and pathname to get the full path
+        const fullPath = urlObj.hostname
+          ? `/${urlObj.hostname}${urlObj.pathname}`
+          : urlObj.pathname;
 
-        // Define valid routes that exist in your app
-        const validRoutes = [
-          ROUTES.ERROR,
-          ROUTES.CALLBACK,
-          ROUTES.LOGIN,
-          ROUTES.DASHBOARD,
-          ROUTES.NOT_FOUND,
-          ROUTES.HOME,
-        ];
+        console.log("Deep link path:", fullPath);
 
-        if (validRoutes.includes(path as AcceptableRoutes)) {
-          if (path === ROUTES.ERROR) {
-            const searchParams = urlObj.searchParams;
-            navigate({
-              to: ROUTES.ERROR,
-              search: {
-                error: sanitizeUrlParam(searchParams.get("error")) || "unknown",
-                error_code:
-                  sanitizeUrlParam(searchParams.get("error_code")) || undefined,
-                error_description:
-                  sanitizeUrlParam(searchParams.get("error_description")) ||
-                  "An error occurred",
-              },
-            });
-          } else if (path === ROUTES.CALLBACK) {
-            // Check if the URL contains error parameters
-            const hashPart = url.split("#")[1];
-            const searchPart = url.split("?")[1];
-            const urlParams = new URLSearchParams(hashPart || searchPart || "");
+        // Use ROUTES object values for validation
+        const validRoutes = Object.values(ROUTES);
 
-            if (url.includes("error=")) {
-              const errorType = sanitizeUrlParam(urlParams.get("error"));
-              const errorCode = sanitizeUrlParam(urlParams.get("error_code"));
-              const errorDescription = sanitizeUrlParam(
-                urlParams.get("error_description")
-              );
+        if (!validRoutes.includes(fullPath as AcceptableRoutes)) {
+          console.log("Invalid route detected:", fullPath);
+          navigate({ to: ROUTES.NOT_FOUND });
+          return;
+        }
 
-              // Redirect to error page with error details
-              navigate({
-                to: ROUTES.ERROR,
-                search: {
-                  error: errorType || "unknown",
-                  ...(errorCode && { error_code: errorCode }),
-                  error_description:
-                    errorDescription ||
-                    "An error occurred during authentication",
-                },
-              });
-            } else {
-              // No error, proceed to callback with sanitized parameters
-              const searchObj: Record<string, any> = {};
+        // Handle specific routes
+        if (fullPath === ROUTES.ERROR) {
+          navigateToError(navigate, urlObj.searchParams, "An error occurred");
+        } else if (fullPath === ROUTES.CALLBACK) {
+          const urlParams = extractUrlParams(url);
 
-              // Define allowed callback parameters to prevent parameter pollution
-              const allowedParams = [
-                "access_token",
-                "refresh_token",
-                "token_type",
-                "expires_in",
-                "state",
-                "code",
-              ];
-
-              urlParams.forEach((value, key) => {
-                if (allowedParams.includes(key)) {
-                  const sanitizedValue = sanitizeUrlParam(value);
-                  if (sanitizedValue) {
-                    searchObj[key] = sanitizedValue;
-                  }
-                }
-              });
-
-              navigate({
-                to: ROUTES.CALLBACK,
-                search: searchObj,
-              });
-            }
+          if (url.includes("error=")) {
+            navigateToError(
+              navigate,
+              urlParams,
+              "An error occurred during authentication"
+            );
           } else {
-            navigate({ to: path });
+            // No error, proceed to callback with sanitized parameters
+            const allowedParams = [
+              "access_token",
+              "refresh_token",
+              "token_type",
+              "expires_in",
+              "state",
+              "code",
+            ];
+
+            const searchObj: Record<string, any> = {};
+
+            urlParams.forEach((value, key) => {
+              if (allowedParams.includes(key)) {
+                const sanitizedValue = sanitizeUrlParam(value);
+                if (sanitizedValue) {
+                  searchObj[key] = sanitizedValue;
+                }
+              }
+            });
+
+            navigate({
+              to: ROUTES.CALLBACK,
+              search: searchObj,
+            });
           }
         } else {
-          // Route not found - redirect to error page
-          console.log("Invalid route detected:", path);
-          navigate({
-            to: ROUTES.NOT_FOUND,
-          });
+          navigate({ to: fullPath });
         }
       } catch (parseError) {
         // Invalid URL format - redirect to error page
