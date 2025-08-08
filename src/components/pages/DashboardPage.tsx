@@ -11,11 +11,9 @@ import { useDashboardData } from "../../hooks";
 function DashboardPage() {
   const {
     cognitiveLoadData,
-    sessionData,
     metricsData,
     currentCognitiveLoad,
     loading: dashboardLoading,
-    error: dashboardError,
   } = useDashboardData();
 
   return (
@@ -30,7 +28,7 @@ function DashboardPage() {
             </div>
           </Card>
         ) : (
-          <CognitiveLoadChart data={cognitiveLoadData} sessions={sessionData} />
+          <CognitiveLoadChart data={cognitiveLoadData} />
         )}
         <div className="flex flex-row gap-4 my-4">
           <CircleChartCard currentCognitiveLoad={currentCognitiveLoad} />

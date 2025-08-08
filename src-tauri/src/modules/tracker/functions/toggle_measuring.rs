@@ -3,6 +3,7 @@ use tauri::State;
 
 use super::reset_input_data::reset_input_data;
 use crate::modules::state::AppState;
+#[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
 #[tauri::command]

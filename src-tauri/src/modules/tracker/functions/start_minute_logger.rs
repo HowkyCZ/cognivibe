@@ -5,6 +5,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
 use crate::modules::state::AppState;
+#[cfg(debug_assertions)]
 use crate::modules::utils::{get_tracker_prefix, TrackerColors};
 
 /// Helper function to reset only the counter data

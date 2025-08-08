@@ -4,6 +4,7 @@ use tauri::AppHandle;
 
 use super::input_callback::{input_callback, INPUT_APP_HANDLE};
 use super::start_minute_logger::start_minute_logger;
+#[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
 /// Initializes and starts the global input tracking system.
@@ -28,6 +29,7 @@ pub fn start_global_input_tracker(app_handle: AppHandle) {
                 error
             );
         } else {
+            #[cfg(debug_assertions)]
             println!(
                 "{}✅ Input tracking started successfully",
                 get_tracker_prefix()

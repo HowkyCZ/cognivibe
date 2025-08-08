@@ -3,6 +3,7 @@ use tauri::{AppHandle, Manager};
 
 use crate::modules::state::AppState;
 use crate::modules::tracker::types::{KeyboardData, MouseData};
+#[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
 /// Resets both mouse and keyboard tracking data to default values.

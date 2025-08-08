@@ -8,7 +8,6 @@ const LazyChart = lazy(() =>
   import("recharts").then((recharts) => {
     const ChartComponent = ({
       data,
-      sessions,
     }: {
       data: Array<{
         time: string;
@@ -16,7 +15,6 @@ const LazyChart = lazy(() =>
         strain: number;
         energy: number;
       }>;
-      sessions?: Array<{ start: string; end: string; name: string }>;
     }) => (
       <recharts.ResponsiveContainer width="100%" height="100%">
         <recharts.LineChart data={data}>
@@ -60,12 +58,10 @@ const LazyChart = lazy(() =>
 
 interface CognitiveLoadChartProps {
   data: Array<{ time: string; focus: number; strain: number; energy: number }>;
-  sessions?: Array<{ start: string; end: string; name: string }>;
 }
 
 const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   data,
-  sessions,
 }) => {
   return (
     <Card className="p-4">
@@ -81,7 +77,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
               </div>
             }
           >
-            <LazyChart data={data} sessions={sessions} />
+            <LazyChart data={data} />
             <TimelineBar
               startTime="09:00"
               endTime="17:00"

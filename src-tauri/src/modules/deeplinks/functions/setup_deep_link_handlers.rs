@@ -2,6 +2,7 @@ use tauri::AppHandle;
 use tauri_plugin_deep_link::DeepLinkExt;
 
 use crate::modules::utils::focus_main_window;
+#[cfg(debug_assertions)]
 use crate::modules::utils::get_deeplinks_prefix;
 
 /// Sets up deep link handling for the Cognivibe application.
@@ -10,6 +11,9 @@ use crate::modules::utils::get_deeplinks_prefix;
 /// - Registers the "cognivibe://" protocol with the system
 /// - Sets up event handlers for when deep links are opened
 /// - Automatically focuses the main window when a deep link is activated
+///
+/// Note that there is also frontend handling for deep links in the web application,
+/// but this backend setup ensures that the desktop application can respond to them.
 ///
 /// Deep links allow external applications or websites to open and interact
 /// with Cognivibe directly. When a cognivibe:// URL is opened, this handler
@@ -24,7 +28,7 @@ use crate::modules::utils::get_deeplinks_prefix;
 pub fn setup_deep_link_handlers(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(debug_assertions)]
     println!("{}Setting up deep link handlers", get_deeplinks_prefix());
-    
+
     // Register deep link protocol
     app.deep_link().register("cognivibe")?;
 
@@ -42,13 +46,21 @@ pub fn setup_deep_link_handlers(app: &AppHandle) -> Result<(), Box<dyn std::erro
 
         if let Some(url) = cognivibe_url {
             #[cfg(debug_assertions)]
-            println!("{}Processing cognivibe deep link: {}", get_deeplinks_prefix(), url);
+            println!(
+                "{}Processing cognivibe deep link: {}",
+                get_deeplinks_prefix(),
+                url
+            );
 
             // Focus the main window
             focus_main_window(&app_handle);
         } else {
             #[cfg(debug_assertions)]
-            println!("{}No cognivibe deep links found in: {:?}", get_deeplinks_prefix(), all_urls);
+            println!(
+                "{}No cognivibe deep links found in: {:?}",
+                get_deeplinks_prefix(),
+                all_urls
+            );
         }
     });
 
@@ -59,7 +71,10 @@ pub fn setup_deep_link_handlers(app: &AppHandle) -> Result<(), Box<dyn std::erro
     }
 
     #[cfg(debug_assertions)]
-    println!("{}Deep link handlers setup completed successfully", get_deeplinks_prefix());
+    println!(
+        "{}Deep link handlers setup completed successfully",
+        get_deeplinks_prefix()
+    );
 
     Ok(())
 }

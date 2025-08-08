@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2025-08-07
+
+### Added
+- Custom scrollbar styles for improved UI consistency
+- New WideCircleChartCard component for metrics display
+- Enhanced input tracking with new state management and measurement logic
+- Color utilities for consistent logging across modules
+- CircleChartCard component integration into DashboardPage
+
+### Changed
+- Updated multiple dependencies to latest versions:
+  - @heroui/react from 2.8.0-beta.7 to 2.8.2
+  - @heroui/theme from 2.4.17 to 2.4.20
+  - framer-motion from 12.18.1 to 12.23.12
+  - react from 19.1.0 to 19.1.1
+  - react-dom from 19.1.0 to 19.1.1
+  - tailwindcss from 4.1.10 to 4.1.11
+- Enhanced UI with updated color themes
+- Improved HelpButton component to accept className prop
+- Redesigned current load card component
+- Updated settings properties for clarity and consistency
+
+### Fixed
+- Removed displayName assignment from ActionCard component
+- Cleaned up whitespace in run and focus_main_window functions
+- Removed unused ModalFooter import from UserProfileModal
+- General code formatting and comment cleanup
+
+### Removed
+- Redundant files cleanup
+- Removed unnecessary stats card components
+- Removed unnecessary logging statements
+
 ## [1.0.4] - 2025-07-31
 
 ### Added
