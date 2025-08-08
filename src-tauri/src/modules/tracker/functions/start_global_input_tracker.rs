@@ -35,6 +35,13 @@ pub fn start_global_input_tracker(app_handle: AppHandle) {
                 get_tracker_prefix()
             );
         }
+
+        // If we reach this point, the listener has stopped unexpectedly
+        #[cfg(debug_assertions)]
+        println!(
+            "{}⚠️ Input tracker stopped unexpectedly",
+            get_tracker_prefix()
+        );
     });
 
     // Start the minute logger
