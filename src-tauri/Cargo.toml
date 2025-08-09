@@ -35,6 +35,8 @@ sysinfo = "0.36"
 # For formatted console output
 owo-colors = "4.2.2"
 comfy-table = "7.1.1"
+# For window tracking
+active-win-pos-rs = "0.9"
 
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
 tauri-plugin-single-instance = { version = "2.3.2", features = ["deep-link"] }

@@ -1,0 +1,90 @@
+use rdev::Key;
+
+use super::super::start_global_input_tracker::MODIFIER_STATE;
+use super::shared_utils::{modify_state, update_modifier_state};
+
+/// Check if we should log the active window after key release
+fn check_window_switch_completion(released_key: rdev::Key) {
+    use super::super::log_active_window::log_active_window;
+
+    if let Some(modifier_state) = MODIFIER_STATE.get() {
+        if let Ok(mut state) = modifier_state.lock() {
+            // Check if we had a window switch detected and if the key release completes it
+            if state.window_switch_detected {
+                let should_log = match released_key {
+                    // For Alt+Tab combinations, log when Alt is released
+                    rdev::Key::Alt => !state.alt_pressed,
+                    // For Cmd combinations (macOS), log when Cmd is released
+                    rdev::Key::MetaLeft | rdev::Key::MetaRight => {
+                        #[cfg(target_os = "macos")]
+                        {
+                            !state.cmd_pressed
+                        }
+                        #[cfg(not(target_os = "macos"))]
+                        {
+                            !state.win_pressed
+                        }
+                    }
+                    _ => false,
+                };
+
+                if should_log {
+                    let switch_type = state.window_switch_type.clone();
+                    state.window_switch_detected = false;
+                    state.window_switch_type.clear();
+
+                    // Log the window after a small delay to ensure the switch is complete
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+                        log_active_window();
+
+                        #[cfg(debug_assertions)]
+                        println!("🔄 {}", switch_type);
+                    });
+                }
+            }
+        }
+    }
+}
+
+/// Handle key release events - update modifier states and track key statistics
+pub fn handle_key_release(key: Key) {
+    // Update modifier key states
+    update_modifier_state(|state| match key {
+        Key::ControlLeft | Key::ControlRight => state.ctrl_pressed = false,
+        Key::ShiftLeft | Key::ShiftRight => state.shift_pressed = false,
+        Key::Alt => state.alt_pressed = false,
+        Key::MetaLeft | Key::MetaRight => {
+            #[cfg(target_os = "macos")]
+            {
+                state.cmd_pressed = false;
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                state.win_pressed = false;
+            }
+        }
+        _ => {}
+    });
+
+    // Check if this key release completes a window switching shortcut
+    check_window_switch_completion(key);
+
+    // Track key statistics
+    modify_state(|state| {
+        state.keyboard_data.key_ups += 1;
+
+        // Track delete key releases separately
+        match key {
+            Key::Backspace | Key::Delete => {
+                state.keyboard_data.delete_ups += 1;
+                #[cfg(debug_assertions)]
+                println!("⌨️ Delete key up detected: {:?}", key);
+            }
+            _ => {
+                #[cfg(debug_assertions)]
+                println!("⌨️ Key release detected: {:?}", key);
+            }
+        }
+    });
+}

@@ -7,6 +7,9 @@ pub struct AppSettings {
     pub should_start_on_boot: bool,
     /// Whether to automatically start measuring when the application launches
     pub should_autostart_measuring: bool,
+    /// Delay in milliseconds to wait for the OS to finish updating the foreground window
+    /// after UI actions like taskbar minimize/restore or Alt+Tab
+    pub window_update_delay_ms: u64,
 }
 
 impl Default for AppSettings {
@@ -14,6 +17,7 @@ impl Default for AppSettings {
         Self {
             should_start_on_boot: true,
             should_autostart_measuring: true,
+            window_update_delay_ms: 400,
         }
     }
 }

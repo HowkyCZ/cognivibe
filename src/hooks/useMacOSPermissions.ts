@@ -5,6 +5,8 @@ import {
   checkInputMonitoringPermission,
   requestAccessibilityPermission,
   requestInputMonitoringPermission,
+  checkScreenRecordingPermission,
+  requestScreenRecordingPermission,
 } from "tauri-plugin-macos-permissions-api";
 
 /**
@@ -28,6 +30,13 @@ export const useMacOSPermissions = () => {
             await checkInputMonitoringPermission();
           if (!isInputMonitoringEnabled) {
             await requestInputMonitoringPermission();
+          }
+
+          // Check and request screen recording permission
+          const isScreenRecordingEnabled =
+            await checkScreenRecordingPermission();
+          if (!isScreenRecordingEnabled) {
+            await requestScreenRecordingPermission();
           }
         }
       } catch (error) {

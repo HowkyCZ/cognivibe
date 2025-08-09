@@ -14,4 +14,6 @@ pub struct AppState {
     pub mouse_data: MouseData,
     /// Keyboard tracking data (key presses, releases, etc.)
     pub keyboard_data: KeyboardData,
+    /// Currently active window ID
+    pub active_window_id: Option<String>,
 }

@@ -1,5 +1,27 @@
 use serde::{Deserialize, Serialize};
 
+/// Modifier key state structure for tracking keyboard modifier keys and window switching.
+///
+/// Tracks the current state of various modifier keys and window switching detection.
+/// Used by the input tracking system to monitor keyboard shortcuts and window switching.
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct ModifierState {
+    /// Control key pressed state
+    pub ctrl_pressed: bool,
+    /// Shift key pressed state
+    pub shift_pressed: bool,
+    /// Alt key pressed state
+    pub alt_pressed: bool,
+    /// Command key pressed state (for macOS)
+    pub cmd_pressed: bool,
+    /// Windows key pressed state (for Windows)
+    pub win_pressed: bool,
+    /// Track if we detected a window switching shortcut
+    pub window_switch_detected: bool,
+    /// Description of the detected window switch type
+    pub window_switch_type: String,
+}
+
 /// Mouse tracking data structure that captures various mouse interaction metrics.
 ///
 /// Tracks different types of mouse activity including clicks, movement distance,
