@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2025-08-09
+
+### Added
+- Enhanced input tracking system with new callback functions for button press/release, key press/release, mouse move, and wheel events
+- New `get_is_measuring` function for better measurement state management
+- Active window logging functionality with comprehensive window tracking
+- Improved global input tracker with more robust event handling
+- Enhanced minute logger with better tracking capabilities
+- New tracker types and state management improvements
+- macOS permissions handling improvements
+
+### Changed
+- Refactored input callback system with modular approach
+- Enhanced start_global_input_tracker functionality
+- Improved tracker module organization and structure
+- Updated wavy background component
+- Enhanced API configuration
+- Updated constants and utility functions
+
+### Fixed
+- Removed deprecated color utilities
+- Improved module organization and dependencies
+
 ## [1.0.5] - 2025-08-07
 
 ### Added
