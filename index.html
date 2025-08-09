@@ -1,14 +1,18 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/app-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cognivibe</title>
-  </head>
+<!-- The dvh are used to disable the overflow bouncy effect, see https://github.com/tauri-apps/wry/pull/558#issuecomment-1179074604 -->
+<html lang="en" class="h-dvh w-dvw overflow-hidden">
 
-  <body class="text-foreground bg-background dark overflow-x-hidden">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/app-icon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cognivibe</title>
+</head>
+
+<body
+  class="text-foreground bg-background dark overflow-x-hidden select-none scroll-smooth overflow-y-auto h-full w-full">
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
