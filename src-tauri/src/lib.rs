@@ -7,10 +7,10 @@ use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
 use modules::state::{get_measuring_state, get_settings_state, AppState};
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
-#[cfg(debug_assertions)]
-use modules::utils::{focus_main_window, get_init_prefix};
 #[cfg(not(debug_assertions))]
 use modules::utils::focus_main_window;
+#[cfg(debug_assertions)]
+use modules::utils::{focus_main_window, get_init_prefix};
 
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -39,6 +39,18 @@ pub fn run() {
             #[cfg(debug_assertions)]
             println!("{}Starting Cognivibe application setup", get_init_prefix());
 
+            // Autostart
+            let _ = app.handle().plugin(tauri_plugin_autostart::init(
+                tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+                Some(vec!["--flag1"]), /* arbitrary number of args to pass to your app */
+            ));
+
+            // Deep link setup
+            if let Err(e) = setup_deep_link_handlers(app.handle()) {
+                #[cfg(debug_assertions)]
+                eprintln!("{}⚠️ Deep link setup failed: {}", get_init_prefix(), e);
+            }
+
             // Load settings from store and initialize app state
             let app_state = app.state::<Mutex<AppState>>();
 
@@ -62,22 +74,34 @@ pub fn run() {
                 }
             }
 
-            // Autostart
-            let _ = app.handle().plugin(tauri_plugin_autostart::init(
-                tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-                Some(vec!["--flag1", "--flag2"]), /* arbitrary number of args to pass to your app */
-            ));
-
-            // Deep link setup
-            if let Err(e) = setup_deep_link_handlers(app.handle()) {
-                #[cfg(debug_assertions)]
-                eprintln!("{}⚠️ Deep link setup failed: {}", get_init_prefix(), e);
-                #[cfg(debug_assertions)]
-                eprintln!(
-                    "{}The app will continue without deep link support.",
-                    get_init_prefix()
-                );
-                // Don't return the error - let the app continue
+            // Check for updates (debug only)
+            #[cfg(debug_assertions)]
+            {
+                use tauri_plugin_updater::UpdaterExt;
+                let handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    match handle.updater() {
+                        Ok(updater) => match updater.check().await {
+                            Ok(Some(update)) => {
+                                println!(
+                                    "{}Update available: version {} -> {}",
+                                    get_init_prefix(),
+                                    update.current_version,
+                                    update.version
+                                );
+                            }
+                            Ok(None) => {
+                                println!("{}Application is up to date", get_init_prefix());
+                            }
+                            Err(e) => {
+                                println!("{}Failed to check for updates: {}", get_init_prefix(), e);
+                            }
+                        },
+                        Err(e) => {
+                            println!("{}Failed to initialize updater: {}", get_init_prefix(), e);
+                        }
+                    }
+                });
             }
 
             // Start global input tracker (this will handle all input events)
