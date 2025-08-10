@@ -124,3 +124,13 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
           iconPath: app-icon.png
+          includeDebug: true
+          includeRelease: true
+      - name: upload debug builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-build-${{ matrix.platform }}-${{ matrix.args && matrix.args || 'default' }}
+          path: |
+            src-tauri/target/debug/bundle/
+            src-tauri/target/*/debug/bundle/
+          retention-days: 30
