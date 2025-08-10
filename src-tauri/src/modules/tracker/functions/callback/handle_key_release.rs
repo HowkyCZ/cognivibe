@@ -5,7 +5,7 @@ use super::shared_utils::{modify_state, update_modifier_state};
 
 /// Check if we should log the active window after key release
 fn check_window_switch_completion(released_key: rdev::Key) {
-    use super::super::log_active_window::log_active_window;
+    use super::super::log_active_window::log_active_window_async;
 
     if let Some(modifier_state) = MODIFIER_STATE.get() {
         if let Ok(mut state) = modifier_state.lock() {
@@ -36,7 +36,7 @@ fn check_window_switch_completion(released_key: rdev::Key) {
                     // Log the window after a small delay to ensure the switch is complete
                     std::thread::spawn(move || {
                         std::thread::sleep(std::time::Duration::from_millis(100));
-                        log_active_window();
+                        log_active_window_async();
 
                         #[cfg(debug_assertions)]
                         println!("🔄 {}", switch_type);

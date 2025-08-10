@@ -41,8 +41,8 @@ pub fn start_global_input_tracker(app_handle: AppHandle) {
 
     // Initialize the active window ID in the app state
     {
-        use super::log_active_window::log_active_window;
-        log_active_window();
+        use super::log_active_window::log_active_window_async;
+        log_active_window_async();
         #[cfg(debug_assertions)]
         println!(
             "{}Initial active window logged and state updated",

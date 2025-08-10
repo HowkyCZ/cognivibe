@@ -2,26 +2,7 @@
 use crate::modules::utils::get_tracker_prefix;
 use active_win_pos_rs::{get_active_window, ActiveWindow};
 
-/// Logs the currently active window information to the console and updates the app state.
-///
-/// This function uses the `active-win-pos-rs` crate to get information about
-/// the currently focused window and logs the application name to the console.
-/// It also updates the active_window_id in the app state to track the current window.
-/// This is useful for tracking user activity and understanding which applications
-/// are being used during measurement periods.
-///
-/// ## Timing note
-///
-/// After certain UI actions (e.g., taskbar minimize/restore, Alt+Tab, Win+<number>),
-/// the OS may update the foreground window slightly after input callbacks fire. This
-/// function waits for a configurable delay (see app settings) before reading the
-/// active window to avoid reading a stale (previous) window.
-///
-/// ## Platform Notes
-///
-/// **macOS**: Requires screen recording permissions to access window titles and app names.
-/// The app must be granted these permissions in System Preferences > Security & Privacy > Privacy > Screen Recording.
-pub fn log_active_window() {
+fn log_active_window() {
     // Wait briefly so the OS can finish updating the foreground window after UI actions
     // like taskbar minimize/restore or Alt+Tab. Input callbacks can fire before focus switches,
     // so without this we might read the previous window.
@@ -60,6 +41,37 @@ fn wait_for_window_update() {
 
     let delay_ms = read_state(|app_state| app_state.settings.window_update_delay_ms);
     std::thread::sleep(std::time::Duration::from_millis(delay_ms));
+}
+
+/// Logs the currently active window information to the console and updates the app state.
+///
+/// This function uses the `active-win-pos-rs` crate to get information about
+/// the currently focused window and logs the application name to the console.
+/// It also updates the active_window_id in the app state to track the current window.
+/// This is useful for tracking user activity and understanding which applications
+/// are being used during measurement periods.
+///
+/// ## Timing note
+///
+/// After certain UI actions (e.g., taskbar minimize/restore, Alt+Tab, Win+<number>),
+/// the OS may update the foreground window slightly after input callbacks fire. This
+/// function waits for a configurable delay (see app settings) before reading the
+/// active window to avoid reading a stale (previous) window.
+///
+/// ## Platform Notes
+///
+/// **macOS**: Requires screen recording permissions to access window titles and app names.
+/// The app must be granted these permissions in System Preferences > Security & Privacy > Privacy > Screen Recording.
+///
+/// Logs the active window asynchronously to avoid blocking the input callback thread.
+///
+/// This function spawns a background thread to handle the window logging with the
+/// necessary delay, preventing UI glitches that can occur when blocking the input
+/// callback thread (especially on Windows).
+pub fn log_active_window_async() {
+    std::thread::spawn(|| {
+        log_active_window();
+    });
 }
 
 /// Checks if the window ID has changed compared to the stored state.
