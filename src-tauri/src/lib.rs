@@ -35,6 +35,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_macos_permissions::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_prevent_default::init())
         .setup(|app| {
             #[cfg(debug_assertions)]
             println!("{}Starting Cognivibe application setup", get_init_prefix());
