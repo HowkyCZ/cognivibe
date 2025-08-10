@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2025-08-10
+
+### Added
+- Support for uploading debug builds with retention policy
+- Enhanced CI/CD workflow for debug build management
+
+### Fixed
+- Overflow handling in UI components
+- Sticky navbar positioning and behavior
+- Non-selectable text issues
+- Smooth scroll functionality improvements
+
 ## [1.0.6] - 2025-08-09
 
 ### Added
