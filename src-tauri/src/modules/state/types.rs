@@ -1,5 +1,14 @@
 use crate::modules::settings::AppSettings;
 use crate::modules::tracker::{KeyboardData, MouseData};
+use serde::{Deserialize, Serialize};
+
+/// Session data received from the frontend
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionData {
+    pub user_id: String,
+    pub access_token: String,
+    pub refresh_token: Option<String>,
+}
 
 /// Application state to track measuring status and store runtime data
 #[derive(Debug, Default)]
@@ -16,4 +25,6 @@ pub struct AppState {
     pub keyboard_data: KeyboardData,
     /// Currently active window ID
     pub active_window_id: Option<String>,
+    /// Current user session data from Supabase
+    pub session_data: Option<SessionData>,
 }

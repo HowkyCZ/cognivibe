@@ -11,17 +11,6 @@ pub fn handle_mouse_move(x: f64, y: f64) {
             let dy = y - mouse_data.last_y;
             let distance = (dx * dx + dy * dy).sqrt();
             mouse_data.total_distance += distance;
-
-            // Log every 100px of movement to avoid spam
-            #[cfg(debug_assertions)]
-            if (mouse_data.total_distance as u64) % 100 == 0
-                && (mouse_data.total_distance as u64) > 0
-            {
-                println!(
-                    "🖱️ Mouse movement milestone: {:.0}px total distance",
-                    mouse_data.total_distance
-                );
-            }
         }
 
         // Update last position

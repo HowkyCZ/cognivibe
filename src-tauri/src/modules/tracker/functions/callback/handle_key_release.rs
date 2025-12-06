@@ -72,18 +72,13 @@ pub fn handle_key_release(key: Key) {
 
     // Track key statistics
     modify_state(|state| {
-        state.keyboard_data.key_ups += 1;
-
         // Track delete key releases separately
         match key {
             Key::Backspace | Key::Delete => {
                 state.keyboard_data.delete_ups += 1;
-                #[cfg(debug_assertions)]
-                println!("⌨️ Delete key up detected: {:?}", key);
             }
             _ => {
-                #[cfg(debug_assertions)]
-                println!("⌨️ Key release detected: {:?}", key);
+                state.keyboard_data.key_ups += 1;
             }
         }
     });

@@ -1,12 +1,17 @@
 use std::sync::Mutex;
 use tauri::Manager;
 
+use dotenv::dotenv;
+use std::env;
+
 mod modules;
 
+use modules::api::functions::fetch_batch_scores_cmd;
 use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
-use modules::state::{get_measuring_state, get_settings_state, AppState};
+use modules::state::{get_measuring_state, get_settings_state, set_user_session, AppState};
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
+
 #[cfg(not(debug_assertions))]
 use modules::utils::focus_main_window;
 #[cfg(debug_assertions)]
@@ -14,6 +19,9 @@ use modules::utils::{focus_main_window, get_init_prefix};
 
 pub fn run() {
     let builder = tauri::Builder::default();
+
+    dotenv().ok();
+
     #[cfg(desktop)]
     builder
         .manage(Mutex::new(AppState::default()))
@@ -21,7 +29,9 @@ pub fn run() {
             toggle_measuring,
             get_measuring_state,
             get_settings_state,
-            update_settings_cmd
+            set_user_session,
+            update_settings_cmd,
+            fetch_batch_scores_cmd
         ])
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // Focus main window

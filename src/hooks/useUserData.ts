@@ -63,7 +63,6 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
                 }
               : null,
           };
-          console.log(transformedData);
           setUserData(transformedData);
         } else {
           setUserData(null);

@@ -89,18 +89,13 @@ pub fn handle_key_press(key: Key) {
 
     // Track key statistics
     modify_state(|state| {
-        state.keyboard_data.key_downs += 1;
-
         // Track delete keys separately
         match key {
             Key::Backspace | Key::Delete => {
                 state.keyboard_data.delete_downs += 1;
-                #[cfg(debug_assertions)]
-                println!("⌨️ Delete key down detected: {:?}", key);
             }
             _ => {
-                #[cfg(debug_assertions)]
-                println!("⌨️ Key press detected: {:?}", key);
+                state.keyboard_data.key_downs += 1;
             }
         }
     });

@@ -1,6 +1,7 @@
 pub mod get_measuring_state;
 pub mod get_settings_state;
-
+pub mod get_user_session;
+pub mod set_user_session;
 // State-related functions are minimal since most functionality
 // is handled by the respective domain modules (tracker, settings, etc.)
 // This keeps the state module focused purely on state management

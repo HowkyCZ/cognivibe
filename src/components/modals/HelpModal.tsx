@@ -47,7 +47,7 @@ const HelpModal = ({ isOpen, onOpenChange }: HelpModalProps) => {
           },
           body: JSON.stringify({
             message: message,
-            userId: session.user.id,
+            user_id: session.user.id,
           }),
         }
       );

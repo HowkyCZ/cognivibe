@@ -3,6 +3,7 @@ import { createSupabaseClient } from "../../../utils/createSupabaseClient";
 import { useEffect } from "react";
 import { SpinnerPage } from "../../../components/pages";
 import { ROUTES } from "../../../utils/constants";
+import { invoke } from "@tauri-apps/api/core";
 
 export const Route = createFileRoute(ROUTES.CALLBACK)({
   component: RouteComponent,
@@ -37,7 +38,23 @@ function RouteComponent() {
               access_token: accessToken,
               refresh_token: refreshToken,
             })
-            .then(() => {
+            .then(async () => {
+              // Get the session to send to backend
+              const {
+                data: { session },
+              } = await supabase.auth.getSession();
+
+              // Set session in Rust backend
+              if (session) {
+                await invoke("set_user_session", {
+                  session: {
+                    user_id: session.user.id,
+                    access_token: session.access_token,
+                    refresh_token: session.refresh_token,
+                  },
+                });
+              }
+
               // Redirect to home after successful authentication
               router.navigate({ to: ROUTES.HOME });
             })
@@ -68,6 +85,15 @@ function RouteComponent() {
             },
           });
         } else if (data.session) {
+          // Set session in Rust backend
+          await invoke("set_user_session", {
+            session: {
+              user_id: data.session.user.id,
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            },
+          });
+
           // Success - redirect to home
           router.navigate({ to: ROUTES.HOME });
         } else {

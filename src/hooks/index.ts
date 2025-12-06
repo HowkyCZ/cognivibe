@@ -6,4 +6,4 @@ export { useDashboardData } from "./useDashboardData";
 export { useUpdater } from "./useUpdater";
 export { useMacOSPermissions } from "./useMacOSPermissions";
 export type { AppSettings } from "./useAppSettings";
-export type { CognitiveLoadDataPoint, SessionData } from "./useDashboardData";
+export type { CognitiveLoadDataPoint } from "./useDashboardData";

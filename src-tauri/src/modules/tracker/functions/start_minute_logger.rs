@@ -1,4 +1,4 @@
-use chrono::{Local, Timelike};
+use chrono::{Datelike, Local, Timelike};
 #[cfg(debug_assertions)]
 use comfy_table::{modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL, ContentArrangement, Table};
 use std::sync::Mutex;
@@ -7,6 +7,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
 use crate::modules::state::AppState;
+use crate::modules::tracker::functions::upload_data::{upload_tracking_data, LogData};
 #[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
@@ -28,6 +29,7 @@ fn reset_counters(app_state: &mut AppState) {
 /// This function creates a simple thread that:
 /// - Waits until the start of each new minute
 /// - Logs and resets accumulated data if measuring is active
+/// - Uploads data to the server if a user session is active
 /// - Uses a simple 60-second interval timer
 /// - The first measurement is ignored (could be half a minute)
 pub fn start_minute_logger(app_handle: AppHandle) {
@@ -45,6 +47,45 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                         if !app_state.is_first_minute {
                             #[cfg(debug_assertions)]
                             log_tracking_table(&app_state, now.hour(), current_minute - 1);
+
+                            // Prepare log data for upload
+                            if let Some(session) = &app_state.session_data {
+                                let log_data = LogData {
+                                    mouse_left_clicks_count: app_state.mouse_data.left_clicks,
+                                    mouse_right_clicks_count: app_state.mouse_data.right_clicks,
+                                    mouse_other_clicks_count: app_state.mouse_data.other_clicks,
+                                    keyboard_key_downs_count: app_state.keyboard_data.key_downs,
+                                    keyboard_key_ups_count: app_state.keyboard_data.key_ups,
+                                    mouse_move_distance: app_state.mouse_data.total_distance,
+                                    mouse_scroll_distance: app_state
+                                        .mouse_data
+                                        .wheel_scroll_distance,
+                                    app_switch_count: 1, // Placeholder for now
+                                    minute_timestamp: format!(
+                                        "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",
+                                        now.year(),
+                                        now.month(),
+                                        now.day(),
+                                        now.hour(),
+                                        current_minute.saturating_sub(1)
+                                    ),
+                                    user_id: session.user_id.clone(),
+                                };
+
+                                // Spawn async task to upload data
+                                let app_handle_clone = app_handle.clone();
+                                tauri::async_runtime::spawn(async move {
+                                    let state = app_handle_clone.state::<Mutex<AppState>>();
+                                    if let Err(e) = upload_tracking_data(state, log_data).await {
+                                        #[cfg(debug_assertions)]
+                                        eprintln!(
+                                            "{}Failed to upload tracking data: {}",
+                                            get_tracker_prefix(),
+                                            e
+                                        );
+                                    }
+                                });
+                            }
                         } else {
                             // If this is the first measurement, just reset counters, since we don't have a full minute of data
                             #[cfg(debug_assertions)]

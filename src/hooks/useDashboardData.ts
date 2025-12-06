@@ -1,16 +1,22 @@
 import { useState, useEffect } from "react";
+import { fetchBatchScores } from "../utils/batchScoresApi";
+import { useAuth } from "./useAuth";
+import type { CalendarDate } from "@internationalized/date";
+import { Session } from "@supabase/supabase-js";
 
 export interface CognitiveLoadDataPoint {
-  time: string;
+  timestamp: string;
   focus: number;
   strain: number;
   energy: number;
 }
 
-export interface SessionData {
-  start: string;
-  end: string;
-  name: string;
+export interface MissingDataPoint {
+  timestamp: string;
+  score_total: number | null;
+  score_focus: number | null;
+  score_strain: number | null;
+  score_energy: number | null;
 }
 
 export interface MetricData {
@@ -22,7 +28,7 @@ export interface MetricData {
 
 interface UseDashboardDataReturn {
   cognitiveLoadData: CognitiveLoadDataPoint[];
-  sessionData: SessionData[];
+  missingData: MissingDataPoint[];
   metricsData: MetricData[];
   currentCognitiveLoad: number;
   maxLoad: number;
@@ -34,62 +40,21 @@ interface UseDashboardDataReturn {
   };
   loading: boolean;
   error: string | null;
+  session: Session | null;
 }
 
-export const useDashboardData = (): UseDashboardDataReturn => {
+export const useDashboardData = (
+  selectedDate: CalendarDate
+): UseDashboardDataReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Mock data - in the future this will be fetched from API
-  const cognitiveLoadData: CognitiveLoadDataPoint[] = [
-    { time: "6:00", focus: 3.1, strain: 1.8, energy: 2.5 },
-    { time: "7:00", focus: 4.2, strain: 2.1, energy: 3.8 },
-    { time: "8:00", focus: 5.5, strain: 2.8, energy: 4.5 },
-    { time: "9:00", focus: 6.8, strain: 3.5, energy: 5.2 },
-    { time: "10:00", focus: 7.2, strain: 4.8, energy: 6.1 },
-    { time: "11:00", focus: 8.1, strain: 5.5, energy: 6.8 },
-    { time: "12:00", focus: 6.5, strain: 4.2, energy: 5.8 },
-    { time: "13:00", focus: 5.8, strain: 3.8, energy: 5.2 },
-    { time: "14:00", focus: 7.5, strain: 5.8, energy: 6.5 },
-    { time: "15:00", focus: 8.2, strain: 6.2, energy: 7.1 },
-    { time: "16:00", focus: 7.8, strain: 5.9, energy: 6.8 },
-    { time: "17:00", focus: 6.2, strain: 4.5, energy: 5.5 },
-    { time: "18:00", focus: 4.8, strain: 3.2, energy: 4.2 },
-    { time: "19:00", focus: 3.5, strain: 2.5, energy: 3.1 },
-    { time: "20:00", focus: 2.8, strain: 1.8, energy: 2.5 },
-    { time: "21:00", focus: 2.1, strain: 1.2, energy: 1.8 },
-  ];
-
-  const sessionData: SessionData[] = [
-    { start: "9:00", end: "11:00", name: "Deep Work Session" },
-    { start: "14:00", end: "16:00", name: "Focus Block" },
-  ];
-
-  const metricsData: MetricData[] = [
-    {
-      title: "Frustration",
-      value: Math.floor(Math.random() * 100) + 1,
-      color: "primary",
-      description:
-        "Measures emotional stress and irritation levels during cognitive tasks",
-    },
-    {
-      title: "Pressure",
-      value: Math.floor(Math.random() * 100) + 1,
-      color: "secondary",
-      description:
-        "Indicates time constraints and external demands affecting performance",
-    },
-    {
-      title: "Concentration",
-      value: Math.floor(Math.random() * 100) + 1,
-      color: "danger",
-      description:
-        "Reflects ability to maintain focused attention on current tasks",
-    },
-  ];
-
-  const currentCognitiveLoad = Math.floor(Math.random() * 100) + 1;
+  const [cognitiveLoadData, setCognitiveLoadData] = useState<
+    CognitiveLoadDataPoint[]
+  >([]);
+  const [missingData, setMissingData] = useState<MissingDataPoint[]>([]);
+  const [metricsData, setMetricsData] = useState<MetricData[]>([]);
+  const [currentCognitiveLoad, setCurrentCognitiveLoad] = useState<number>(0);
+  const { session } = useAuth();
 
   // Cognitive load thresholds
   const thresholds = {
@@ -99,48 +64,119 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   };
 
   // Calculate derived values
-  const maxLoad = Math.max(
-    ...cognitiveLoadData.flatMap((d) => [d.focus, d.strain, d.energy])
-  );
+  const maxLoad =
+    cognitiveLoadData.length > 0
+      ? Math.max(
+          ...cognitiveLoadData.flatMap((d) => [d.focus, d.strain, d.energy])
+        )
+      : 0;
 
   const avgLoad =
-    cognitiveLoadData.reduce(
-      (sum, d) => sum + d.focus + d.strain + d.energy,
-      0
-    ) /
-    (cognitiveLoadData.length * 3);
+    cognitiveLoadData.length > 0
+      ? cognitiveLoadData.reduce(
+          (sum, d) => sum + d.focus + d.strain + d.energy,
+          0
+        ) /
+        (cognitiveLoadData.length * 3)
+      : 0;
 
-  // TODO: Replace with actual data fetching
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Convert CalendarDate to YYYY-MM-DD format
+      const formattedDate = `${selectedDate.year}-${String(selectedDate.month).padStart(2, "0")}-${String(selectedDate.day).padStart(2, "0")}`;
 
-      // In the future, this will make actual API calls:
-      // const cognitiveData = await invoke("get_cognitive_load_data");
-      // const sessions = await invoke("get_session_data");
-      // const currentLoad = await invoke("get_current_cognitive_load");
+      // Fetch batch scores from the server for the selected date
+      // user_id and jwt_token will be retrieved from app state in Rust
+      const result = await fetchBatchScores(formattedDate, formattedDate);
+
+      console.log("Batch scores result:", result);
+
+      // Transform the API response data into CognitiveLoadDataPoint format
+      if (result.success && Array.isArray(result.data)) {
+        const transformedData: CognitiveLoadDataPoint[] = result.data.map(
+          (item: any) => {
+            return {
+              timestamp: item.timestamp,
+              focus: item.score_concentration,
+              strain: item.score_frustration,
+              energy: item.score_pressure,
+            };
+          }
+        );
+
+        setCognitiveLoadData(transformedData);
+
+        // Set missing data if available
+        if (result.missing_data && Array.isArray(result.missing_data)) {
+          setMissingData(result.missing_data);
+        } else {
+          setMissingData([]);
+        }
+
+        // Use the latest data point for metrics
+        if (result.data.length > 0) {
+          const latestData = result.data[result.data.length - 1];
+
+          // Set current cognitive load from latest score_total
+          setCurrentCognitiveLoad(Math.round(latestData.score_total));
+
+          const metrics: MetricData[] = [
+            {
+              title: "Frustration",
+              value: Math.round(latestData.score_frustration) || 0,
+              color: "primary",
+              description:
+                "Measures emotional stress and irritation levels during cognitive tasks",
+            },
+            {
+              title: "Pressure",
+              value: Math.round(latestData.score_pressure) || 0,
+              color: "secondary",
+              description:
+                "Indicates time constraints and external demands affecting performance",
+            },
+            {
+              title: "Concentration",
+              value: Math.round(latestData.score_concentration) || 0,
+              color: "danger",
+              description:
+                "Reflects ability to maintain focused attention on current tasks",
+            },
+          ];
+          setMetricsData(metrics);
+        } else {
+          setMetricsData([]);
+          setCurrentCognitiveLoad(0);
+        }
+      } else {
+        setCognitiveLoadData([]);
+        setMissingData([]);
+        setMetricsData([]);
+        setCurrentCognitiveLoad(0);
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch dashboard data";
       setError(errorMessage);
       console.error("Failed to fetch dashboard data:", err);
+      setCognitiveLoadData([]);
+      setMissingData([]);
+      setMetricsData([]);
+      setCurrentCognitiveLoad(0);
     } finally {
       setLoading(false);
     }
-  };
-
-  // Load data on mount
+  }; // Load data on mount and when session or selectedDate changes
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [session, selectedDate]);
 
   return {
     cognitiveLoadData,
-    sessionData,
+    missingData,
     metricsData,
     currentCognitiveLoad,
     maxLoad,
@@ -148,5 +184,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     thresholds,
     loading,
     error,
+    session,
   };
 };

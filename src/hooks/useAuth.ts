@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
+import { invoke } from "@tauri-apps/api/core";
 import { createSupabaseClient } from "../utils/createSupabaseClient";
 import { useRouter } from "@tanstack/react-router";
 import { ROUTES } from "../utils/constants";
@@ -23,12 +24,22 @@ export const useAuth = (): UseAuthReturn => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
+      if (session) {
+        sendSessionToBackend(session);
+      }
     }); // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setLoading(false); // If session becomes null (user signed out), invalidate router and navigate to login
+      setLoading(false);
+
+      // Send session to backend when it changes
+      if (session) {
+        sendSessionToBackend(session);
+      }
+
+      // If session becomes null (user signed out), invalidate router and navigate to login
       if (!session) {
         router.invalidate();
         router.navigate({
@@ -38,6 +49,20 @@ export const useAuth = (): UseAuthReturn => {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const sendSessionToBackend = async (session: Session) => {
+    try {
+      await invoke("set_user_session", {
+        session: {
+          user_id: session.user.id,
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+        },
+      });
+    } catch (error) {
+      console.error("Error sending session to backend:", error);
+    }
+  };
 
   const deleteUser = async () => {
     try {
@@ -59,7 +84,7 @@ export const useAuth = (): UseAuthReturn => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userId: session.user.id,
+            user_id: session.user.id,
           }),
         }
       );

@@ -10,11 +10,18 @@ import {
   Cell,
   PolarAngleAxis,
 } from "recharts";
-import { Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
+import {
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Skeleton,
+} from "@heroui/react";
 import HelpButton from "../HelpButton";
 
 type CircleChartProps = {
   currentCognitiveLoad: number;
+  isLoading?: boolean;
 };
 
 const formatTotal = (value: number | undefined) => {
@@ -54,7 +61,7 @@ const getLoadText = (value: number): string => {
 const CircleChartCard = React.forwardRef<
   HTMLDivElement,
   Omit<CardProps, "children"> & CircleChartProps
->(({ currentCognitiveLoad, ...props }, ref) => {
+>(({ currentCognitiveLoad, isLoading = false, ...props }, ref) => {
   // Default props
   const title = "Cognitive Load";
   const color = getLoadColor(currentCognitiveLoad);
@@ -69,72 +76,88 @@ const CircleChartCard = React.forwardRef<
       className={`w-64 max-h-92 p-4 bg-${color}/20 relative`}
       {...props}
     >
-      <HelpButton
-        tooltipTitle="Cognitive Load Levels"
-        isInAbsoluteCard={true}
-        tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break"
-      />
+      {!isLoading && (
+        <HelpButton
+          tooltipTitle="Cognitive Load Levels"
+          isInAbsoluteCard={true}
+          tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break"
+        />
+      )}
       <CardHeader className="flex items-center justify-center">
-        <p className="text-xl font-medium text-center">{title}</p>
+        {isLoading ? (
+          <Skeleton className="h-7 w-40 rounded-lg" />
+        ) : (
+          <p className="text-xl font-medium text-center">{title}</p>
+        )}
       </CardHeader>
       <CardBody className="flex items-center justify-center h-auto">
-        <ResponsiveContainer className="max-h-40 h-40 min-h-40" width="100%">
-          <RadialBarChart
-            barSize={10}
-            cx="50%"
-            cy="50%"
-            data={chartData}
-            endAngle={-45}
-            innerRadius={90}
-            outerRadius={70}
-            startAngle={225}
-          >
-            <PolarAngleAxis
-              angleAxisId={0}
-              domain={[0, total]}
-              tick={false}
-              type="number"
-            />
-            <RadialBar
-              angleAxisId={0}
-              animationDuration={1000}
-              animationEasing="ease"
-              background={{
-                fill: "hsl(var(--heroui-default-100))",
-              }}
-              cornerRadius={12}
-              dataKey="value"
+        {isLoading ? (
+          <div className="flex items-center justify-center w-full h-40">
+            <Skeleton className="w-40 h-40 rounded-full" />
+          </div>
+        ) : (
+          <ResponsiveContainer className="max-h-40 h-40 min-h-40" width="100%">
+            <RadialBarChart
+              barSize={10}
+              cx="50%"
+              cy="50%"
+              data={chartData}
+              endAngle={-45}
+              innerRadius={90}
+              outerRadius={70}
+              startAngle={225}
             >
-              {chartData.map((_, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={`hsl(var(--heroui-${color === "default" ? "foreground" : color}))`}
-                />
-              ))}
-            </RadialBar>
+              <PolarAngleAxis
+                angleAxisId={0}
+                domain={[0, total]}
+                tick={false}
+                type="number"
+              />
+              <RadialBar
+                angleAxisId={0}
+                animationDuration={1000}
+                animationEasing="ease"
+                background={{
+                  fill: "hsl(var(--heroui-default-100))",
+                }}
+                cornerRadius={12}
+                dataKey="value"
+              >
+                {chartData.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={`hsl(var(--heroui-${color === "default" ? "foreground" : color}))`}
+                  />
+                ))}
+              </RadialBar>
 
-            <g>
-              <text textAnchor="middle" x="50%" y="55%">
-                <tspan className="fill-foreground text-4xl font-bold">
-                  {formatTotal(chartData?.[0]?.value)}
-                </tspan>
-              </text>
-            </g>
-            <g>
-              <text textAnchor="middle" x="50%" y="85%">
-                <tspan
-                  className="text-lg font-bold"
-                  fill={`hsl(var(--heroui-${color === "default" ? "foreground" : color}))`}
-                >
-                  {loadTitle}
-                </tspan>
-              </text>
-            </g>
-          </RadialBarChart>
-        </ResponsiveContainer>
+              <g>
+                <text textAnchor="middle" x="50%" y="55%">
+                  <tspan className="fill-foreground text-4xl font-bold">
+                    {formatTotal(chartData?.[0]?.value)}
+                  </tspan>
+                </text>
+              </g>
+              <g>
+                <text textAnchor="middle" x="50%" y="85%">
+                  <tspan
+                    className="text-lg font-bold"
+                    fill={`hsl(var(--heroui-${color === "default" ? "foreground" : color}))`}
+                  >
+                    {loadTitle}
+                  </tspan>
+                </text>
+              </g>
+            </RadialBarChart>
+          </ResponsiveContainer>
+        )}
       </CardBody>
       <CardFooter className="text-left min-h-12 grow pt-0">
-        <p className="text-sm text-default-700">{loadText}</p>
+        {isLoading ? (
+          <Skeleton className="h-4 w-full rounded-lg" />
+        ) : (
+          <p className="text-sm text-default-700">{loadText}</p>
+        )}
       </CardFooter>
     </Card>
   );

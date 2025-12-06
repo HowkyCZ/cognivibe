@@ -8,3 +8,4 @@ pub use functions::colors::{
     get_utils_prefix,
 };
 pub use functions::focus_main_window::focus_main_window;
+pub use functions::get_api_base_url::get_api_base_url;
