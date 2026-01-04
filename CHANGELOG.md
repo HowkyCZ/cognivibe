@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2026-01-04
+
+### Added
+- DashboardContext for managing selected date state
+- Batch scores API utility for fetching batch scores from server
+- Global listener for session data requests
+- tauri-plugin-prevent-default to prevent context menu and shortcuts
+- MIT License
+
+### Changed
+- Updated useDashboardData to fetch data based on selected date
+- Enhanced useAuth to send session data to backend on authentication changes
+- Active window logging now runs asynchronously for improved input handling
+
+### Fixed
+- Context menu behavior now properly prevented
+- Improved input handling performance
+
+### Removed
+- WeeklyAssessmentModal and related imports
+- Unused Supabase configuration files and directories
+- created_at field from relevant components
+
 ## [1.0.7] - 2025-08-10
 
 ### Added
