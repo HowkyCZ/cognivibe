@@ -1,7 +1,6 @@
 import { cn } from "../../utils/wavy_bg_helper";
 import { useEffect, useRef, useState } from "react";
 import { createNoise3D } from "simplex-noise";
-import { isDevMode } from "../../utils/constants";
 
 const WavyBackground = ({
   children,

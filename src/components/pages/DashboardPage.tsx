@@ -1,4 +1,3 @@
-import { Card } from "@heroui/card";
 import {
   CognitiveLoadChart,
   AppNavbar,
