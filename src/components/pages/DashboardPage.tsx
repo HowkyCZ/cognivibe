@@ -16,7 +16,6 @@ function DashboardPage() {
 
   const {
     cognitiveLoadData,
-    missingData,
     metricsData,
     currentCognitiveLoad,
     loading: dashboardLoading,
@@ -33,7 +32,6 @@ function DashboardPage() {
       <main className="container mx-auto p-8">
         <CognitiveLoadChart
           data={cognitiveLoadData}
-          missingData={missingData}
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
           firstDate={firstDate}
