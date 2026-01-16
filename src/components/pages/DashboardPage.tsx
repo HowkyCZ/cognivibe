@@ -44,7 +44,7 @@ function DashboardPage() {
             currentCognitiveLoad={currentCognitiveLoad}
             isLoading={dashboardLoading}
           />
-          <div className="mt-6 flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             {metricsData.length > 0 ? (
               metricsData.map((metric, index) => (
                 <WideCircleChartCard
@@ -63,18 +63,21 @@ function DashboardPage() {
                   title="Frustration"
                   value={0}
                   color="primary"
+                  description="Measures emotional stress and irritation levels during cognitive tasks"
                   isLoading={dashboardLoading}
                 />
                 <WideCircleChartCard
                   title="Pressure"
                   value={0}
                   color="secondary"
+                  description="Indicates time constraints and external demands affecting performance"
                   isLoading={dashboardLoading}
                 />
                 <WideCircleChartCard
                   title="Concentration"
                   value={0}
                   color="danger"
+                  description="Reflects ability to maintain focused attention on current tasks"
                   isLoading={dashboardLoading}
                 />
               </>

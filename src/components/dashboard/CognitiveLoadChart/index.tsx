@@ -25,7 +25,7 @@ const LazyChart = lazy(() =>
           data={data}
           margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
         >
-          <recharts.CartesianGrid strokeDasharray="3 3" />
+          <recharts.CartesianGrid strokeDasharray="3 3" vertical={false} />
           <recharts.XAxis
             dataKey="timestamp"
             tickFormatter={(timestamp: string) => {
@@ -126,33 +126,22 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   const todayDate = today(getLocalTimeZone());
   const isToday = selectedDate.compare(todayDate) === 0;
 
-  // Merge data with missing data and sort by timestamp
+  // Use only actual data points so the chart domain starts at the first entry
   const mergedData = useMemo(() => {
-    // Transform actual data
-    const transformedData = data.map((item) => ({
-      timestamp: item.timestamp,
-      focus: item.focus,
-      strain: item.strain,
-      energy: item.energy,
-    }));
+    const transformedData = data
+      .map((item) => ({
+        timestamp: item.timestamp,
+        focus: item.focus,
+        strain: item.strain,
+        energy: item.energy,
+      }))
+      .sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
 
-    // Transform missing data with null values
-    const transformedMissing = missingData.map((item) => ({
-      timestamp: item.timestamp,
-      focus: null,
-      strain: null,
-      energy: null,
-    }));
-
-    // Combine and sort by timestamp
-    const combined = [...transformedData, ...transformedMissing];
-    combined.sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
-
-    return combined;
-  }, [data, missingData]);
+    return transformedData;
+  }, [data]);
 
   // Define the header component once
   const chartHeader = useMemo(

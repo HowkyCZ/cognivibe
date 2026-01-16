@@ -99,6 +99,7 @@ function DateRangePicker({
         variant="light"
         onPress={handlePreviousDay}
         isDisabled={isPreviousDisabled}
+        aria-label="Previous day"
       >
         <IconChevronLeft size={18} />
       </Button>
@@ -109,6 +110,7 @@ function DateRangePicker({
         defaultValue={today(getLocalTimeZone())}
         onChange={handleDateChange}
         className="max-w-32"
+        aria-label="Select date"
         CalendarTopContent={
           <ButtonGroup
             fullWidth
@@ -148,6 +150,7 @@ function DateRangePicker({
         isIconOnly
         onPress={handleNextDay}
         isDisabled={isNextDisabled}
+        aria-label="Next day"
       >
         <IconChevronRight size={18} />
       </Button>

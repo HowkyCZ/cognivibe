@@ -38,7 +38,7 @@ const WideCircleChartCard = React.forwardRef<
       isLoading = false,
       ...props
     },
-    ref
+    ref,
   ) => {
     const chartData = [{ name: title, value }];
 
@@ -48,11 +48,11 @@ const WideCircleChartCard = React.forwardRef<
         className={`w-80 h-auto bg-${color}/20 relative`}
         {...props}
       >
-        {!isLoading && (
+        {!isLoading && description && (
           <HelpButton
             tooltipTitle={`What is ${title}?`}
             isInAbsoluteCard={true}
-            tooltipText={description!}
+            tooltipText={description}
           />
         )}
         <CardBody className="flex flex-row items-center gap-4">
@@ -126,7 +126,7 @@ const WideCircleChartCard = React.forwardRef<
         </CardBody>
       </Card>
     );
-  }
+  },
 );
 
 export default WideCircleChartCard;

@@ -51,14 +51,12 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       placement="center"
       backdrop="blur"
       size="md"
+      className="py-4"
     >
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex items-center gap-1">
-              {/* Empty header for consistent spacing */}
-            </ModalHeader>
-            <ModalBody className="gap-4">
+            <ModalBody className="gap-4 ">
               {/* Profile Section */}
               <div className="flex gap-3 items-center">
                 <Avatar
@@ -98,7 +96,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   Help & support
                 </Button>
 
-                <Button
+                {/* <Button
                   variant="flat"
                   startContent={<IconBrain className="h-5 w-5" />}
                   className="justify-start h-12"
@@ -108,7 +106,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   }}
                 >
                   How it works & Research
-                </Button>
+                </Button> */}
               </div>
 
               <Divider />
