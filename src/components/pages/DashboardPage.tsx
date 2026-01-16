@@ -11,7 +11,7 @@ import type { CalendarDate } from "@internationalized/date";
 
 function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<CalendarDate>(
-    today(getLocalTimeZone())
+    today(getLocalTimeZone()),
   );
 
   const {

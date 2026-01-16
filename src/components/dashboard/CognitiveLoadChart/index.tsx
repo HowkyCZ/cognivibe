@@ -79,7 +79,7 @@ const LazyChart = lazy(() =>
       </recharts.ResponsiveContainer>
     );
     return { default: ChartComponent };
-  })
+  }),
 );
 
 const METRIC_COLORS = {
@@ -137,7 +137,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
       }))
       .sort(
         (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
       );
 
     return transformedData;
@@ -158,7 +158,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
         />
       </div>
     ),
-    [firstDate, isLoading, selectedDate, onDateChange]
+    [firstDate, isLoading, selectedDate, onDateChange],
   );
 
   // Define the legend component once
@@ -179,7 +179,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
         </div>
       </>
     ),
-    []
+    [],
   );
 
   // Show loading state
