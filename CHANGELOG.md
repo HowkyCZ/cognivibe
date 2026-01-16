@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2026-01-16
+
+### Added
+- Accessible aria-labels to date picker and navigation buttons
+- Runtime environment variable support for API base URL (VITE_SERVER_URL)
+
+### Changed
+- Dashboard layout: right metric cards now align with cognitive load chart height
+- Chart display: removed dense vertical grid lines and empty data points for cleaner visualization
+- Help button descriptions now properly display in metric card tooltips
+
+### Fixed
+- JSX syntax error in DashboardPage
+- Placeholder metric cards now include descriptions for accessibility
+- Chart x-axis now starts at first data point instead of including synthetic missing intervals
+- Accessibility warnings for unlabeled form inputs
+
 ## [1.0.8] - 2026-01-04
 
 ### Added
