@@ -101,13 +101,6 @@ interface CognitiveLoadChartProps {
     strain: number;
     energy: number;
   }>;
-  missingData: Array<{
-    timestamp: string;
-    score_total: number | null;
-    score_focus: number | null;
-    score_strain: number | null;
-    score_energy: number | null;
-  }>;
   selectedDate: CalendarDate;
   onDateChange: (date: CalendarDate) => void;
   firstDate: string;
@@ -116,7 +109,6 @@ interface CognitiveLoadChartProps {
 
 const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   data,
-  missingData,
   selectedDate,
   onDateChange,
   firstDate,

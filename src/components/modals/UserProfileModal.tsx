@@ -1,7 +1,6 @@
 import {
   Modal,
   ModalContent,
-  ModalHeader,
   ModalBody,
   Button,
   Avatar,
@@ -54,7 +53,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       className="py-4"
     >
       <ModalContent>
-        {(onClose) => (
+        {() => (
           <>
             <ModalBody className="gap-4 ">
               {/* Profile Section */}
