@@ -86,7 +86,7 @@ jobs:
 
           # If changelog section is empty, provide default message
           if [ -z "$CHANGELOG_SECTION" ]; then
-            CHANGELOG_SECTION="No changelog entries found for this version. See the [CHANGELOG.md](https://github.com/Marilok/cognivibe/blob/release/CHANGELOG.md) for more details."
+            CHANGELOG_SECTION="No changelog entries found for this version. See the [CHANGELOG.md](https://github.com/sveetya/cognivibe/blob/release/CHANGELOG.md) for more details."
           fi
 
           # Save to output using proper multiline syntax
@@ -121,7 +121,7 @@ jobs:
 
             ---
 
-            **Full Changelog**: https://github.com/Marilok/cognivibe/blob/release/CHANGELOG.md
+            **Full Changelog**: https://github.com/sveetya/cognivibe/blob/release/CHANGELOG.md
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
