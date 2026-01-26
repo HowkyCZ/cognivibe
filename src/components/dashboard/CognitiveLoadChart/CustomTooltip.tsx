@@ -4,14 +4,24 @@ import { Divider } from "@heroui/divider";
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const date = new Date(data.timestamp);
+    if (data.load == null) return null;
+
+    const date =
+      typeof data.x === "number" && Number.isFinite(data.x)
+        ? new Date(data.x)
+        : new Date(data.timestamp);
     const hours = date.getUTCHours().toString().padStart(2, "0");
     const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+
+    const format = (value: unknown) =>
+      typeof value === "number" && Number.isFinite(value)
+        ? Math.round(value)
+        : "--";
 
     return (
       <Card isBlurred shadow="lg">
         <CardHeader className="pb-2">
-          <p className="text-sm font-semibold mx-auto">
+          <p className="text-sm font-semibold mx-auto text-foreground">
             {hours}:{minutes}
           </p>
         </CardHeader>
@@ -22,36 +32,50 @@ const CustomTooltip = ({ active, payload }: any) => {
               <div className="flex items-center gap-2">
                 <span
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: "#3b82f6" }}
+                  style={{ backgroundColor: "#5C78FD" }}
                 ></span>
-                <span className="text-xs text-default-600">Focus</span>
+                <span className="text-xs text-foreground/60">
+                  Cognitive Load
+                </span>
               </div>
-              <span className="text-xs font-semibold">
-                {Math.round(data.focus)}
+              <span className="text-xs font-semibold text-foreground">
+                {format(data.load)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: "#ef4444" }}
+                  style={{ backgroundColor: "#5C78FD" }}
                 ></span>
-                <span className="text-xs text-default-600">Strain</span>
+                <span className="text-xs text-foreground/60">Focus</span>
               </div>
-              <span className="text-xs font-semibold">
-                {Math.round(data.strain)}
+              <span className="text-xs font-semibold text-foreground">
+                {format(data.focus)}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: "#10b981" }}
+                  style={{ backgroundColor: "#A07CEF" }}
                 ></span>
-                <span className="text-xs text-default-600">Energy</span>
+                <span className="text-xs text-foreground/60">Frustration</span>
               </div>
-              <span className="text-xs font-semibold">
-                {Math.round(data.energy)}
+              <span className="text-xs font-semibold text-foreground">
+                {format(data.strain)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: "#FF709B" }}
+                ></span>
+                <span className="text-xs text-foreground/60">Workload</span>
+              </div>
+              <span className="text-xs font-semibold text-foreground">
+                {format(data.energy)}
               </span>
             </div>
           </div>

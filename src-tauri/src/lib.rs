@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use tauri::Emitter;
 use tauri::Manager;
 
-use dotenv::dotenv;
+use dotenv::{dotenv, from_filename};
 use std::env;
 
 mod modules;
@@ -22,6 +22,13 @@ pub fn run() {
     let builder = tauri::Builder::default();
 
     dotenv().ok();
+    // Load Vite's development env file when running `tauri dev`.
+    // We try both root-relative and src-tauri-relative paths so it works regardless of CWD.
+    #[cfg(debug_assertions)]
+    {
+        let _ = from_filename(".env.development.local");
+        let _ = from_filename("../.env.development.local");
+    }
 
     #[cfg(desktop)]
     builder

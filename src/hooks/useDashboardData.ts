@@ -6,6 +6,7 @@ import { Session } from "@supabase/supabase-js";
 
 export interface CognitiveLoadDataPoint {
   timestamp: string;
+  load: number;
   focus: number;
   strain: number;
   energy: number;
@@ -66,18 +67,13 @@ export const useDashboardData = (
   // Calculate derived values
   const maxLoad =
     cognitiveLoadData.length > 0
-      ? Math.max(
-          ...cognitiveLoadData.flatMap((d) => [d.focus, d.strain, d.energy])
-        )
+      ? Math.max(...cognitiveLoadData.map((d) => d.load))
       : 0;
 
   const avgLoad =
     cognitiveLoadData.length > 0
-      ? cognitiveLoadData.reduce(
-          (sum, d) => sum + d.focus + d.strain + d.energy,
-          0
-        ) /
-        (cognitiveLoadData.length * 3)
+      ? cognitiveLoadData.reduce((sum, d) => sum + d.load, 0) /
+        cognitiveLoadData.length
       : 0;
 
   const fetchDashboardData = async () => {
@@ -99,7 +95,8 @@ export const useDashboardData = (
         const transformedData: CognitiveLoadDataPoint[] = result.data.map(
           (item: any) => {
             return {
-              timestamp: item.timestamp,
+              timestamp: item.timestamp_iso ?? item.timestamp,
+              load: Number(item.score_total),
               focus: item.score_concentration,
               strain: item.score_frustration,
               energy: item.score_pressure,
@@ -132,16 +129,16 @@ export const useDashboardData = (
                 "Measures emotional stress and irritation levels during cognitive tasks",
             },
             {
-              title: "Pressure",
+              title: "Workload",
               value: Math.round(latestData.score_pressure) || 0,
-              color: "secondary",
+              color: "danger",
               description:
                 "Indicates time constraints and external demands affecting performance",
             },
             {
-              title: "Concentration",
+              title: "Focus",
               value: Math.round(latestData.score_concentration) || 0,
-              color: "danger",
+              color: "secondary",
               description:
                 "Reflects ability to maintain focused attention on current tasks",
             },

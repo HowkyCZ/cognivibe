@@ -59,7 +59,7 @@ const HelpButton: React.FC<HelpButtonProps> = ({
         variant="light"
         className={`ml-1 ${isInAbsoluteCard ? "absolute top-2 right-2 z-40" : ""} ${className || ""}`}
       >
-        <IconHelpCircle className="text-default-400" size={16} />
+        <IconHelpCircle className="text-foreground/60" size={16} />
       </Button>
     </Tooltip>
   );
