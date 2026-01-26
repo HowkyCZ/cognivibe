@@ -1,4 +1,5 @@
 use tauri::AppHandle;
+use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
 
 use crate::modules::utils::focus_main_window;
@@ -38,13 +39,14 @@ pub fn setup_deep_link_handlers(app: &AppHandle) -> Result<(), Box<dyn std::erro
         // Get all URLs first to avoid ownership issues
         let all_urls = event.urls();
 
-        // Filter for cognivibe protocol URLs and take only the first one
-        let cognivibe_url = all_urls
+        // Filter for cognivibe protocol URLs
+        let cognivibe_urls: Vec<String> = all_urls
             .iter()
-            .find(|url| url.as_str().starts_with("cognivibe://"))
-            .map(|url| url.to_string());
+            .filter(|url| url.as_str().starts_with("cognivibe://"))
+            .map(|url| url.to_string())
+            .collect();
 
-        if let Some(url) = cognivibe_url {
+        if let Some(url) = cognivibe_urls.first() {
             #[cfg(debug_assertions)]
             println!(
                 "{}Processing cognivibe deep link: {}",
@@ -54,6 +56,10 @@ pub fn setup_deep_link_handlers(app: &AppHandle) -> Result<(), Box<dyn std::erro
 
             // Focus the main window
             focus_main_window(&app_handle);
+
+            // Forward to frontend handler (plugin JS listens for this event)
+            // Payload is an array of URLs.
+            let _ = app_handle.emit_all("deep-link://new-url", cognivibe_urls);
         } else {
             #[cfg(debug_assertions)]
             println!(

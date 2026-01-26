@@ -2,8 +2,8 @@
   "app": {
     "security": {
       "csp": {
-        "default-src": "'self' cognivibe://localhost http://localhost:1420 http://127.0.0.1:54323 http://localhost:3000",
-        "connect-src": "'self' https://server.cognivibe.tech https://cognivibe-server.vercel.app https://fctvbjzcjsycheklmnfh.supabase.co http://127.0.0.1:54323 http://localhost:3000"
+        "default-src": "'self' cognivibe://localhost http://localhost:1420 http://127.0.0.1:54321 http://127.0.0.1:54323 http://localhost:3000",
+        "connect-src": "'self' https://server.cognivibe.tech https://cognivibe-server.vercel.app https://fctvbjzcjsycheklmnfh.supabase.co http://127.0.0.1:54321 http://127.0.0.1:54323 http://localhost:3000"
       }
     }
   }

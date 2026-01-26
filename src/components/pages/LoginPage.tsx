@@ -5,7 +5,7 @@ import { Button, Input, Link, Form, addToast } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import logotypeSvg from "../../assets/logotype.svg";
 import { createSupabaseClient } from "../../utils/createSupabaseClient";
-import { ROUTES } from "../../utils/constants";
+import { isDevMode, ROUTES } from "../../utils/constants";
 import { openExternalUrl } from "../../utils/openExternalUrl";
 
 interface LoginPageProps {
@@ -22,10 +22,16 @@ const LoginPage: React.FC<LoginPageProps> = () => {
     setIsLoading(true);
 
     try {
+      // Local Supabase is configured to allow redirects like `cognivibe://auth/callback`.
+      // In production we keep the existing behavior unchanged.
+      const emailRedirectTo = isDevMode
+        ? "cognivibe://auth/callback"
+        : `cognivibe://localhost${ROUTES.CALLBACK}`;
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `cognivibe://localhost${ROUTES.CALLBACK}`,
+          emailRedirectTo,
         },
       });
       if (error) {
