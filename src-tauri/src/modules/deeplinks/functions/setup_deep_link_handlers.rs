@@ -1,5 +1,5 @@
 use tauri::AppHandle;
-use tauri::Manager;
+use tauri::Emitter;
 use tauri_plugin_deep_link::DeepLinkExt;
 
 use crate::modules::utils::focus_main_window;
@@ -59,7 +59,7 @@ pub fn setup_deep_link_handlers(app: &AppHandle) -> Result<(), Box<dyn std::erro
 
             // Forward to frontend handler (plugin JS listens for this event)
             // Payload is an array of URLs.
-            let _ = app_handle.emit_all("deep-link://new-url", cognivibe_urls);
+            let _ = app_handle.emit("deep-link://new-url", cognivibe_urls);
         } else {
             #[cfg(debug_assertions)]
             println!(

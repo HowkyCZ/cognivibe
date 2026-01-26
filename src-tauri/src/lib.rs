@@ -1,4 +1,5 @@
 use std::sync::Mutex;
+use tauri::Emitter;
 use tauri::Manager;
 
 use dotenv::dotenv;
@@ -50,7 +51,7 @@ pub fn run() {
                 #[cfg(debug_assertions)]
                 println!("{}Deep link received via single-instance args: {:?}", get_init_prefix(), urls);
 
-                let _ = app.emit_all("deep-link://new-url", urls);
+                let _ = app.emit("deep-link://new-url", urls);
             }
         }))
         .plugin(tauri_plugin_deep_link::init())
