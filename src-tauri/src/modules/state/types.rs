@@ -33,4 +33,6 @@ pub struct AppState {
     pub window_change_count: u32,
     /// Last scroll event timestamp for debouncing
     pub last_scroll_event_time: Option<std::time::Instant>,
+    /// Last mouse move event timestamp for gating (200ms window)
+    pub last_mouse_move_time: Option<std::time::Instant>,
 }

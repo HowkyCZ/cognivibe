@@ -2,11 +2,11 @@ use super::shared_utils::modify_state;
 use std::time::Instant;
 
 /// Handle mouse wheel events with debounce gating
-/// Events within 150ms are counted as a single scroll event
+/// Events within 200ms are counted as a single scroll event
 pub fn handle_wheel_event(delta_x: i64, delta_y: i64) {
     modify_state(|state| {
         let now = Instant::now();
-        let debounce_window_ms = 150; // 150ms debounce window
+        let debounce_window_ms = 200; // 200ms debounce window
         
         // Check if this event should be counted (debounce logic)
         let should_count = match state.last_scroll_event_time {
@@ -27,9 +27,14 @@ pub fn handle_wheel_event(delta_x: i64, delta_y: i64) {
         }
         // If debounced, ignore this event (don't update timestamp)
 
-        // Keep wheel_scroll_distance for backward compatibility (set to 0)
-        // This can be removed later once we fully migrate to wheel_scroll_events
+        // Keep wheel_scroll_distance for backward compatibility
+        // Apply resolution multiplier if available (same as mouse move distance)
         let total_wheel_delta = (delta_x.abs() + delta_y.abs()) as f64;
-        state.mouse_data.wheel_scroll_distance += total_wheel_delta;
+        let normalized_wheel_delta = if let Some(multiplier) = state.screen_resolution_multiplier {
+            total_wheel_delta * multiplier
+        } else {
+            total_wheel_delta
+        };
+        state.mouse_data.wheel_scroll_distance += normalized_wheel_delta;
     });
 }
