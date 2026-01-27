@@ -24,6 +24,8 @@ pub struct LogData {
     pub active_event_count: u32,
     pub screen_resolution_multiplier: Option<f64>,
     pub wheel_scroll_events_count: u32,
+    pub app_category: Option<String>,
+    pub session_id: Option<String>,
 }
 
 /// Upload tracking data to the server

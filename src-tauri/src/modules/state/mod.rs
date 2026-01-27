@@ -2,8 +2,7 @@ pub mod functions;
 pub mod types;
 
 // Re-export types for convenience
-pub use types::AppState;
-pub use types::SessionData;
+pub use types::{AppState, CategoryChangeEvent, SessionData};
 
 // Re-export functions
 pub use functions::get_measuring_state::get_measuring_state;

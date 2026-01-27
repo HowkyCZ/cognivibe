@@ -25,6 +25,10 @@ fn check_window_switch_completion(released_key: rdev::Key) {
                             !state.win_pressed
                         }
                     }
+                    // For Ctrl+Tab combinations (browser tab switching), log when Ctrl is released
+                    rdev::Key::ControlLeft | rdev::Key::ControlRight => {
+                        !state.ctrl_pressed && state.window_switch_type.contains("browser tabs")
+                    }
                     _ => false,
                 };
 

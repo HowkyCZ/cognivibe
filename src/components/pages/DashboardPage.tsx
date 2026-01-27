@@ -3,6 +3,8 @@ import {
   AppNavbar,
   CircleChartCard,
   WideCircleChartCard,
+  ProductivityTimeCard,
+  GradientCard,
 } from "..";
 import { useDashboardData } from "../../hooks";
 import { useState } from "react";
@@ -47,7 +49,7 @@ function DashboardPage() {
           />
 
           <div className="flex flex-row gap-4 my-4 items-stretch">
-            <div className="w-[360px] shrink-0 self-stretch">
+            <div className="w-[280px] shrink-0 self-stretch">
               <CircleChartCard
                 currentCognitiveLoad={currentCognitiveLoad}
                 isLoading={dashboardLoading}
@@ -92,6 +94,16 @@ function DashboardPage() {
                   />
                 </>
               )}
+            </div>
+          </div>
+
+          <div className="flex flex-row gap-4 my-4 items-stretch">
+            <div className="w-[500px] shrink-0 self-stretch">
+              <ProductivityTimeCard />
+            </div>
+
+            <div className="flex-1 min-w-0 self-stretch">
+              <GradientCard />
             </div>
           </div>
         </div>

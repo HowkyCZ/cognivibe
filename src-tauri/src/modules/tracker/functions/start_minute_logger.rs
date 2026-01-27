@@ -8,6 +8,8 @@ use tauri::{AppHandle, Manager};
 
 use crate::modules::state::AppState;
 use crate::modules::tracker::functions::upload_data::{upload_tracking_data, LogData};
+use crate::modules::tracker::functions::calculate_majority_category::calculate_majority_category_for_minute;
+use crate::modules::tracker::functions::session_management::{create_session, end_session};
 #[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
@@ -34,11 +36,13 @@ fn reset_counters(app_state: &mut AppState) {
 /// - Waits until the start of each new minute
 /// - Logs and resets accumulated data if measuring is active
 /// - Uploads data to the server if a user session is active
+/// - Manages session lifecycle (create/end based on activity)
 /// - Uses a simple 60-second interval timer
 /// - The first measurement is ignored (could be half a minute)
 pub fn start_minute_logger(app_handle: AppHandle) {
     thread::spawn(move || {
         let mut last_logged_minute = None;
+        const INACTIVITY_THRESHOLD_SECS: u64 = 5 * 60; // 5 minutes
 
         loop {
             let now = Local::now();
@@ -48,6 +52,45 @@ pub fn start_minute_logger(app_handle: AppHandle) {
             if now.second() == 0 && last_logged_minute != Some(current_minute) {
                 if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                     if app_state.is_measuring {
+                        // Check for inactivity and end session if needed
+                        if let (Some(last_activity), Some(session_id)) = (
+                            app_state.last_activity_time,
+                            app_state.current_session_id.clone(),
+                        ) {
+                            let inactivity_duration = last_activity.elapsed().as_secs();
+                            if inactivity_duration >= INACTIVITY_THRESHOLD_SECS {
+                                // End session due to inactivity
+                                let session_id_clone = session_id.clone();
+                                if let Some(session) = app_state.session_data.as_ref() {
+                                    let session_access_token = session.access_token.clone();
+                                    let app_handle_clone = app_handle.clone();
+                                    tauri::async_runtime::spawn(async move {
+                                        match end_session(session_id_clone, session_access_token).await {
+                                            Ok(_) => {
+                                                #[cfg(debug_assertions)]
+                                                println!(
+                                                    "{}✅ Session ended due to inactivity",
+                                                    get_tracker_prefix()
+                                                );
+                                            }
+                                            Err(e) => {
+                                                #[cfg(debug_assertions)]
+                                                eprintln!(
+                                                    "{}❌ Failed to end session: {}",
+                                                    get_tracker_prefix(),
+                                                    e
+                                                );
+                                            }
+                                        }
+                                    });
+                                }
+                                // Clear session state locally
+                                app_state.current_session_id = None;
+                                app_state.last_activity_time = None;
+                                app_state.session_start_time = None;
+                            }
+                        }
+
                         if !app_state.is_first_minute {
                             // Calculate the previous minute and hour (handling wrap-around)
                             let (prev_hour, prev_minute) = if current_minute == 0 {
@@ -63,6 +106,47 @@ pub fn start_minute_logger(app_handle: AppHandle) {
 
                             // Prepare log data for upload
                             if let Some(session) = &app_state.session_data {
+                                // Clone session data before potential mutations
+                                let session_user_id = session.user_id.clone();
+                                let session_access_token = session.access_token.clone();
+                                
+                                // Ensure we have an active session before uploading
+                                let session_id = if app_state.current_session_id.is_none() {
+                                    // Create new session
+                                    let user_id = session_user_id.clone();
+                                    let access_token = session_access_token.clone();
+                                    
+                                    // Create session synchronously (blocking)
+                                    let session_result = tauri::async_runtime::block_on(async {
+                                        create_session(user_id, access_token).await
+                                    });
+
+                                    match session_result {
+                                        Ok(new_session_id) => {
+                                            app_state.current_session_id = Some(new_session_id.clone());
+                                            app_state.session_start_time = Some(std::time::Instant::now());
+                                            #[cfg(debug_assertions)]
+                                            println!(
+                                                "{}✅ Created new session: {}",
+                                                get_tracker_prefix(),
+                                                new_session_id
+                                            );
+                                            Some(new_session_id)
+                                        }
+                                        Err(e) => {
+                                            #[cfg(debug_assertions)]
+                                            eprintln!(
+                                                "{}❌ Failed to create session: {}",
+                                                get_tracker_prefix(),
+                                                e
+                                            );
+                                            None // Continue without session_id if creation fails
+                                        }
+                                    }
+                                } else {
+                                    app_state.current_session_id.clone()
+                                };
+
                                 // Calculate active_event_count: sum of all events
                                 let active_event_count = app_state.keyboard_data.key_downs
                                     + app_state.mouse_data.left_clicks
@@ -79,6 +163,24 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     prev_hour,
                                     prev_minute
                                 );
+
+                                // Calculate majority category for the previous minute
+                                let app_category = {
+                                    // Calculate minute boundaries relative to now
+                                    // Previous minute ended at the start of current minute (now.second() == 0)
+                                    // So minute_start is 60 seconds ago, minute_end is now
+                                    let now_instant = std::time::Instant::now();
+                                    let minute_start_instant = now_instant.checked_sub(Duration::from_secs(60))
+                                        .unwrap_or(now_instant);
+                                    let minute_end_instant = now_instant;
+                                    
+                                    Some(calculate_majority_category_for_minute(
+                                        &app_state.category_change_history,
+                                        minute_start_instant,
+                                        minute_end_instant,
+                                        app_state.current_app_category.as_ref(),
+                                    ))
+                                };
 
                                 let log_data = LogData {
                                     mouse_left_clicks_count: app_state.mouse_data.left_clicks,
@@ -97,17 +199,24 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     screen_resolution_multiplier: app_state.screen_resolution_multiplier,
                                     wheel_scroll_events_count: app_state.mouse_data.wheel_scroll_events,
                                     minute_timestamp: minute_timestamp.clone(),
-                                    user_id: session.user_id.clone(),
+                                    user_id: session_user_id.clone(),
+                                    app_category,
+                                    session_id: session_id.clone(),
                                 };
 
                                 // Spawn async task to upload data
                                 let app_handle_clone = app_handle.clone();
+                                let session_id_clone = session_id.clone();
                                 #[cfg(debug_assertions)]
                                 let timestamp_for_log = minute_timestamp.clone();
                                 tauri::async_runtime::spawn(async move {
                                     let state = app_handle_clone.state::<Mutex<AppState>>();
                                     match upload_tracking_data(state, log_data).await {
                                         Ok(_) => {
+                                            // Update last_activity_time on successful upload
+                                            if let Ok(mut app_state) = app_handle_clone.state::<Mutex<AppState>>().lock() {
+                                                app_state.last_activity_time = Some(std::time::Instant::now());
+                                            }
                                             #[cfg(debug_assertions)]
                                             println!(
                                                 "{}✅ Successfully uploaded tracking data for {}",

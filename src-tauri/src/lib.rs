@@ -12,6 +12,7 @@ use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
 use modules::state::{get_measuring_state, get_settings_state, set_user_session, AppState};
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
+use modules::tracker::functions::session_management::end_session;
 
 #[cfg(not(debug_assertions))]
 use modules::utils::focus_main_window;
@@ -143,6 +144,45 @@ pub fn run() {
             #[cfg(debug_assertions)]
             println!("{}Starting global input tracker", get_init_prefix());
             start_global_input_tracker(app.handle().clone());
+
+            // Set up window close handler to end session
+            let app_handle = app.handle().clone();
+            if let Some(window) = app.get_webview_window("main") {
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { .. } = event {
+                        // End session if one exists
+                        let app_handle_clone = app_handle.clone();
+                        tauri::async_runtime::spawn(async move {
+                            let session_info = {
+                                let state = app_handle_clone.state::<Mutex<AppState>>();
+                                let app_state = state.lock();
+                                if let Ok(app_state) = app_state {
+                                    if let (Some(session_id), Some(session)) = (
+                                        app_state.current_session_id.clone(),
+                                        app_state.session_data.clone(),
+                                    ) {
+                                        Some((session_id, session.access_token))
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    None
+                                }
+                            }; // MutexGuard is dropped here
+                            
+                            if let Some((session_id, access_token)) = session_info {
+                                #[cfg(debug_assertions)]
+                                println!(
+                                    "{}Ending session {} on app close",
+                                    get_init_prefix(),
+                                    session_id
+                                );
+                                let _ = end_session(session_id, access_token).await;
+                            }
+                        });
+                    }
+                });
+            }
 
             #[cfg(debug_assertions)]
             println!(
