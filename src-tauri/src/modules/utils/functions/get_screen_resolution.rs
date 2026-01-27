@@ -11,8 +11,8 @@ pub fn calculate_resolution_multiplier() -> Option<f64> {
     // Try to get display size using rdev
     match rdev::display_size() {
         Ok((width, height)) => {
-            let diag_ref = (1920.0 * 1920.0 + 1080.0 * 1080.0).sqrt(); // 2202.91
-            let diag_cur = ((width as f64) * (width as f64) + (height as f64) * (height as f64)).sqrt();
+            let diag_ref = f64::sqrt(1920.0 * 1920.0 + 1080.0 * 1080.0); // 2202.91
+            let diag_cur = f64::sqrt((width as f64) * (width as f64) + (height as f64) * (height as f64));
             let q = 2.0;
             let multiplier = (diag_ref / diag_cur).powf(q);
             Some(multiplier)
