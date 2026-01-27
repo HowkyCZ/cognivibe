@@ -28,8 +28,40 @@ pub fn toggle_measuring(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle
         println!("{}🟢Measurement started", get_tracker_prefix());
         reset_input_data(&app);
     } else {
+        // Log measurement summary when stopping
         #[cfg(debug_assertions)]
-        println!("{}🛑Measurement stopped", get_tracker_prefix());
+        {
+            if let Ok(app_state) = state.lock() {
+                let active_event_count = app_state.keyboard_data.key_downs
+                    + app_state.mouse_data.left_clicks
+                    + app_state.mouse_data.right_clicks
+                    + app_state.mouse_data.other_clicks
+                    + app_state.mouse_data.wheel_scroll_events
+                    + app_state.mouse_data.move_events;
+
+                println!("{}🛑Measurement stopped", get_tracker_prefix());
+                println!(
+                    "{}   Summary - Mouse: {} left, {} right, {} other clicks | Distance: {:.1}px | Wheel events: {} | Move events: {}",
+                    get_tracker_prefix(),
+                    app_state.mouse_data.left_clicks,
+                    app_state.mouse_data.right_clicks,
+                    app_state.mouse_data.other_clicks,
+                    app_state.mouse_data.total_distance,
+                    app_state.mouse_data.wheel_scroll_events,
+                    app_state.mouse_data.move_events
+                );
+                println!(
+                    "{}   Summary - Keyboard: {} downs, {} ups | Delete: {} downs, {} ups | Window changes: {} | Total active events: {}",
+                    get_tracker_prefix(),
+                    app_state.keyboard_data.key_downs,
+                    app_state.keyboard_data.key_ups,
+                    app_state.keyboard_data.delete_downs,
+                    app_state.keyboard_data.delete_ups,
+                    app_state.window_change_count,
+                    active_event_count
+                );
+            }
+        }
     }
 
     new_state

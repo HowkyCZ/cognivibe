@@ -1,6 +1,5 @@
 import React from "react";
 import { Button, Image } from "@heroui/react";
-import WavyBackground from "../layout/WavyBackground";
 import logotypeSvg from "../../assets/logotype.svg";
 import detectiveEmoji from "../../assets/emojis/animated/detective.png";
 import { IconHomeFilled } from "@tabler/icons-react";
@@ -29,7 +28,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
       navigate({ to: ROUTES.HOME });
     });
   return (
-    <WavyBackground>
+    <div className="min-h-dvh w-full bg-background flex items-center justify-center p-6">
       <div className="flex w-full max-w-md flex-col gap-6 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small text-center">
         <div className="flex flex-col items-center gap-4">
           <img
@@ -45,10 +44,10 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
               width={64}
               height={64}
             />{" "}
-            <h2 className="text-xl font-medium text-default-700">{title}</h2>
+            <h2 className="text-xl font-medium text-foreground">{title}</h2>
           </div>
 
-          <p className="text-small text-default-500 text-center max-w-sm">
+          <p className="text-small text-foreground/60 text-center max-w-sm">
             {description}
           </p>
         </div>{" "}
@@ -64,7 +63,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
           </Button>
         </div>
       </div>
-    </WavyBackground>
+    </div>
   );
 };
 

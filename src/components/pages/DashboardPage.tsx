@@ -9,6 +9,13 @@ import { useState } from "react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import type { CalendarDate } from "@internationalized/date";
 
+function toLocalISODate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<CalendarDate>(
     today(getLocalTimeZone()),
@@ -23,63 +30,69 @@ function DashboardPage() {
   } = useDashboardData(selectedDate);
 
   const firstDate = session?.user?.created_at
-    ? new Date(session.user.created_at).toISOString().split("T")[0]
-    : new Date().toISOString().split("T")[0];
+    ? toLocalISODate(new Date(session.user.created_at))
+    : toLocalISODate(new Date());
 
   return (
     <>
       <AppNavbar />
-      <main className="container mx-auto p-8">
-        <CognitiveLoadChart
-          data={cognitiveLoadData}
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
-          firstDate={firstDate}
-          isLoading={dashboardLoading}
-        />
-        <div className="flex flex-row gap-4 my-4">
-          <CircleChartCard
-            currentCognitiveLoad={currentCognitiveLoad}
+      <main className="w-full px-8 py-8">
+        <div className="w-full max-w-5xl mx-auto">
+          <CognitiveLoadChart
+            data={cognitiveLoadData}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            firstDate={firstDate}
             isLoading={dashboardLoading}
           />
-          <div className="flex flex-col gap-4">
-            {metricsData.length > 0 ? (
-              metricsData.map((metric, index) => (
-                <WideCircleChartCard
-                  key={index}
-                  title={metric.title}
-                  value={metric.value}
-                  color={metric.color}
-                  description={metric.description}
-                  isLoading={dashboardLoading}
-                />
-              ))
-            ) : (
-              // Show placeholder cards when no data yet
-              <>
-                <WideCircleChartCard
-                  title="Frustration"
-                  value={0}
-                  color="primary"
-                  description="Measures emotional stress and irritation levels during cognitive tasks"
-                  isLoading={dashboardLoading}
-                />
-                <WideCircleChartCard
-                  title="Pressure"
-                  value={0}
-                  color="secondary"
-                  description="Indicates time constraints and external demands affecting performance"
-                  isLoading={dashboardLoading}
-                />
-                <WideCircleChartCard
-                  title="Concentration"
-                  value={0}
-                  color="danger"
-                  description="Reflects ability to maintain focused attention on current tasks"
-                  isLoading={dashboardLoading}
-                />
-              </>
-            )}
+
+          <div className="flex flex-row gap-4 my-4 items-stretch">
+            <div className="w-[360px] shrink-0 self-stretch">
+              <CircleChartCard
+                currentCognitiveLoad={currentCognitiveLoad}
+                isLoading={dashboardLoading}
+              />
+            </div>
+
+            <div className="flex flex-col gap-4 flex-1 min-w-0">
+              {metricsData.length > 0 ? (
+                metricsData.map((metric, index) => (
+                  <WideCircleChartCard
+                    key={index}
+                    title={metric.title}
+                    value={metric.value}
+                    color={metric.color}
+                    description={metric.description}
+                    isLoading={dashboardLoading}
+                  />
+                ))
+              ) : (
+                // Show placeholder cards when no data yet
+                <>
+                  <WideCircleChartCard
+                    title="Frustration"
+                    value={0}
+                    color="primary"
+                    description="Measures emotional stress and irritation levels during cognitive tasks"
+                    isLoading={dashboardLoading}
+                  />
+                  <WideCircleChartCard
+                    title="Workload"
+                    value={0}
+                    color="danger"
+                    description="Indicates time constraints and external demands affecting performance"
+                    isLoading={dashboardLoading}
+                  />
+                  <WideCircleChartCard
+                    title="Focus"
+                    value={0}
+                    color="secondary"
+                    description="Reflects ability to maintain focused attention on current tasks"
+                    isLoading={dashboardLoading}
+                  />
+                </>
+              )}
+            </div>
           </div>
         </div>
       </main>

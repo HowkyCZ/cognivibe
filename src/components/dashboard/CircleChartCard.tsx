@@ -65,6 +65,12 @@ const CircleChartCard = React.forwardRef<
   // Default props
   const title = "Cognitive Load";
   const color = getLoadColor(currentCognitiveLoad);
+  const bgClass =
+    color === "secondary"
+      ? "bg-secondary/40"
+      : color === "primary"
+        ? "bg-primary/40"
+        : "bg-danger/40";
   const loadTitle = getLoadTitle(currentCognitiveLoad);
   const loadText = getLoadText(currentCognitiveLoad);
   const total = 100;
@@ -73,7 +79,7 @@ const CircleChartCard = React.forwardRef<
   return (
     <Card
       ref={ref}
-      className={`w-64 max-h-92 p-4 bg-${color}/20 relative`}
+      className={`w-full h-full p-4 ${bgClass} relative flex flex-col`}
       {...props}
     >
       {!isLoading && (
@@ -90,7 +96,7 @@ const CircleChartCard = React.forwardRef<
           <p className="text-xl font-medium text-center">{title}</p>
         )}
       </CardHeader>
-      <CardBody className="flex items-center justify-center h-auto">
+      <CardBody className="flex items-center justify-center flex-1">
         {isLoading ? (
           <div className="flex items-center justify-center w-full h-40">
             <Skeleton className="w-40 h-40 rounded-full" />
@@ -118,7 +124,7 @@ const CircleChartCard = React.forwardRef<
                 animationDuration={1000}
                 animationEasing="ease"
                 background={{
-                  fill: "hsl(var(--heroui-default-100))",
+                  fill: "hsl(var(--heroui-foreground) / 0.4)",
                 }}
                 cornerRadius={12}
                 dataKey="value"
@@ -126,7 +132,7 @@ const CircleChartCard = React.forwardRef<
                 {chartData.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={`hsl(var(--heroui-${color === "default" ? "foreground" : color}))`}
+                    fill="hsl(var(--heroui-foreground))"
                   />
                 ))}
               </RadialBar>
@@ -152,11 +158,11 @@ const CircleChartCard = React.forwardRef<
           </ResponsiveContainer>
         )}
       </CardBody>
-      <CardFooter className="text-left min-h-12 grow pt-0">
+      <CardFooter className="text-left min-h-12 pt-0">
         {isLoading ? (
           <Skeleton className="h-4 w-full rounded-lg" />
         ) : (
-          <p className="text-sm text-default-700">{loadText}</p>
+          <p className="text-sm text-foreground/60">{loadText}</p>
         )}
       </CardFooter>
     </Card>

@@ -8,8 +8,30 @@ export default heroui({
   themes: {
     dark: {
       colors: {
-        background: "#1B063A",
-        foreground: "#F2EFFD", // 950 from primary
+        // Core brand surfaces
+        background: "#19141C", // primary app background
+        foreground: "#FFFFFF", // primary text
+        content1: "#221D28", // surfaces: cards/containers
+        content2: "#272130",
+        content3: "#2C2538",
+        content4: "#322A40",
+        divider: "#343037",
+
+        // Neutral scale (used by `bg-default-*`, inputs, subtle surfaces, etc.)
+        default: {
+          50: "#19141C",
+          100: "#221D28",
+          200: "#2A2432",
+          300: "#332C3B",
+          400: "#3C3444",
+          500: "#463D50",
+          600: "#5A5165",
+          700: "#7B7487",
+          800: "#A39EAD",
+          900: "#E6E4EA",
+          DEFAULT: "#2A2432",
+          foreground: "#FFFFFF",
+        },
         primary: {
           50: "#180535",
           100: "#250A4C",
@@ -21,8 +43,8 @@ export default heroui({
           700: "#B69EF3",
           800: "#CDBEF7",
           900: "#E5DFFB",
-          foreground: "#F2EFFD", // Text color to use ON TOP of primary colors, value of 950
-          DEFAULT: "#8C58EA", // Default 500 primary
+          foreground: "#19141C", // text on top of primary fills
+          DEFAULT: "#A07CEF", // exact accent
         },
         secondary: {
           50: "#000738",
@@ -31,12 +53,12 @@ export default heroui({
           300: "#052AAE",
           400: "#093AE1",
           500: "#2E4FFC",
-          600: "#5C6DFD",
+          600: "#5C78FD",
           700: "#8892FE",
           800: "#B1B6FE",
           900: "#D8DAFF",
-          DEFAULT: "#2E4FFC", // Default 500 secondary
-          foreground: "#ECEDFF", // 950
+          DEFAULT: "#5C78FD", // exact accent
+          foreground: "#19141C",
         },
         danger: {
           50: "#2B000F",
@@ -49,8 +71,8 @@ export default heroui({
           700: "#FF97B2",
           800: "#FFBDCD",
           900: "#FFDDE4",
-          DEFAULT: "#FF0A7C", // Default 500 danger
-          foreground: "#FFF0F3", // 950
+          DEFAULT: "#FF709B", // exact accent
+          foreground: "#19141C",
         },
         success: {
           50: "#021D05",
@@ -80,7 +102,7 @@ export default heroui({
           DEFAULT: "#F9CF58", // Default 500 warning
           foreground: "#FEF9F0", // 950
         },
-        focus: "#A07CEF", // 600 from primary
+        focus: "#A07CEF",
       },
     },
   },

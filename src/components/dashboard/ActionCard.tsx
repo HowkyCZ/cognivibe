@@ -29,40 +29,40 @@ const ActionCard = React.forwardRef<HTMLDivElement, ActionCardProps>(
       switch (color) {
         case "primary":
           return {
-            card: "border-default-200",
-            iconWrapper: "bg-primary-50 border-primary-100",
+            card: "border-primary/30",
+            iconWrapper: "bg-primary/40 border-primary/40",
             icon: "text-primary",
           };
         case "secondary":
           return {
-            card: "border-secondary-100",
-            iconWrapper: "bg-secondary-50 border-secondary-100",
+            card: "border-secondary/30",
+            iconWrapper: "bg-secondary/40 border-secondary/40",
             icon: "text-secondary",
           };
         case "warning":
           return {
-            card: "border-warning-500",
-            iconWrapper: "bg-warning-50 border-warning-100",
-            icon: "text-warning-600",
+            card: "border-warning/30",
+            iconWrapper: "bg-warning/40 border-warning/40",
+            icon: "text-warning",
           };
         case "danger":
           return {
-            card: "border-danger-300",
-            iconWrapper: "bg-danger-50 border-danger-100",
+            card: "border-danger/30",
+            iconWrapper: "bg-danger/40 border-danger/40",
             icon: "text-danger",
           };
         case "success":
           return {
-            card: "border-success-300",
-            iconWrapper: "bg-success-50 border-success-100",
+            card: "border-success/30",
+            iconWrapper: "bg-success/40 border-success/40",
             icon: "text-success",
           };
 
         default:
           return {
-            card: "border-default-200",
-            iconWrapper: "bg-default-50 border-default-100",
-            icon: "text-default-500",
+            card: "border-white/10",
+            iconWrapper: "bg-white/5 border-white/10",
+            icon: "text-foreground/60",
           };
       }
     }, [color]);
@@ -85,8 +85,8 @@ const ActionCard = React.forwardRef<HTMLDivElement, ActionCardProps>(
             <div className={colors?.icon}>{getIcon()}</div>
           </div>
           <div className="flex flex-col">
-            <p className="text-medium">{title}</p>
-            <p className="text-small text-default-400">{description}</p>
+            <p className="text-medium text-foreground">{title}</p>
+            <p className="text-small text-foreground/60">{description}</p>
           </div>
         </CardBody>
       </Card>
