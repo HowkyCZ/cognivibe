@@ -1,15 +1,34 @@
 use super::shared_utils::modify_state;
+use std::time::Instant;
 
-/// Handle mouse wheel events
+/// Handle mouse wheel events with debounce gating
+/// Events within 150ms are counted as a single scroll event
 pub fn handle_wheel_event(delta_x: i64, delta_y: i64) {
-    #[cfg(debug_assertions)]
-    println!(
-        "🎡 Wheel event detected! delta_x={}, delta_y={}",
-        delta_x, delta_y
-    );
-
     modify_state(|state| {
-        // Calculate total scroll distance from both horizontal and vertical scroll
+        let now = Instant::now();
+        let debounce_window_ms = 150; // 150ms debounce window
+        
+        // Check if this event should be counted (debounce logic)
+        let should_count = match state.last_scroll_event_time {
+            Some(last_time) => {
+                // Count if enough time has passed since last event
+                now.duration_since(last_time).as_millis() >= debounce_window_ms as u128
+            }
+            None => {
+                // First event, always count
+                true
+            }
+        };
+
+        if should_count {
+            // Increment scroll events counter
+            state.mouse_data.wheel_scroll_events += 1;
+            state.last_scroll_event_time = Some(now);
+        }
+        // If debounced, ignore this event (don't update timestamp)
+
+        // Keep wheel_scroll_distance for backward compatibility (set to 0)
+        // This can be removed later once we fully migrate to wheel_scroll_events
         let total_wheel_delta = (delta_x.abs() + delta_y.abs()) as f64;
         state.mouse_data.wheel_scroll_distance += total_wheel_delta;
     });

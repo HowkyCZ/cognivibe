@@ -18,17 +18,43 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--heroui-primary-500));
+  background: hsl(var(--heroui-primary-600));
   border-radius: var(--heroui-radius-small);
   border: none;
   transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--heroui-primary-400));
+  background: hsl(var(--heroui-primary-700));
 }
 
 ::-webkit-scrollbar-corner {
   background: hsl(var(--heroui-background));
   background-color: hsl(var(--heroui-background));
+}
+
+:root {
+  --cv-bg: #19141c;
+  --cv-surface: #221d28;
+
+  --cv-accent-primary: #a07cef;
+  --cv-accent-secondary: #5c78fd;
+  --cv-accent-danger: #ff709b;
+
+  --cv-text-secondary: rgba(255, 255, 255, 0.6);
+}
+
+@layer utilities {
+  .bg-cv-accent-gradient {
+    background-image: linear-gradient(
+      45deg,
+      var(--cv-accent-primary) 0%,
+      var(--cv-accent-primary) 60%,
+      var(--cv-accent-danger) 100%
+    );
+  }
+
+  .text-cv-secondary {
+    color: var(--cv-text-secondary);
+  }
 }

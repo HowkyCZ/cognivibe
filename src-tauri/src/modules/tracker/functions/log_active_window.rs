@@ -92,6 +92,8 @@ fn update_stored_window_id(window_id: String) {
 
     modify_state(|app_state| {
         app_state.active_window_id = Some(window_id);
+        // Increment window change count for change_mean and change_sd metrics
+        app_state.window_change_count += 1;
     });
 }
 

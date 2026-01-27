@@ -8,18 +8,22 @@ const MeasureButton: React.FC = () => {
       <button
         onClick={toggleMeasuring}
         disabled={loading}
-        className={`relative inline-flex h-12 w-48 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 transition-all duration-300 ${
-          isMeasuring ? "shadow-lg shadow-purple-500/25" : ""
+        className={`relative inline-flex h-12 w-48 overflow-hidden rounded-full p-[1px] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/60 ${
+          isMeasuring
+            ? "shadow-[0_0_30px_rgba(255,112,155,0.25)]"
+            : "shadow-small"
         } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
       >
-        {isMeasuring && (
-          <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
+        {isMeasuring ? (
+          <span className="absolute inset-[-800%] animate-[spin_2.5s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#A07CEF_0%,#FF709B_60%,#A07CEF_100%)]" />
+        ) : (
+          <span className="absolute inset-0 bg-[linear-gradient(45deg,#A07CEF_0%,#A07CEF_60%,#FF709B_100%)] opacity-25" />
         )}
         <span
-          className={`inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full px-6 py-1 text-sm font-medium backdrop-blur-3xl transition-all duration-300 ${
+          className={`relative inline-flex h-full w-full items-center justify-center rounded-full px-6 py-1 text-sm font-medium backdrop-blur-3xl transition-all duration-300 ${
             isMeasuring
-              ? "bg-slate-950 text-white"
-              : "bg-white text-slate-950 border border-slate-300 hover:bg-slate-50"
+              ? "bg-content1 text-foreground"
+              : "bg-content1 text-foreground border border-white/10 hover:border-primary/30"
           }`}
         >
           {loading ? (
@@ -29,12 +33,12 @@ const MeasureButton: React.FC = () => {
             </>
           ) : isMeasuring ? (
             <>
-              <div className="w-2 h-2 bg-success-400 rounded-full mr-2 animate-pulse"></div>
+              <div className="w-2 h-2 bg-danger rounded-full mr-2 animate-pulse"></div>
               Measuring
             </>
           ) : (
             <>
-              <div className="w-2 h-2 bg-primary-100 rounded-full mr-2"></div>
+              <div className="w-2 h-2 bg-secondary rounded-full mr-2"></div>
               Start Measuring
             </>
           )}

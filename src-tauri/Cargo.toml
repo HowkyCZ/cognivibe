@@ -1,6 +1,6 @@
 [package]
 name = "cognivibe"
-version = "1.0.9"
+version = "1.0.10"
 description = "Cognivibe is a productivity tool designed to help you measure and improve your cognitive performance."
 authors = ["Cognivibe Team"]
 edition = "2021"
@@ -12,7 +12,9 @@ edition = "2021"
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "cognivibe_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# Desktop builds only need an `rlib` (the `staticlib`/`cdylib` outputs are mainly
+# for mobile embedding and can cause toolchain/config-specific link issues).
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

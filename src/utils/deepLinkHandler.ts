@@ -1,5 +1,7 @@
-import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { AcceptableRoutes, ROUTES } from "./constants";
+
+let lastProcessedDeepLinkUrl: string | null = null;
 
 /**
  * Validates and sanitizes URL parameters to prevent injection attacks
@@ -87,11 +89,16 @@ export const setupDeepLinkHandler = async (
   navigate: (options: { to: string; search?: Record<string, any> }) => void
 ) => {
   try {
-    await onOpenUrl((urls) => {
+    const handleUrls = (urls: string[] | null | undefined) => {
       console.log("Deep link received:", urls);
 
-      const url = urls[0];
+      const url = urls?.[0];
       if (!url) return;
+
+      // Avoid processing the same deep link multiple times (can happen if we
+      // handle startup links via getCurrent() and also receive an event).
+      if (url === lastProcessedDeepLinkUrl) return;
+      lastProcessedDeepLinkUrl = url;
 
       // Validate URL before processing
       if (!validateDeepLinkUrl(url)) {
@@ -180,7 +187,17 @@ export const setupDeepLinkHandler = async (
           },
         });
       }
-    });
+    };
+
+    // On cold start, the OS may launch the app via a deep link before our
+    // `onOpenUrl` listener is attached. `getCurrent()` lets us catch that.
+    const initialUrls = await getCurrent();
+    if (initialUrls?.length) {
+      console.log("Initial deep link URLs:", initialUrls);
+      handleUrls(initialUrls);
+    }
+
+    await onOpenUrl((urls) => handleUrls(urls));
   } catch (error) {
     console.error("Failed to set up deep link handler:", error);
   }

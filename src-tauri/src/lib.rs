@@ -1,7 +1,8 @@
 use std::sync::Mutex;
+use tauri::Emitter;
 use tauri::Manager;
 
-use dotenv::dotenv;
+use dotenv::{dotenv, from_filename};
 use std::env;
 
 mod modules;
@@ -21,6 +22,13 @@ pub fn run() {
     let builder = tauri::Builder::default();
 
     dotenv().ok();
+    // Load Vite's development env file when running `tauri dev`.
+    // We try both root-relative and src-tauri-relative paths so it works regardless of CWD.
+    #[cfg(debug_assertions)]
+    {
+        let _ = from_filename(".env.development.local");
+        let _ = from_filename("../.env.development.local");
+    }
 
     #[cfg(desktop)]
     builder
@@ -33,9 +41,25 @@ pub fn run() {
             update_settings_cmd,
             fetch_batch_scores_cmd
         ])
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // Focus main window
             focus_main_window(app);
+
+            // On macOS (and sometimes other platforms), deep links can arrive as
+            // command-line arguments to the already-running app instance.
+            // Forward those URLs to the frontend using the event that
+            // `@tauri-apps/plugin-deep-link` listens for.
+            let urls: Vec<String> = args
+                .into_iter()
+                .filter(|arg| arg.starts_with("cognivibe://"))
+                .collect();
+
+            if !urls.is_empty() {
+                #[cfg(debug_assertions)]
+                println!("{}Deep link received via single-instance args: {:?}", get_init_prefix(), urls);
+
+                let _ = app.emit("deep-link://new-url", urls);
+            }
         }))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_http::init())

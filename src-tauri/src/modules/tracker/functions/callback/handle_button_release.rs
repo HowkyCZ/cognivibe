@@ -8,8 +8,5 @@ pub fn handle_button_release(button: Button) {
     // The function now runs asynchronously by default to avoid blocking the input callback thread
     if matches!(button, Button::Left) {
         log_active_window_async();
-
-        #[cfg(debug_assertions)]
-        println!("🖱️ Left button released - checking active window (async)");
     }
 }

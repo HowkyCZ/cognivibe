@@ -100,6 +100,7 @@ function DateRangePicker({
         onPress={handlePreviousDay}
         isDisabled={isPreviousDisabled}
         aria-label="Previous day"
+        className="text-foreground/70 hover:text-foreground hover:bg-white/5"
       >
         <IconChevronLeft size={18} />
       </Button>
@@ -109,8 +110,25 @@ function DateRangePicker({
         value={value}
         defaultValue={today(getLocalTimeZone())}
         onChange={handleDateChange}
-        className="max-w-32"
+        className="w-40"
         aria-label="Select date"
+        variant="bordered"
+        classNames={{
+          // Keep `base` minimal to avoid a “double wrapper” look.
+          // The DateInput inside DatePicker already renders the pill + border via `variant`.
+          base: "text-foreground",
+          selectorButton: "text-foreground/60 hover:text-foreground",
+          selectorIcon: "text-foreground/60",
+          popoverContent:
+            "bg-content1/90 backdrop-blur-md border border-white/10 text-foreground shadow-[0_10px_40px_rgba(0,0,0,0.35)]",
+          calendar: "text-foreground",
+          calendarContent: "bg-content1",
+        }}
+        popoverProps={{
+          placement: "bottom",
+          offset: 10,
+          triggerScaleOnOpen: false,
+        }}
         CalendarTopContent={
           <ButtonGroup
             fullWidth
@@ -151,6 +169,7 @@ function DateRangePicker({
         onPress={handleNextDay}
         isDisabled={isNextDisabled}
         aria-label="Next day"
+        className="text-foreground/70 hover:text-foreground hover:bg-white/5"
       >
         <IconChevronRight size={18} />
       </Button>

@@ -126,7 +126,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             <IconRefresh className="h-5 w-5 text-primary" />
             <span>Update Available</span>
           </div>
-          <p className="text-sm text-default-500">
+          <p className="text-sm text-foreground/60">
             Version {update.version} • {formatDate(update.date)}
           </p>
         </ModalHeader>
@@ -136,7 +136,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             <Card>
               <CardBody>
                 <h4 className="font-semibold mb-2">What's New</h4>
-                <div className="text-sm text-default-600 whitespace-pre-wrap">
+                <div className="text-sm text-foreground/60 whitespace-pre-wrap">
                   {update.body || "No release notes available."}
                 </div>
               </CardBody>
@@ -162,7 +162,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
                     <span className="text-sm font-medium">
                       {isInstalling ? "Installing..." : "Downloading..."}
                     </span>
-                    <span className="text-sm text-default-500">
+                    <span className="text-sm text-foreground/60">
                       {Math.round(downloadProgress)}%
                     </span>
                   </div>
@@ -171,7 +171,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
                     className="w-full"
                     color={isInstalling ? "secondary" : "primary"}
                   />
-                  <p className="text-xs text-default-500">{downloadStatus}</p>
+                  <p className="text-xs text-foreground/60">{downloadStatus}</p>
                 </CardBody>
               </Card>
             )}

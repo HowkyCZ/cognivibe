@@ -1,11 +1,9 @@
-import WavyBackground from "../layout/WavyBackground";
-
 import React from "react";
 import { Button, Input, Link, Form, addToast } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import logotypeSvg from "../../assets/logotype.svg";
 import { createSupabaseClient } from "../../utils/createSupabaseClient";
-import { ROUTES } from "../../utils/constants";
+import { isDevMode, ROUTES } from "../../utils/constants";
 import { openExternalUrl } from "../../utils/openExternalUrl";
 
 interface LoginPageProps {
@@ -22,10 +20,16 @@ const LoginPage: React.FC<LoginPageProps> = () => {
     setIsLoading(true);
 
     try {
+      // Local Supabase is configured to allow redirects like `cognivibe://auth/callback`.
+      // In production we keep the existing behavior unchanged.
+      const emailRedirectTo = isDevMode
+        ? "cognivibe://auth/callback"
+        : `cognivibe://localhost${ROUTES.CALLBACK}`;
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `cognivibe://localhost${ROUTES.CALLBACK}`,
+          emailRedirectTo,
         },
       });
       if (error) {
@@ -56,7 +60,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
   };
 
   return (
-    <WavyBackground>
+    <div className="min-h-dvh w-full bg-background flex items-center justify-center p-6">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
         <div className="flex flex-col items-center gap-2">
           <img
@@ -64,8 +68,10 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             alt="CogniVibe Logo"
             className="h-12 mb-2 object-contain"
           />
-          <h1 className="text-large font-medium">Welcome to CogniVibe</h1>
-          <p className="text-small text-default-500 text-center">
+          <h1 className="text-large font-medium text-foreground">
+            Welcome to CogniVibe
+          </h1>
+          <p className="text-small text-foreground/60 text-center">
             Sign in or create an account to start monitoring your cognitive
             performance
           </p>
@@ -101,7 +107,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
           >
             {isLoading ? "Sending magiclink" : "Send magic link"}
           </Button>
-          <p className="text-center text-tiny text-default-500">
+          <p className="text-center text-tiny text-foreground/60">
             By continuing, you agree to our{" "}
             <Link
               onPress={async () => await openExternalUrl("/terms")}
@@ -119,7 +125,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
           </p>
         </Form>
       </div>
-    </WavyBackground>
+    </div>
   );
 };
 

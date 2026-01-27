@@ -41,11 +41,13 @@ const WideCircleChartCard = React.forwardRef<
     ref,
   ) => {
     const chartData = [{ name: title, value }];
+    const valueColor = `hsl(var(--heroui-${color}))`;
+    const trackColor = `hsl(var(--heroui-${color}) / 0.4)`;
 
     return (
       <Card
         ref={ref}
-        className={`w-80 h-auto bg-${color}/20 relative`}
+        className="w-full h-auto bg-content1 border border-white/10 hover:border-white/15 transition-colors relative"
         {...props}
       >
         {!isLoading && description && (
@@ -87,7 +89,7 @@ const WideCircleChartCard = React.forwardRef<
                       animationDuration={1000}
                       animationEasing="ease"
                       background={{
-                        fill: "hsl(var(--heroui-default-100))",
+                        fill: trackColor,
                       }}
                       cornerRadius={6}
                       dataKey="value"
@@ -95,7 +97,7 @@ const WideCircleChartCard = React.forwardRef<
                       {chartData.map((_, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={`hsl(var(--heroui-${color}))`}
+                          fill={valueColor}
                         />
                       ))}
                     </RadialBar>
@@ -105,9 +107,9 @@ const WideCircleChartCard = React.forwardRef<
                         textAnchor="middle"
                         x="50%"
                         y="50%"
-                        dominantBaseline="middle"
+                        dy="0.35em"
                       >
-                        <tspan className="text-md font-bold fill-foreground">
+                        <tspan className="text-md font-bold" fill={valueColor}>
                           {formatValue(value)}
                         </tspan>
                       </text>
