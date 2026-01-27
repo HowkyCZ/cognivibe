@@ -27,4 +27,10 @@ pub struct AppState {
     pub active_window_id: Option<String>,
     /// Current user session data from Supabase
     pub session_data: Option<SessionData>,
+    /// Screen resolution multiplier for mouse distance normalization
+    pub screen_resolution_multiplier: Option<f64>,
+    /// Window/app change count
+    pub window_change_count: u32,
+    /// Last scroll event timestamp for debouncing
+    pub last_scroll_event_time: Option<std::time::Instant>,
 }

@@ -43,6 +43,12 @@ pub struct MouseData {
     /// Total absolute scroll wheel distance (horizontal + vertical)
     pub wheel_scroll_distance: f64,
 
+    /// Scroll wheel events (with debounce gating)
+    pub wheel_scroll_events: u32,
+
+    /// Mouse move events (for active_sd calculation)
+    pub move_events: u32,
+
     /// Last recorded X coordinate (used for distance calculation)
     pub last_x: f64,
 

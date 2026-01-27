@@ -39,6 +39,30 @@ pub fn start_global_input_tracker(app_handle: AppHandle) {
         println!("{}Modifier state initialized", get_tracker_prefix());
     }
 
+    // Initialize screen resolution multiplier
+    {
+        use crate::modules::utils::functions::get_screen_resolution::calculate_resolution_multiplier;
+        use super::callback::shared_utils::modify_state;
+        
+        let multiplier = calculate_resolution_multiplier();
+        modify_state(|state| {
+            state.screen_resolution_multiplier = multiplier;
+        });
+        
+        #[cfg(debug_assertions)]
+        match multiplier {
+            Some(m) => println!(
+                "{}Screen resolution multiplier calculated: {:.4}",
+                get_tracker_prefix(),
+                m
+            ),
+            None => println!(
+                "{}Could not determine screen resolution, mouse distance will not be normalized",
+                get_tracker_prefix()
+            ),
+        }
+    }
+
     // Initialize the active window ID in the app state
     {
         use super::log_active_window::log_active_window_async;

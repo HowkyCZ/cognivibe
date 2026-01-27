@@ -18,10 +18,14 @@ fn reset_counters(app_state: &mut AppState) {
     app_state.mouse_data.other_clicks = 0;
     app_state.mouse_data.total_distance = 0.0;
     app_state.mouse_data.wheel_scroll_distance = 0.0;
+    app_state.mouse_data.wheel_scroll_events = 0;
+    app_state.mouse_data.move_events = 0;
     app_state.keyboard_data.key_downs = 0;
     app_state.keyboard_data.key_ups = 0;
     app_state.keyboard_data.delete_downs = 0;
     app_state.keyboard_data.delete_ups = 0;
+    app_state.window_change_count = 0;
+    // Note: screen_resolution_multiplier and last_scroll_event_time are not reset
 }
 
 /// Starts a background thread that logs input tracking data every minute.
@@ -50,6 +54,23 @@ pub fn start_minute_logger(app_handle: AppHandle) {
 
                             // Prepare log data for upload
                             if let Some(session) = &app_state.session_data {
+                                // Calculate active_event_count: sum of all events
+                                let active_event_count = app_state.keyboard_data.key_downs
+                                    + app_state.mouse_data.left_clicks
+                                    + app_state.mouse_data.right_clicks
+                                    + app_state.mouse_data.other_clicks
+                                    + app_state.mouse_data.wheel_scroll_events
+                                    + app_state.mouse_data.move_events;
+
+                                let minute_timestamp = format!(
+                                    "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",
+                                    now.year(),
+                                    now.month(),
+                                    now.day(),
+                                    now.hour(),
+                                    current_minute.saturating_sub(1)
+                                );
+
                                 let log_data = LogData {
                                     mouse_left_clicks_count: app_state.mouse_data.left_clicks,
                                     mouse_right_clicks_count: app_state.mouse_data.right_clicks,
@@ -61,30 +82,46 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                         .mouse_data
                                         .wheel_scroll_distance,
                                     app_switch_count: 1, // Placeholder for now
-                                    minute_timestamp: format!(
-                                        "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",
-                                        now.year(),
-                                        now.month(),
-                                        now.day(),
-                                        now.hour(),
-                                        current_minute.saturating_sub(1)
-                                    ),
+                                    window_change_count: app_state.window_change_count,
+                                    backspace_count: app_state.keyboard_data.delete_downs,
+                                    active_event_count,
+                                    screen_resolution_multiplier: app_state.screen_resolution_multiplier,
+                                    wheel_scroll_events_count: app_state.mouse_data.wheel_scroll_events,
+                                    minute_timestamp: minute_timestamp.clone(),
                                     user_id: session.user_id.clone(),
                                 };
 
                                 // Spawn async task to upload data
                                 let app_handle_clone = app_handle.clone();
+                                #[cfg(debug_assertions)]
+                                let timestamp_for_log = minute_timestamp.clone();
                                 tauri::async_runtime::spawn(async move {
                                     let state = app_handle_clone.state::<Mutex<AppState>>();
-                                    if let Err(e) = upload_tracking_data(state, log_data).await {
-                                        #[cfg(debug_assertions)]
-                                        eprintln!(
-                                            "{}Failed to upload tracking data: {}",
-                                            get_tracker_prefix(),
-                                            e
-                                        );
+                                    match upload_tracking_data(state, log_data).await {
+                                        Ok(_) => {
+                                            #[cfg(debug_assertions)]
+                                            println!(
+                                                "{}✅ Successfully uploaded tracking data for {}",
+                                                get_tracker_prefix(),
+                                                timestamp_for_log
+                                            );
+                                        }
+                                        Err(e) => {
+                                            #[cfg(debug_assertions)]
+                                            eprintln!(
+                                                "{}❌ Failed to upload tracking data: {}",
+                                                get_tracker_prefix(),
+                                                e
+                                            );
+                                        }
                                     }
                                 });
+                            } else {
+                                #[cfg(debug_assertions)]
+                                println!(
+                                    "{}⚠️ No active session - tracking data not uploaded (user not logged in)",
+                                    get_tracker_prefix()
+                                );
                             }
                         } else {
                             // If this is the first measurement, just reset counters, since we don't have a full minute of data
@@ -111,6 +148,14 @@ pub fn start_minute_logger(app_handle: AppHandle) {
 /// Logs the tracking data in a formatted table
 #[cfg(debug_assertions)]
 fn log_tracking_table(app_state: &AppState, hour: u32, minute: u8) {
+    // Calculate active_event_count for display
+    let active_event_count = app_state.keyboard_data.key_downs
+        + app_state.mouse_data.left_clicks
+        + app_state.mouse_data.right_clicks
+        + app_state.mouse_data.other_clicks
+        + app_state.mouse_data.wheel_scroll_events
+        + app_state.mouse_data.move_events;
+
     println!("{}", get_tracker_prefix());
 
     let mut table = Table::new();
@@ -118,18 +163,22 @@ fn log_tracking_table(app_state: &AppState, hour: u32, minute: u8) {
         .load_preset(UTF8_FULL)
         .apply_modifier(UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic)
-        .set_width(80)
+        .set_width(100)
         .set_header(vec![
             "Time",
             "Left Clicks",
             "Right Clicks",
             "Other Clicks",
             "Distance (px)",
-            "Wheel Scroll",
+            "Wheel Events",
+            "Move Events",
             "Key Downs",
             "Key Ups",
             "Delete Downs",
             "Delete Ups",
+            "Window Changes",
+            "Active Events",
+            "Res Mult",
         ]);
 
     table.add_row(vec![
@@ -138,11 +187,21 @@ fn log_tracking_table(app_state: &AppState, hour: u32, minute: u8) {
         &format!("{}", app_state.mouse_data.right_clicks),
         &format!("{}", app_state.mouse_data.other_clicks),
         &format!("{:.1}", app_state.mouse_data.total_distance),
-        &format!("{:.1}", app_state.mouse_data.wheel_scroll_distance),
+        &format!("{}", app_state.mouse_data.wheel_scroll_events),
+        &format!("{}", app_state.mouse_data.move_events),
         &format!("{}", app_state.keyboard_data.key_downs),
         &format!("{}", app_state.keyboard_data.key_ups),
         &format!("{}", app_state.keyboard_data.delete_downs),
         &format!("{}", app_state.keyboard_data.delete_ups),
+        &format!("{}", app_state.window_change_count),
+        &format!("{}", active_event_count),
+        &format!(
+            "{}",
+            app_state
+                .screen_resolution_multiplier
+                .map(|m| format!("{:.4}", m))
+                .unwrap_or_else(|| "N/A".to_string())
+        ),
     ]);
 
     println!("{}", table);
