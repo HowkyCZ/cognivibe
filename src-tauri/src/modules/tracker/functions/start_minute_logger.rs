@@ -49,8 +49,17 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                 if let Ok(mut app_state) = app_handle.state::<Mutex<AppState>>().lock() {
                     if app_state.is_measuring {
                         if !app_state.is_first_minute {
+                            // Calculate the previous minute and hour (handling wrap-around)
+                            let (prev_hour, prev_minute) = if current_minute == 0 {
+                                // If we're at minute 0, previous minute was 59 of previous hour
+                                let prev_h = if now.hour() == 0 { 23 } else { now.hour() - 1 };
+                                (prev_h, 59)
+                            } else {
+                                (now.hour(), current_minute - 1)
+                            };
+
                             #[cfg(debug_assertions)]
-                            log_tracking_table(&app_state, now.hour(), current_minute - 1);
+                            log_tracking_table(&app_state, prev_hour, prev_minute);
 
                             // Prepare log data for upload
                             if let Some(session) = &app_state.session_data {
@@ -67,8 +76,8 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     now.year(),
                                     now.month(),
                                     now.day(),
-                                    now.hour(),
-                                    current_minute.saturating_sub(1)
+                                    prev_hour,
+                                    prev_minute
                                 );
 
                                 let log_data = LogData {
