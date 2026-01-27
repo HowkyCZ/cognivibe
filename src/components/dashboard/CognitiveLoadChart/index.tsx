@@ -29,7 +29,7 @@ const LazyChart = lazy(() =>
     // Component to render horizontal lines and images in gaps
     const GapMarkers = (props: any) => {
       const { gapSegments } = props;
-      const { xAxisMap, yAxisMap, offset } = props;
+      const { xAxisMap, yAxisMap } = props;
       
       if (!xAxisMap || !yAxisMap || !gapSegments || gapSegments.length === 0) return null;
 
@@ -156,16 +156,6 @@ const LazyChart = lazy(() =>
             <recharts.Tooltip content={<CustomTooltip />} />
             <defs>
               {areaSegments.map((segment, idx) => {
-                // Convert hex color to rgba for gradient stops
-                const hexToRgba = (hex: string, alpha: number): string => {
-                  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                  if (!result) return `rgba(92, 120, 253, ${alpha})`;
-                  const r = parseInt(result[1], 16);
-                  const g = parseInt(result[2], 16);
-                  const b = parseInt(result[3], 16);
-                  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                };
-                
                 return (
                   <linearGradient
                     key={`gradient-${idx}`}
@@ -240,8 +230,6 @@ const LazyChart = lazy(() =>
     return { default: ChartComponent };
   }),
 );
-
-const COGNITIVE_LOAD_COLOR = "#5C78FD";
 
 // Color interpolation helper
 const hexToRgb = (hex: string): [number, number, number] => {
