@@ -3,8 +3,8 @@ import { Card, CardBody } from "@heroui/card";
 import { Spinner } from "@heroui/react";
 import type { CalendarDate } from "@internationalized/date";
 import { today, getLocalTimeZone } from "@internationalized/date";
-import DateRangePicker from "./DateRangePicker";
-import CustomTooltip from "./CustomTooltip";
+import DateRangePicker from "../CognitiveLoadChart/DateRangePicker";
+import CustomTooltip from "../CognitiveLoadChart/CustomTooltip";
 import coffeeMugIcon from "../../../assets/coffeemug.png";
 
 // Create a lazy-loaded chart component that imports recharts internally
@@ -283,7 +283,7 @@ const getLoadColor = (load: number): string => {
   return "#FF709B";
 };
 
-interface CognitiveLoadChartProps {
+interface CognitiveLoadChartExperimentalProps {
   data: Array<{
     timestamp: string;
     load: number;
@@ -297,7 +297,7 @@ interface CognitiveLoadChartProps {
   isLoading?: boolean;
 }
 
-const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
+const CognitiveLoadChartExperimental: React.FC<CognitiveLoadChartExperimentalProps> = ({
   data,
   selectedDate,
   onDateChange,
@@ -679,7 +679,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
     () => (
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-foreground">
-          Your daily mental performance
+          Your daily mental performance (Experimental)
         </h2>
         <DateRangePicker
           firstDate={firstDate}
@@ -778,4 +778,4 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   );
 };
 
-export default CognitiveLoadChart;
+export default CognitiveLoadChartExperimental;
