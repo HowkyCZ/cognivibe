@@ -5,6 +5,7 @@ import type { CalendarDate } from "@internationalized/date";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import DateRangePicker from "./DateRangePicker";
 import CustomTooltip from "./CustomTooltip";
+import SessionBars from "./SessionBars";
 import coffeeMugIcon from "../../../assets/coffeemug.png";
 
 // Create a lazy-loaded chart component that imports recharts internally
@@ -271,6 +272,15 @@ const getLoadColor = (load: number): string => {
   return "#FF709B";
 };
 
+interface SessionData {
+  id: string;
+  timestamp_start: string;
+  timestamp_end: string;
+  length: number;
+  score_total: number | null;
+  category_share: Record<string, number>;
+}
+
 interface CognitiveLoadChartProps {
   data: Array<{
     timestamp: string;
@@ -279,6 +289,7 @@ interface CognitiveLoadChartProps {
     strain: number;
     energy: number;
   }>;
+  sessions?: SessionData[];
   selectedDate: CalendarDate;
   onDateChange: (date: CalendarDate) => void;
   firstDate: string;
@@ -287,6 +298,7 @@ interface CognitiveLoadChartProps {
 
 const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   data,
+  sessions = [],
   selectedDate,
   onDateChange,
   firstDate,
@@ -742,6 +754,14 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
     <Card className="p-4 bg-content1 border border-white/10 hover:border-white/15 transition-colors">
       <CardBody className="pt-4">
         {chartHeader}
+        {/* Session bars - only show when there's data and domain is valid */}
+        {sessions.length > 0 && xDomainStart > 0 && xDomainEnd > xDomainStart && (
+          <SessionBars
+            sessions={sessions}
+            xDomainStart={xDomainStart}
+            xDomainEnd={xDomainEnd}
+          />
+        )}
         <div className="h-64">
           <Suspense
             fallback={

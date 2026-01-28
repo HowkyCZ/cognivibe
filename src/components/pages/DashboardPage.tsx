@@ -26,6 +26,7 @@ function DashboardPage() {
   const {
     cognitiveLoadData,
     metricsData,
+    sessions,
     currentCognitiveLoad,
     loading: dashboardLoading,
     session,
@@ -42,6 +43,7 @@ function DashboardPage() {
         <div className="w-full max-w-5xl mx-auto">
           <CognitiveLoadChart
             data={cognitiveLoadData}
+            sessions={sessions}
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
             firstDate={firstDate}

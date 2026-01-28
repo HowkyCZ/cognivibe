@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchBatchScores } from "../utils/batchScoresApi";
+import { fetchSessions, SessionData } from "../utils/sessionsApi";
 import { useAuth } from "./useAuth";
 import type { CalendarDate } from "@internationalized/date";
 import { Session } from "@supabase/supabase-js";
@@ -31,6 +32,7 @@ interface UseDashboardDataReturn {
   cognitiveLoadData: CognitiveLoadDataPoint[];
   missingData: MissingDataPoint[];
   metricsData: MetricData[];
+  sessions: SessionData[];
   currentCognitiveLoad: number;
   maxLoad: number;
   avgLoad: number;
@@ -54,6 +56,7 @@ export const useDashboardData = (
   >([]);
   const [missingData, setMissingData] = useState<MissingDataPoint[]>([]);
   const [metricsData, setMetricsData] = useState<MetricData[]>([]);
+  const [sessions, setSessions] = useState<SessionData[]>([]);
   const [currentCognitiveLoad, setCurrentCognitiveLoad] = useState<number>(0);
   const { session } = useAuth();
 
@@ -91,15 +94,29 @@ export const useDashboardData = (
 
       console.log("[USE_DASHBOARD_DATA] Formatted date:", formattedDate);
 
-      // Fetch batch scores from the server for the selected date
-      // user_id and jwt_token will be retrieved from app state in Rust
-      const result = await fetchBatchScores(formattedDate, formattedDate);
+      // Fetch batch scores and sessions in parallel
+      const [result, sessionsResult] = await Promise.all([
+        fetchBatchScores(formattedDate, formattedDate),
+        fetchSessions(formattedDate, formattedDate),
+      ]);
 
       console.log("[USE_DASHBOARD_DATA] Batch scores result:", {
         success: result.success,
         dataCount: result.data?.length || 0,
         hasMissingData: !!result.missing_data,
       });
+
+      console.log("[USE_DASHBOARD_DATA] Sessions result:", {
+        success: sessionsResult.success,
+        sessionCount: sessionsResult.data?.length || 0,
+      });
+
+      // Set sessions data
+      if (sessionsResult.success && Array.isArray(sessionsResult.data)) {
+        setSessions(sessionsResult.data);
+      } else {
+        setSessions([]);
+      }
 
       // Transform the API response data into CognitiveLoadDataPoint format
       if (result.success && Array.isArray(result.data)) {
@@ -179,6 +196,7 @@ export const useDashboardData = (
       setCognitiveLoadData([]);
       setMissingData([]);
       setMetricsData([]);
+      setSessions([]);
       setCurrentCognitiveLoad(0);
     } finally {
       setLoading(false);
@@ -193,6 +211,7 @@ export const useDashboardData = (
     cognitiveLoadData,
     missingData,
     metricsData,
+    sessions,
     currentCognitiveLoad,
     maxLoad,
     avgLoad,
