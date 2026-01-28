@@ -20,17 +20,30 @@ export const useAuth = (): UseAuthReturn => {
   const router = useRouter();
 
   useEffect(() => {
+    console.log("[USE_AUTH] Initializing auth hook...");
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("[USE_AUTH] Initial session retrieved:", {
+        hasSession: !!session,
+        userId: session?.user?.id,
+      });
       setSession(session);
       setLoading(false);
       if (session) {
         sendSessionToBackend(session);
       }
+    }).catch((error) => {
+      console.error("[USE_AUTH] ❌ Error getting initial session:", error);
+      setLoading(false);
     }); // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[USE_AUTH] Auth state changed:", {
+        event,
+        hasSession: !!session,
+        userId: session?.user?.id,
+      });
       setSession(session);
       setLoading(false);
 
@@ -41,16 +54,25 @@ export const useAuth = (): UseAuthReturn => {
 
       // If session becomes null (user signed out), invalidate router and navigate to login
       if (!session) {
+        console.log("[USE_AUTH] Session is null, navigating to login");
         router.invalidate();
         router.navigate({
           to: ROUTES.LOGIN,
         });
       }
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log("[USE_AUTH] Cleaning up auth subscription");
+      subscription.unsubscribe();
+    };
   }, []);
 
   const sendSessionToBackend = async (session: Session) => {
+    console.log("[USE_AUTH] Sending session to backend:", {
+      user_id: session.user.id,
+      has_access_token: !!session.access_token,
+      has_refresh_token: !!session.refresh_token,
+    });
     try {
       await invoke("set_user_session", {
         session: {
@@ -59,8 +81,15 @@ export const useAuth = (): UseAuthReturn => {
           refresh_token: session.refresh_token,
         },
       });
+      console.log("[USE_AUTH] ✅ Session sent to backend successfully");
     } catch (error) {
-      console.error("Error sending session to backend:", error);
+      console.error("[USE_AUTH] ❌ Error sending session to backend:", error);
+      if (error instanceof Error) {
+        console.error("[USE_AUTH] Error details:", {
+          message: error.message,
+          stack: error.stack,
+        });
+      }
     }
   };
 

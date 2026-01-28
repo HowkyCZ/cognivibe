@@ -79,14 +79,14 @@ const CircleChartCard = React.forwardRef<
   return (
     <Card
       ref={ref}
-      className={`w-full h-full p-4 ${bgClass} relative flex flex-col`}
+      className={`w-full h-full p-4 ${bgClass} relative flex flex-col group`}
       {...props}
     >
       {!isLoading && (
         <HelpButton
           tooltipTitle="Cognitive Load Levels"
-          isInAbsoluteCard={true}
           tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break"
+          className="absolute top-2 right-2"
         />
       )}
       <CardHeader className="flex items-center justify-center">

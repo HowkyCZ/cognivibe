@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-28
+
+### Added
+- Session data visualization to CognitiveLoadChart component
+- ProductivityTimeCard component for tracking productivity metrics
+- GradientCard component with dynamic session management and responsive views
+- SessionStatsCard integration into dashboard layout
+- QuestionnaireModal color scheme updates
+- Session API GET endpoint for fetching sessions by date range
+- Productivity time API endpoint for retrieving behavioral metrics
+- Survey score handling in session end API endpoint
+- Enhanced logging and error handling across components and APIs
+
+### Changed
+- Refactored ProductivityTimeCard and QuestionnaireModal components
+- Enhanced GradientCard layout to include SessionStatsCard with improved responsiveness
+- Improved CognitiveLoadChart and SessionBars with detailed logging for debugging
+- Updated scoring calculations to use window_change_count instead of app_switch_count for improved accuracy in pressure score metrics
+- Refactored HelpButton component and updated usage in dashboard cards
+- Enhanced Tauri commands for improved development workflow
+- Updated package versions across dependencies
+
+### Fixed
+- Improved error handling and debugging capabilities across the application
+- Enhanced API type safety and validation
+
 ## [1.0.10] - 2026-01-27
 
 ### Changed
