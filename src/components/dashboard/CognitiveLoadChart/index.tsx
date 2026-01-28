@@ -755,6 +755,15 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
       <CardBody className="pt-4">
         {chartHeader}
         {/* Session bars - only show when there's data and domain is valid */}
+        {(() => {
+          console.log("[CHART] Session bars check:", {
+            sessionsLength: sessions.length,
+            xDomainStart,
+            xDomainEnd,
+            shouldRender: sessions.length > 0 && xDomainStart > 0 && xDomainEnd > xDomainStart,
+          });
+          return null;
+        })()}
         {sessions.length > 0 && xDomainStart > 0 && xDomainEnd > xDomainStart && (
           <SessionBars
             sessions={sessions}

@@ -187,17 +187,37 @@ const SessionBars: React.FC<SessionBarsProps> = ({
 
   // Calculate session positions and widths
   const sessionBars = useMemo(() => {
-    if (!sessions || sessions.length === 0) return [];
+    console.log("[SESSION_BARS] Input:", {
+      sessionCount: sessions?.length || 0,
+      xDomainStart,
+      xDomainEnd,
+      xDomainStartDate: xDomainStart ? new Date(xDomainStart).toISOString() : null,
+      xDomainEndDate: xDomainEnd ? new Date(xDomainEnd).toISOString() : null,
+    });
+
+    if (!sessions || sessions.length === 0) {
+      console.log("[SESSION_BARS] No sessions provided");
+      return [];
+    }
 
     const domainWidth = xDomainEnd - xDomainStart;
-    if (domainWidth <= 0) return [];
+    if (domainWidth <= 0) {
+      console.log("[SESSION_BARS] Invalid domain width:", domainWidth);
+      return [];
+    }
 
-    return sessions
-      .map((session) => {
+    const result = sessions
+      .map((session, idx) => {
         const startMs = parseTimestampMs(session.timestamp_start);
         const endMs = parseTimestampMs(session.timestamp_end);
 
-        if (startMs === null || endMs === null) return null;
+        if (startMs === null || endMs === null) {
+          console.log(`[SESSION_BARS] Session ${idx}: Failed to parse timestamps`, {
+            timestamp_start: session.timestamp_start,
+            timestamp_end: session.timestamp_end,
+          });
+          return null;
+        }
 
         // Calculate position as percentage of domain
         const leftPercent = ((startMs - xDomainStart) / domainWidth) * 100;
@@ -209,6 +229,16 @@ const SessionBars: React.FC<SessionBarsProps> = ({
           0,
           Math.min(100 - clampedLeft, widthPercent)
         );
+
+        console.log(`[SESSION_BARS] Session ${idx}:`, {
+          start: session.timestamp_start,
+          end: session.timestamp_end,
+          leftPercent: leftPercent.toFixed(2),
+          widthPercent: widthPercent.toFixed(2),
+          clampedLeft: clampedLeft.toFixed(2),
+          clampedWidth: clampedWidth.toFixed(2),
+          score_total: session.score_total,
+        });
 
         // Skip sessions that are completely outside the domain
         if (clampedWidth <= 0) return null;
@@ -227,6 +257,9 @@ const SessionBars: React.FC<SessionBarsProps> = ({
       .filter(
         (bar): bar is NonNullable<typeof bar> => bar !== null && bar.widthPercent > 0.5
       );
+
+    console.log("[SESSION_BARS] Final bars:", result.length);
+    return result;
   }, [sessions, xDomainStart, xDomainEnd]);
 
   if (sessionBars.length === 0) {

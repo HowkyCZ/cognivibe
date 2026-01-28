@@ -24,6 +24,9 @@
         },
         {
           "url": "https://server.cognivibe.tech"
+        },
+        {
+          "url": "http://localhost:3000"
         }
       ]
     },
