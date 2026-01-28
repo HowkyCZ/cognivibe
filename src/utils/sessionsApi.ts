@@ -51,8 +51,6 @@ function generateUUID(rand: () => number): string {
 
 function generateMockSessions(startDate: string, endDate: string): FetchSessionsResponse {
   const sessions: SessionData[] = [];
-  const seed = hashStringToU32(`${startDate}|${endDate}|cognivibe-mock-sessions`);
-  const rand = mulberry32(seed);
 
   // Categories for realistic distribution
   const categories = [

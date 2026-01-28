@@ -158,7 +158,7 @@ const QuestionSlider = ({
           onChangeEnd={handleChangeEnd}
           className="w-full"
           size="lg"
-          color={hasBeenTouched ? "primary" : "default"}
+          color={hasBeenTouched ? "primary" : "foreground"}
           showTooltip
           tooltipProps={{
             content: String(value),

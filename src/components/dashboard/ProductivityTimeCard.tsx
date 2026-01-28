@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Card, CardBody } from "@heroui/react";
 import { useProductivityTime } from "../../hooks";
 import type { CalendarDate } from "@internationalized/date";
