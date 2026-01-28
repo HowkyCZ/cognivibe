@@ -58,7 +58,20 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                             app_state.current_session_id.clone(),
                         ) {
                             let inactivity_duration = last_activity.elapsed().as_secs();
+                            #[cfg(debug_assertions)]
+                            println!(
+                                "{}⏱️ Checking inactivity: {}s / {}s threshold",
+                                get_tracker_prefix(),
+                                inactivity_duration,
+                                INACTIVITY_THRESHOLD_SECS
+                            );
                             if inactivity_duration >= INACTIVITY_THRESHOLD_SECS {
+                                #[cfg(debug_assertions)]
+                                println!(
+                                    "{}🛑 Inactivity threshold exceeded, ending session: {}",
+                                    get_tracker_prefix(),
+                                    session_id
+                                );
                                 // End session due to inactivity
                                 let session_id_clone = session_id.clone();
                                 if let Some(session) = app_state.session_data.as_ref() {
@@ -83,8 +96,19 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                             }
                                         }
                                     });
+                                } else {
+                                    #[cfg(debug_assertions)]
+                                    eprintln!(
+                                        "{}❌ Cannot end session - no session_data available",
+                                        get_tracker_prefix()
+                                    );
                                 }
                                 // Clear session state locally
+                                #[cfg(debug_assertions)]
+                                println!(
+                                    "{}🧹 Clearing session state locally",
+                                    get_tracker_prefix()
+                                );
                                 app_state.current_session_id = None;
                                 app_state.last_activity_time = None;
                                 app_state.session_start_time = None;
@@ -112,6 +136,11 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                 
                                 // Ensure we have an active session before uploading
                                 let session_id = if app_state.current_session_id.is_none() {
+                                    #[cfg(debug_assertions)]
+                                    println!(
+                                        "{}🚀 No active session found, creating new session...",
+                                        get_tracker_prefix()
+                                    );
                                     // Create new session
                                     let user_id = session_user_id.clone();
                                     let access_token = session_access_token.clone();
@@ -123,11 +152,17 @@ pub fn start_minute_logger(app_handle: AppHandle) {
 
                                     match session_result {
                                         Ok(new_session_id) => {
+                                            #[cfg(debug_assertions)]
+                                            println!(
+                                                "{}✅ Created new session: {}",
+                                                get_tracker_prefix(),
+                                                new_session_id
+                                            );
                                             app_state.current_session_id = Some(new_session_id.clone());
                                             app_state.session_start_time = Some(std::time::Instant::now());
                                             #[cfg(debug_assertions)]
                                             println!(
-                                                "{}✅ Created new session: {}",
+                                                "{}📝 Session state updated: session_id={}, start_time set",
                                                 get_tracker_prefix(),
                                                 new_session_id
                                             );
@@ -140,10 +175,21 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 get_tracker_prefix(),
                                                 e
                                             );
+                                            #[cfg(debug_assertions)]
+                                            eprintln!(
+                                                "{}⚠️ Continuing without session_id - data will not be uploaded",
+                                                get_tracker_prefix()
+                                            );
                                             None // Continue without session_id if creation fails
                                         }
                                     }
                                 } else {
+                                    #[cfg(debug_assertions)]
+                                    println!(
+                                        "{}✅ Using existing session: {}",
+                                        get_tracker_prefix(),
+                                        app_state.current_session_id.as_ref().unwrap()
+                                    );
                                     app_state.current_session_id.clone()
                                 };
 

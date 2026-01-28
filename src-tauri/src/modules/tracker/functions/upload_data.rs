@@ -36,23 +36,73 @@ pub async fn upload_tracking_data(
     state: State<'_, Mutex<AppState>>,
     log_data: LogData,
 ) -> Result<(), String> {
+    #[cfg(debug_assertions)]
+    println!("[UPLOAD_DATA] 📤 Uploading tracking data for minute: {}", log_data.minute_timestamp);
+    
     // Get the current user session from app state
-    let session = get_user_session(state)?;
-    let session_data = session.ok_or("No active user session. Please log in.")?;
+    let session = match get_user_session(state) {
+        Ok(s) => s,
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[UPLOAD_DATA] ❌ Failed to get user session: {}", e);
+            return Err(e);
+        }
+    };
+    
+    let session_data = match session {
+        Some(s) => {
+            #[cfg(debug_assertions)]
+            println!("[UPLOAD_DATA] ✅ User session found");
+            s
+        }
+        None => {
+            #[cfg(debug_assertions)]
+            eprintln!("[UPLOAD_DATA] ❌ No active user session");
+            return Err("No active user session. Please log in.".to_string());
+        }
+    };
 
     // Get server URL using the helper function
-    let server_url = get_api_base_url()?;
+    let server_url = match get_api_base_url() {
+        Ok(url) => {
+            #[cfg(debug_assertions)]
+            println!("[UPLOAD_DATA] ✅ API base URL retrieved");
+            url
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[UPLOAD_DATA] ❌ Failed to get API base URL: {}", e);
+            return Err(format!("Failed to get API base URL: {}", e));
+        }
+    };
+    
     let upload_url = format!("{}/api/uploadLog", server_url);
+    #[cfg(debug_assertions)]
+    println!("[UPLOAD_DATA] POST URL: {}", upload_url);
 
     // Create the HTTP client and send request
     let client = reqwest::Client::new();
-    let response = client
+    #[cfg(debug_assertions)]
+    println!("[UPLOAD_DATA] Sending POST request with {} events...", log_data.active_event_count);
+    
+    let response = match client
         .post(&upload_url)
         .bearer_auth(&session_data.access_token)
         .json(&log_data)
         .send()
         .await
-        .map_err(|e| format!("HTTP request failed: {}", e))?;
+    {
+        Ok(resp) => {
+            #[cfg(debug_assertions)]
+            println!("[UPLOAD_DATA] ✅ Request sent successfully, status: {}", resp.status());
+            resp
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[UPLOAD_DATA] ❌ HTTP request failed: {}", e);
+            return Err(format!("HTTP request failed: {}", e));
+        }
+    };
 
     // Check response status
     let status = response.status();
@@ -61,8 +111,13 @@ pub async fn upload_tracking_data(
             .text()
             .await
             .unwrap_or_else(|_| "Unknown error".to_string());
+        #[cfg(debug_assertions)]
+        eprintln!("[UPLOAD_DATA] ❌ Server returned error {}: {}", status, error_text);
         return Err(format!("Server returned error {}: {}", status, error_text));
     }
+
+    #[cfg(debug_assertions)]
+    println!("[UPLOAD_DATA] ✅ Tracking data uploaded successfully");
 
     Ok(())
 }

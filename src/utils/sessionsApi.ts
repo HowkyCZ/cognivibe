@@ -41,40 +41,79 @@ export async function endSessionWithSurvey(
   sessionId: string,
   scores?: QuestionnaireScores
 ): Promise<EndSessionResponse> {
-  const supabase = createSupabaseClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    throw new Error("Authentication required. Please log in again.");
-  }
-
-  const baseUrl = getApiBaseUrl();
-  const url = `${baseUrl}/api/sessions/${sessionId}/end`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      survey_scores: scores,
-    }),
+  console.log("[SESSION] Starting endSessionWithSurvey", {
+    sessionId,
+    hasScores: !!scores,
+    scoreKeys: scores ? Object.keys(scores) : [],
   });
 
-  const result = await response.json();
+  try {
+    const supabase = createSupabaseClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-  if (!response.ok) {
-    throw new Error(
-      result.error || result.message || `HTTP error! status: ${response.status}`
-    );
+    if (!session) {
+      console.error("[SESSION] ❌ No session found - authentication required");
+      throw new Error("Authentication required. Please log in again.");
+    }
+
+    console.log("[SESSION] ✅ Session found, proceeding with end request");
+
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}/api/sessions/${sessionId}/end`;
+
+    console.log("[SESSION] Sending POST request to:", url);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        survey_scores: scores,
+      }),
+    });
+
+    console.log("[SESSION] Response status:", response.status, response.statusText);
+
+    const result = await response.json();
+    console.log("[SESSION] Response data:", result);
+
+    if (!response.ok) {
+      console.error("[SESSION] ❌ HTTP error response:", {
+        status: response.status,
+        error: result.error,
+        message: result.message,
+      });
+      throw new Error(
+        result.error || result.message || `HTTP error! status: ${response.status}`
+      );
+    }
+
+    if (!result.success) {
+      console.error("[SESSION] ❌ API returned success=false:", {
+        error: result.error,
+        message: result.message,
+      });
+      throw new Error(result.error || result.message || "Failed to end session");
+    }
+
+    console.log("[SESSION] ✅ Session ended successfully:", {
+      session_id: result.data?.session_id,
+      length: result.data?.length,
+    });
+
+    return result;
+  } catch (error) {
+    console.error("[SESSION] ❌ Exception in endSessionWithSurvey:", error);
+    if (error instanceof Error) {
+      console.error("[SESSION] Error details:", {
+        message: error.message,
+        stack: error.stack,
+      });
+    }
+    throw error;
   }
-
-  if (!result.success) {
-    throw new Error(result.error || result.message || "Failed to end session");
-  }
-
-  return result;
 }

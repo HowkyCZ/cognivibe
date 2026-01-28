@@ -227,7 +227,15 @@ const QuestionnaireModal = ({
   // Select random layout when modal opens
   useEffect(() => {
     if (isOpen) {
+      console.log("[QUESTIONNAIRE] Modal opened, selecting layout:", {
+        sessionId,
+        sessionMinutes,
+      });
       const newLayout = selectRandomLayout();
+      console.log("[QUESTIONNAIRE] Selected layout:", {
+        layout: newLayout.layout,
+        questions: newLayout.questions,
+      });
       setLayoutInfo(newLayout);
       // Reset state
       setValues({
@@ -240,8 +248,11 @@ const QuestionnaireModal = ({
         fo2: 50,
       });
       setTouchedQuestions(new Set());
+      console.log("[QUESTIONNAIRE] Modal state reset");
+    } else {
+      console.log("[QUESTIONNAIRE] Modal closed");
     }
-  }, [isOpen]);
+  }, [isOpen, sessionId, sessionMinutes]);
 
   // Check if all displayed questions have been answered
   const allQuestionsAnswered = useMemo(() => {
@@ -258,7 +269,23 @@ const QuestionnaireModal = ({
   };
 
   const handleSubmit = async () => {
-    if (!layoutInfo || !sessionId) return;
+    console.log("[QUESTIONNAIRE] Submit button clicked");
+    
+    if (!layoutInfo || !sessionId) {
+      console.warn("[QUESTIONNAIRE] ⚠️ Cannot submit - missing layoutInfo or sessionId:", {
+        hasLayoutInfo: !!layoutInfo,
+        hasSessionId: !!sessionId,
+        sessionId,
+      });
+      return;
+    }
+
+    console.log("[QUESTIONNAIRE] Starting submission process:", {
+      sessionId,
+      layout: layoutInfo.layout,
+      questions: layoutInfo.questions,
+      touchedQuestions: Array.from(touchedQuestions),
+    });
 
     setIsSubmitting(true);
     try {
@@ -271,11 +298,23 @@ const QuestionnaireModal = ({
           const question = QUESTIONS[qId];
           const rawValue = values[qId];
           // Apply reverse if needed: reverse questions should be 100 - score
-          scores[qId] = question.isReverse ? 100 - rawValue : rawValue;
+          const finalValue = question.isReverse ? 100 - rawValue : rawValue;
+          scores[qId] = finalValue;
+          console.log("[QUESTIONNAIRE] Processed question:", {
+            questionId: qId,
+            rawValue,
+            isReverse: question.isReverse,
+            finalValue,
+          });
         }
       });
 
+      console.log("[QUESTIONNAIRE] Final scores object:", scores);
+      console.log("[QUESTIONNAIRE] Calling onSubmit callback...");
+
       await onSubmit(scores);
+
+      console.log("[QUESTIONNAIRE] ✅ Submission successful");
 
       addToast({
         title: "Assessment submitted",
@@ -287,7 +326,13 @@ const QuestionnaireModal = ({
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Error submitting questionnaire:", error);
+      console.error("[QUESTIONNAIRE] ❌ Error submitting questionnaire:", error);
+      if (error instanceof Error) {
+        console.error("[QUESTIONNAIRE] Error details:", {
+          message: error.message,
+          stack: error.stack,
+        });
+      }
       addToast({
         title: "Error submitting assessment",
         description: "Please try again later.",
@@ -297,6 +342,7 @@ const QuestionnaireModal = ({
       });
     } finally {
       setIsSubmitting(false);
+      console.log("[QUESTIONNAIRE] Submission process completed");
     }
   };
 

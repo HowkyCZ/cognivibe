@@ -18,9 +18,26 @@ pub async fn create_session(
     user_id: String,
     access_token: String,
 ) -> Result<String, String> {
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] 🚀 Creating new session for user_id: {}", user_id);
+
     // Get server URL using the helper function
-    let server_url = get_api_base_url()?;
+    let server_url = match get_api_base_url() {
+        Ok(url) => {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_MGMT] ✅ API base URL retrieved: {}", url);
+            url
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[SESSION_MGMT] ❌ Failed to get API base URL: {}", e);
+            return Err(format!("Failed to get API base URL: {}", e));
+        }
+    };
+    
     let create_url = format!("{}/api/sessions", server_url);
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] POST URL: {}", create_url);
 
     // Create request body
     let request_body = serde_json::json!({
@@ -29,13 +46,27 @@ pub async fn create_session(
 
     // Create the HTTP client and send request
     let client = reqwest::Client::new();
-    let response = client
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] Sending POST request...");
+    
+    let response = match client
         .post(&create_url)
         .bearer_auth(&access_token)
         .json(&request_body)
         .send()
         .await
-        .map_err(|e| format!("HTTP request failed: {}", e))?;
+    {
+        Ok(resp) => {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_MGMT] ✅ Request sent successfully, status: {}", resp.status());
+            resp
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[SESSION_MGMT] ❌ HTTP request failed: {}", e);
+            return Err(format!("HTTP request failed: {}", e));
+        }
+    };
 
     // Check response status
     let status = response.status();
@@ -44,14 +75,24 @@ pub async fn create_session(
             .text()
             .await
             .unwrap_or_else(|_| "Unknown error".to_string());
+        #[cfg(debug_assertions)]
+        eprintln!("[SESSION_MGMT] ❌ Server returned error {}: {}", status, error_text);
         return Err(format!("Server returned error {}: {}", status, error_text));
     }
 
     // Parse response
-    let session_response: CreateSessionResponse = response
-        .json()
-        .await
-        .map_err(|e| format!("Failed to parse response: {}", e))?;
+    let session_response: CreateSessionResponse = match response.json::<CreateSessionResponse>().await {
+        Ok(resp) => {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_MGMT] ✅ Session created successfully: {}", resp.session_id);
+            resp
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[SESSION_MGMT] ❌ Failed to parse response: {}", e);
+            return Err(format!("Failed to parse response: {}", e));
+        }
+    };
 
     Ok(session_response.session_id)
 }
@@ -64,18 +105,49 @@ pub async fn end_session(
     session_id: String,
     access_token: String,
 ) -> Result<(), String> {
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] 🛑 Ending session: {}", session_id);
+
     // Get server URL using the helper function
-    let server_url = get_api_base_url()?;
+    let server_url = match get_api_base_url() {
+        Ok(url) => {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_MGMT] ✅ API base URL retrieved: {}", url);
+            url
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[SESSION_MGMT] ❌ Failed to get API base URL: {}", e);
+            return Err(format!("Failed to get API base URL: {}", e));
+        }
+    };
+    
     let end_url = format!("{}/api/sessions/{}/end", server_url, session_id);
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] POST URL: {}", end_url);
 
     // Create the HTTP client and send request
     let client = reqwest::Client::new();
-    let response = client
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] Sending POST request to end session...");
+    
+    let response = match client
         .post(&end_url)
         .bearer_auth(&access_token)
         .send()
         .await
-        .map_err(|e| format!("HTTP request failed: {}", e))?;
+    {
+        Ok(resp) => {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_MGMT] ✅ Request sent successfully, status: {}", resp.status());
+            resp
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[SESSION_MGMT] ❌ HTTP request failed: {}", e);
+            return Err(format!("HTTP request failed: {}", e));
+        }
+    };
 
     // Check response status
     let status = response.status();
@@ -84,8 +156,13 @@ pub async fn end_session(
             .text()
             .await
             .unwrap_or_else(|_| "Unknown error".to_string());
+        #[cfg(debug_assertions)]
+        eprintln!("[SESSION_MGMT] ❌ Server returned error {}: {}", status, error_text);
         return Err(format!("Server returned error {}: {}", status, error_text));
     }
+
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] ✅ Session ended successfully");
 
     Ok(())
 }

@@ -168,20 +168,41 @@ const GradientCard = () => {
   useEffect(() => {
     const checkSessionDuration = async () => {
       try {
+        console.log("[GRADIENT_CARD] Checking session duration...");
         const info = await invoke<SessionInfo | null>("get_session_info");
         if (info !== null) {
+          console.log("[GRADIENT_CARD] Session info retrieved:", {
+            session_id: info.session_id,
+            elapsed_ms: info.elapsed_ms,
+            elapsed_minutes: Math.floor(info.elapsed_ms / (1000 * 60)),
+            threshold_ms: SESSION_ACTIVE_THRESHOLD_MS,
+            threshold_minutes: SESSION_ACTIVE_THRESHOLD_MS / (1000 * 60),
+          });
           setSessionInfo(info);
-          if (info.elapsed_ms >= SESSION_ACTIVE_THRESHOLD_MS) {
-            setIsSessionActive(true);
-          } else {
-            setIsSessionActive(false);
+          const wasActive = isSessionActive;
+          const nowActive = info.elapsed_ms >= SESSION_ACTIVE_THRESHOLD_MS;
+          setIsSessionActive(nowActive);
+          
+          if (wasActive !== nowActive) {
+            console.log("[GRADIENT_CARD] Session active state changed:", {
+              wasActive,
+              nowActive,
+              elapsed_ms: info.elapsed_ms,
+            });
           }
         } else {
+          console.log("[GRADIENT_CARD] No active session found");
           setSessionInfo(null);
           setIsSessionActive(false);
         }
       } catch (error) {
-        console.error("Failed to get session info:", error);
+        console.error("[GRADIENT_CARD] ❌ Failed to get session info:", error);
+        if (error instanceof Error) {
+          console.error("[GRADIENT_CARD] Error details:", {
+            message: error.message,
+            stack: error.stack,
+          });
+        }
         setSessionInfo(null);
         setIsSessionActive(false);
       }
@@ -203,33 +224,70 @@ const GradientCard = () => {
 
   // Handle START button click - open questionnaire modal
   const handleStartClick = () => {
+    console.log("[GRADIENT_CARD] START button clicked, refreshing session info...");
     // Refresh session info before opening modal
     invoke<SessionInfo | null>("get_session_info")
       .then((info) => {
         if (info) {
+          console.log("[GRADIENT_CARD] ✅ Session info refreshed:", {
+            session_id: info.session_id,
+            elapsed_ms: info.elapsed_ms,
+            session_minutes: Math.floor(info.elapsed_ms / (1000 * 60)),
+          });
           setSessionInfo(info);
+        } else {
+          console.warn("[GRADIENT_CARD] ⚠️ No session info returned, using existing state");
         }
+        console.log("[GRADIENT_CARD] Opening questionnaire modal");
         onQuestionnaireOpen();
       })
       .catch((error) => {
-        console.error("Failed to get session info:", error);
+        console.error("[GRADIENT_CARD] ❌ Failed to get session info:", error);
+        if (error instanceof Error) {
+          console.error("[GRADIENT_CARD] Error details:", {
+            message: error.message,
+            stack: error.stack,
+          });
+        }
         // Still open modal with existing info
+        console.log("[GRADIENT_CARD] Opening questionnaire modal with existing session info");
         onQuestionnaireOpen();
       });
   };
 
   // Handle questionnaire submission
   const handleQuestionnaireSubmit = async (scores: QuestionnaireScores) => {
+    console.log("[GRADIENT_CARD] Questionnaire submission started:", {
+      session_id: sessionInfo?.session_id,
+      scores,
+      scoreCount: Object.keys(scores).length,
+    });
+
     if (!sessionInfo?.session_id) {
+      console.error("[GRADIENT_CARD] ❌ No active session - cannot submit questionnaire");
       throw new Error("No active session");
     }
 
-    await endSessionWithSurvey(sessionInfo.session_id, scores);
-    
-    // Reset session state after successful submission
-    setSessionInfo(null);
-    setIsSessionActive(false);
-    setDevToggleActive(null);
+    try {
+      console.log("[GRADIENT_CARD] Calling endSessionWithSurvey...");
+      await endSessionWithSurvey(sessionInfo.session_id, scores);
+      console.log("[GRADIENT_CARD] ✅ Questionnaire submitted successfully");
+      
+      // Reset session state after successful submission
+      console.log("[GRADIENT_CARD] Resetting session state");
+      setSessionInfo(null);
+      setIsSessionActive(false);
+      setDevToggleActive(null);
+    } catch (error) {
+      console.error("[GRADIENT_CARD] ❌ Failed to submit questionnaire:", error);
+      if (error instanceof Error) {
+        console.error("[GRADIENT_CARD] Error details:", {
+          message: error.message,
+          stack: error.stack,
+        });
+      }
+      throw error;
+    }
   };
 
   // Render the appropriate view based on width and session state

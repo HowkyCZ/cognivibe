@@ -77,6 +77,11 @@ export const useDashboardData = (
       : 0;
 
   const fetchDashboardData = async () => {
+    console.log("[USE_DASHBOARD_DATA] Fetching dashboard data...", {
+      selectedDate: `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`,
+      hasSession: !!session,
+      userId: session?.user?.id,
+    });
     try {
       setLoading(true);
       setError(null);
@@ -84,11 +89,17 @@ export const useDashboardData = (
       // Convert CalendarDate to YYYY-MM-DD format
       const formattedDate = `${selectedDate.year}-${String(selectedDate.month).padStart(2, "0")}-${String(selectedDate.day).padStart(2, "0")}`;
 
+      console.log("[USE_DASHBOARD_DATA] Formatted date:", formattedDate);
+
       // Fetch batch scores from the server for the selected date
       // user_id and jwt_token will be retrieved from app state in Rust
       const result = await fetchBatchScores(formattedDate, formattedDate);
 
-      console.log("Batch scores result:", result);
+      console.log("[USE_DASHBOARD_DATA] Batch scores result:", {
+        success: result.success,
+        dataCount: result.data?.length || 0,
+        hasMissingData: !!result.missing_data,
+      });
 
       // Transform the API response data into CognitiveLoadDataPoint format
       if (result.success && Array.isArray(result.data)) {
@@ -158,13 +169,20 @@ export const useDashboardData = (
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch dashboard data";
       setError(errorMessage);
-      console.error("Failed to fetch dashboard data:", err);
+      console.error("[USE_DASHBOARD_DATA] ❌ Failed to fetch dashboard data:", err);
+      if (err instanceof Error) {
+        console.error("[USE_DASHBOARD_DATA] Error details:", {
+          message: err.message,
+          stack: err.stack,
+        });
+      }
       setCognitiveLoadData([]);
       setMissingData([]);
       setMetricsData([]);
       setCurrentCognitiveLoad(0);
     } finally {
       setLoading(false);
+      console.log("[USE_DASHBOARD_DATA] Fetch completed");
     }
   }; // Load data on mount and when session or selectedDate changes
   useEffect(() => {

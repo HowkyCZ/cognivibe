@@ -25,22 +25,49 @@ pub struct SessionInfo {
 /// # Returns
 /// `Option<SessionInfo>` - Session info with elapsed time and ID, or `None` if no active session
 pub fn get_session_info(state: State<'_, Mutex<AppState>>) -> Option<SessionInfo> {
-    let app_state = state.lock().unwrap();
+    #[cfg(debug_assertions)]
+    println!("[GET_SESSION_INFO] 🔍 Retrieving session info...");
+    
+    let app_state = match state.lock() {
+        Ok(state) => state,
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[GET_SESSION_INFO] ❌ Failed to lock app state: {}", e);
+            return None;
+        }
+    };
     
     // Check if there's an active session
     let session_id = match &app_state.current_session_id {
-        Some(id) => id.clone(),
-        None => return None,
+        Some(id) => {
+            #[cfg(debug_assertions)]
+            println!("[GET_SESSION_INFO] ✅ Found session_id: {}", id);
+            id.clone()
+        }
+        None => {
+            #[cfg(debug_assertions)]
+            println!("[GET_SESSION_INFO] ⚠️ No active session_id found");
+            return None;
+        }
     };
     
     // Get the elapsed time since the session started
-    if let Some(start_time) = app_state.session_start_time {
-        let elapsed = start_time.elapsed();
-        Some(SessionInfo {
-            elapsed_ms: elapsed.as_millis() as u64,
-            session_id,
-        })
-    } else {
-        None
+    match app_state.session_start_time {
+        Some(start_time) => {
+            let elapsed = start_time.elapsed();
+            let elapsed_ms = elapsed.as_millis() as u64;
+            let elapsed_minutes = elapsed_ms / (1000 * 60);
+            #[cfg(debug_assertions)]
+            println!("[GET_SESSION_INFO] ✅ Session info retrieved: {}ms ({} minutes)", elapsed_ms, elapsed_minutes);
+            Some(SessionInfo {
+                elapsed_ms,
+                session_id,
+            })
+        }
+        None => {
+            #[cfg(debug_assertions)]
+            eprintln!("[GET_SESSION_INFO] ❌ Session ID exists but no start_time - inconsistent state!");
+            None
+        }
     }
 }

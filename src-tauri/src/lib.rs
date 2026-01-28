@@ -152,22 +152,33 @@ pub fn run() {
             if let Some(window) = app.get_webview_window("main") {
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { .. } = event {
+                        #[cfg(debug_assertions)]
+                        println!("{}🪟 Window close requested, checking for active session...", get_init_prefix());
+                        
                         // End session if one exists
                         let app_handle_clone = app_handle.clone();
                         tauri::async_runtime::spawn(async move {
                             let session_info = {
                                 let state = app_handle_clone.state::<Mutex<AppState>>();
-                                let app_state = state.lock();
-                                if let Ok(app_state) = app_state {
-                                    if let (Some(session_id), Some(session)) = (
-                                        app_state.current_session_id.clone(),
-                                        app_state.session_data.clone(),
-                                    ) {
-                                        Some((session_id, session.access_token))
-                                    } else {
-                                        None
+                                let app_state = match state.lock() {
+                                    Ok(state) => state,
+                                    Err(e) => {
+                                        #[cfg(debug_assertions)]
+                                        eprintln!("{}❌ Failed to lock app state on window close: {}", get_init_prefix(), e);
+                                        return;
                                     }
+                                };
+                                
+                                if let (Some(session_id), Some(session)) = (
+                                    app_state.current_session_id.clone(),
+                                    app_state.session_data.clone(),
+                                ) {
+                                    #[cfg(debug_assertions)]
+                                    println!("{}✅ Found active session to end: {}", get_init_prefix(), session_id);
+                                    Some((session_id, session.access_token))
                                 } else {
+                                    #[cfg(debug_assertions)]
+                                    println!("{}ℹ️ No active session to end", get_init_prefix());
                                     None
                                 }
                             }; // MutexGuard is dropped here
@@ -175,15 +186,27 @@ pub fn run() {
                             if let Some((session_id, access_token)) = session_info {
                                 #[cfg(debug_assertions)]
                                 println!(
-                                    "{}Ending session {} on app close",
+                                    "{}🛑 Ending session {} on app close",
                                     get_init_prefix(),
                                     session_id
                                 );
-                                let _ = end_session(session_id, access_token).await;
+                                match end_session(session_id, access_token).await {
+                                    Ok(_) => {
+                                        #[cfg(debug_assertions)]
+                                        println!("{}✅ Session ended successfully on app close", get_init_prefix());
+                                    }
+                                    Err(e) => {
+                                        #[cfg(debug_assertions)]
+                                        eprintln!("{}❌ Failed to end session on app close: {}", get_init_prefix(), e);
+                                    }
+                                }
                             }
                         });
                     }
                 });
+            } else {
+                #[cfg(debug_assertions)]
+                eprintln!("{}⚠️ Main window not found, cannot set up close handler", get_init_prefix());
             }
 
             #[cfg(debug_assertions)]

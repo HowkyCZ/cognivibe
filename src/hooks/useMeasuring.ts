@@ -15,31 +15,47 @@ export const useMeasuring = (): UseMeasuringReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const syncState = async () => {
+    console.log("[USE_MEASURING] Syncing measuring state...");
     try {
       setLoading(true);
       setError(null);
       const backendState = await invoke<boolean>("get_measuring_state");
+      console.log("[USE_MEASURING] ✅ Measuring state synced:", backendState);
       setIsMeasuring(backendState);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to sync measuring state";
       setError(errorMessage);
-      console.error("Failed to sync measuring state:", err);
+      console.error("[USE_MEASURING] ❌ Failed to sync measuring state:", err);
+      if (err instanceof Error) {
+        console.error("[USE_MEASURING] Error details:", {
+          message: err.message,
+          stack: err.stack,
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
   const toggleMeasuring = async () => {
+    console.log("[USE_MEASURING] Toggling measuring state, current:", isMeasuring);
     try {
       setLoading(true);
       setError(null);
       const newState = await invoke<boolean>("toggle_measuring");
+      console.log("[USE_MEASURING] ✅ Measuring toggled, new state:", newState);
       setIsMeasuring(newState);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to toggle measuring";
       setError(errorMessage);
-      console.error("Failed to toggle measuring:", err);
+      console.error("[USE_MEASURING] ❌ Failed to toggle measuring:", err);
+      if (err instanceof Error) {
+        console.error("[USE_MEASURING] Error details:", {
+          message: err.message,
+          stack: err.stack,
+        });
+      }
     } finally {
       setLoading(false);
     }
