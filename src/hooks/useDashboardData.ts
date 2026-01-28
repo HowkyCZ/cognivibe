@@ -94,11 +94,8 @@ export const useDashboardData = (
 
       console.log("[USE_DASHBOARD_DATA] Formatted date:", formattedDate);
 
-      // Fetch batch scores and sessions in parallel
-      const [result, sessionsResult] = await Promise.all([
-        fetchBatchScores(formattedDate, formattedDate),
-        fetchSessions(formattedDate, formattedDate),
-      ]);
+      // Fetch batch scores (critical) - must complete before loading ends
+      const result = await fetchBatchScores(formattedDate, formattedDate);
 
       console.log("[USE_DASHBOARD_DATA] Batch scores result:", {
         success: result.success,
@@ -106,17 +103,23 @@ export const useDashboardData = (
         hasMissingData: !!result.missing_data,
       });
 
-      console.log("[USE_DASHBOARD_DATA] Sessions result:", {
-        success: sessionsResult.success,
-        sessionCount: sessionsResult.data?.length || 0,
-      });
-
-      // Set sessions data
-      if (sessionsResult.success && Array.isArray(sessionsResult.data)) {
-        setSessions(sessionsResult.data);
-      } else {
-        setSessions([]);
-      }
+      // Fetch sessions independently (non-blocking) - don't wait for it
+      fetchSessions(formattedDate, formattedDate)
+        .then((sessionsResult) => {
+          console.log("[USE_DASHBOARD_DATA] Sessions result:", {
+            success: sessionsResult.success,
+            sessionCount: sessionsResult.data?.length || 0,
+          });
+          if (sessionsResult.success && Array.isArray(sessionsResult.data)) {
+            setSessions(sessionsResult.data);
+          } else {
+            setSessions([]);
+          }
+        })
+        .catch((err) => {
+          console.error("[USE_DASHBOARD_DATA] Sessions fetch failed (non-blocking):", err);
+          setSessions([]);
+        });
 
       // Transform the API response data into CognitiveLoadDataPoint format
       if (result.success && Array.isArray(result.data)) {
@@ -196,8 +199,8 @@ export const useDashboardData = (
       setCognitiveLoadData([]);
       setMissingData([]);
       setMetricsData([]);
-      setSessions([]);
       setCurrentCognitiveLoad(0);
+      // Note: sessions are fetched independently and don't need to be cleared here
     } finally {
       setLoading(false);
       console.log("[USE_DASHBOARD_DATA] Fetch completed");

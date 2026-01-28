@@ -677,7 +677,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   // Define the header component once
   const chartHeader = useMemo(
     () => (
-      <div className="flex justify-between items-center mb-6">
+      <div className={`flex justify-between items-center ${sessions.length > 0 ? "mb-3" : "mb-6"}`}>
         <h2 className="text-xl font-semibold text-foreground">
           Your daily mental performance
         </h2>
@@ -689,7 +689,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
         />
       </div>
     ),
-    [firstDate, isLoading, selectedDate, onDateChange],
+    [firstDate, isLoading, selectedDate, onDateChange, sessions.length],
   );
 
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   IconMessage,
   IconUsers,
@@ -11,6 +11,7 @@ import {
   IconVideo,
   IconDots,
 } from "@tabler/icons-react";
+import { Card } from "@heroui/card";
 
 interface SessionData {
   id: string;
@@ -127,41 +128,55 @@ const getIconCount = (sessionWidthPx: number): number => {
 // Category icon component with overlapping effect
 const CategoryIconOverlap = ({
   category,
+  isFirst,
   isLast,
   zIndex,
 }: {
   category: string;
+  isFirst: boolean;
   isLast: boolean;
   zIndex: number;
-}) => (
-  <div
-    className="relative shrink-0"
-    style={{
-      marginRight: isLast ? 0 : -ICON_OVERLAP,
-      zIndex,
-    }}
-  >
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
     <div
-      className="bg-white/15 rounded-md p-1 relative"
+      className="relative shrink-0"
       style={{
-        // Add shadow on right side for non-last icons
-        boxShadow: isLast ? "none" : "inset -4px 0 6px -4px rgba(0,0,0,0.4)",
+        marginRight: isLast ? 0 : -ICON_OVERLAP,
+        zIndex,
       }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="text-foreground/80">{getCategoryIcon(category)}</div>
-    </div>
-    {/* Gradient overlay for overlapping effect on non-last icons */}
-    {!isLast && (
       <div
-        className="absolute top-0 right-0 bottom-0 w-2 pointer-events-none rounded-r-md"
+        className="rounded-md p-1 relative cursor-pointer"
         style={{
-          background:
-            "linear-gradient(to right, transparent, rgba(0,0,0,0.15))",
+          backgroundColor: "#38333E",
+          // Add inner shadow on left side for overlapping icons (not the first one)
+          boxShadow: isFirst
+            ? "none"
+            : "inset 10px 0 16px -6px rgba(0,0,0,0.6)",
         }}
-      />
-    )}
-  </div>
-);
+      >
+        <div className="text-foreground/80">{getCategoryIcon(category)}</div>
+      </div>
+      {/* Tooltip */}
+      {isHovered && (
+        <div
+          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none"
+          style={{ zIndex: 1000 }}
+        >
+          <Card isBlurred shadow="lg" className="px-3 py-2">
+            <p className="text-xs font-semibold text-foreground whitespace-nowrap">
+              {category}
+            </p>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const SessionBars: React.FC<SessionBarsProps> = ({
   sessions,
@@ -268,11 +283,12 @@ const SessionBars: React.FC<SessionBarsProps> = ({
 
   return (
     <div
-      className="relative w-full mb-2"
+      className="relative w-full mb-1"
       style={{
-        height: ICON_CONTAINER_SIZE + LINE_HEIGHT + 4, // Icons + line + gap
+        height: ICON_CONTAINER_SIZE + LINE_HEIGHT + 2, // Icons + line + minimal gap
         paddingLeft: chartLeftMargin,
         paddingRight: chartRightMargin,
+        marginTop: -4, // Reduce space above by pulling it closer to header
       }}
     >
       {/* Session bars container - positioned within the padded area */}
@@ -329,6 +345,7 @@ const SessionIcons: React.FC<{
         <CategoryIconOverlap
           key={category}
           category={category}
+          isFirst={index === 0}
           isLast={index === displayCategories.length - 1}
           zIndex={displayCategories.length - index}
         />

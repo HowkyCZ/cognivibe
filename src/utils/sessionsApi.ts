@@ -77,19 +77,33 @@ function generateMockSessions(startDate: string, endDate: string): FetchSessions
     const daySeed = hashStringToU32(`${dateStr}|cognivibe-mock-sessions`);
     const dayRand = mulberry32(daySeed);
 
-    // Generate 2-4 sessions per day
+    // Generate 2-4 sessions per day, spread evenly across the day
     const sessionCount = 2 + Math.floor(dayRand() * 3);
     
+    // Distribute sessions evenly across the 9-hour window (10:00-19:00 UTC)
+    const dayStartHour = 10;
+    const dayEndHour = 19;
+    const dayDurationHours = dayEndHour - dayStartHour;
+    const timeSlots = sessionCount + 1; // +1 to create gaps between sessions
+    
     for (let i = 0; i < sessionCount; i++) {
-      // Session start times: morning (9-11), afternoon (13-15), late afternoon (15-17)
-      const hourOptions = [9, 10, 11, 13, 14, 15, 16, 17];
-      const startHour = hourOptions[Math.floor(dayRand() * hourOptions.length)];
-      const startMinute = Math.floor(dayRand() * 4) * 15; // 0, 15, 30, 45
+      // Distribute sessions evenly with some randomness
+      const slotPosition = (i + 1) / timeSlots; // Position in the day (0-1)
+      const baseHour = dayStartHour + slotPosition * dayDurationHours;
       
-      const timestampStart = new Date(`${dateStr}T${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}:00.000Z`);
+      // Add some randomness (±30 minutes) but keep them spread out
+      const randomOffset = (dayRand() - 0.5) * 0.5; // -0.25 to +0.25 hours
+      const startHour = Math.floor(baseHour + randomOffset);
+      const startMinute = Math.floor(((baseHour + randomOffset) % 1) * 60);
       
-      // Session duration: 30 minutes to 3 hours
-      const durationMinutes = 30 + Math.floor(dayRand() * 150);
+      // Clamp to valid range
+      const clampedHour = Math.max(dayStartHour, Math.min(dayEndHour - 1, startHour));
+      const clampedMinute = Math.max(0, Math.min(59, startMinute));
+      
+      const timestampStart = new Date(`${dateStr}T${String(clampedHour).padStart(2, "0")}:${String(clampedMinute).padStart(2, "0")}:00.000Z`);
+      
+      // Session duration: 45 minutes to 2.5 hours (shorter to avoid overlap)
+      const durationMinutes = 45 + Math.floor(dayRand() * 105); // 45-150 minutes
       const timestampEnd = new Date(timestampStart.getTime() + durationMinutes * 60 * 1000);
       
       // Skip if session extends beyond the date range
@@ -309,14 +323,17 @@ export async function fetchSessions(
 ): Promise<FetchSessionsResponse> {
   console.log("[SESSION] Starting fetchSessions", { startDate, endDate });
   const useMock = envTruthy(import.meta.env.VITE_USE_MOCK_DATA);
+  const isDev = import.meta.env.DEV;
+
+  // If mock mode is enabled, use mock data directly (skip API call)
+  if (useMock) {
+    console.log("[SESSION] Using mock sessions data (mock mode enabled)");
+    return generateMockSessions(startDate, endDate);
+  }
 
   // When running `npm run dev` (web), Tauri commands are unavailable.
   // In that case, allow a demo mode so the dashboard UI can still be tested.
   if (!isTauriRuntime()) {
-    if (useMock) {
-      console.log("[SESSION] Using mock sessions data (web mode)");
-      return generateMockSessions(startDate, endDate);
-    }
     return {
       success: false,
       message: "Sessions require the Tauri desktop runtime. Run `npm run tauri:dev`, or set `VITE_USE_MOCK_DATA=1` to simulate dashboard data in web dev.",
@@ -324,6 +341,9 @@ export async function fetchSessions(
       error: "Tauri runtime required",
     };
   }
+
+  // In development, use mock data if API fails or returns empty
+  const shouldUseMockFallback = isDev;
 
   try {
     const supabase = createSupabaseClient();
@@ -348,14 +368,36 @@ export async function fetchSessions(
 
     console.log("[SESSION] Sending GET request to:", url);
 
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
+    let response;
+    try {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("Request timeout after 5 seconds")), 5000);
+      });
 
-    console.log("[SESSION] Response status:", response.status, response.statusText);
+      const fetchPromise = fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      response = await Promise.race([fetchPromise, timeoutPromise]);
+      console.log("[SESSION] Response received, status:", response.status, response.statusText);
+    } catch (fetchError) {
+      console.error("[SESSION] ❌ Fetch error:", fetchError);
+      // If API fails and mock/dev mode is enabled, fall back to mock data
+      if (shouldUseMockFallback) {
+        console.log("[SESSION] Falling back to mock data due to fetch error");
+        return generateMockSessions(startDate, endDate);
+      }
+      return {
+        success: false,
+        message: "Failed to fetch sessions",
+        data: [],
+        error: fetchError instanceof Error ? fetchError.message : "Unknown error",
+      };
+    }
 
     const result = await response.json();
     console.log("[SESSION] Response data:", {
@@ -368,12 +410,23 @@ export async function fetchSessions(
         status: response.status,
         error: result.error,
       });
+      // If API fails and mock/dev mode is enabled, fall back to mock data
+      if (shouldUseMockFallback) {
+        console.log("[SESSION] Falling back to mock data due to HTTP error");
+        return generateMockSessions(startDate, endDate);
+      }
       return {
         success: false,
         message: result.message || "Failed to fetch sessions",
         data: [],
         error: result.error || `HTTP error! status: ${response.status}`,
       };
+    }
+
+    // If API returns empty array and mock/dev mode is enabled, use mock data
+    if (shouldUseMockFallback && (!result.data || result.data.length === 0)) {
+      console.log("[SESSION] API returned empty array, using mock data instead");
+      return generateMockSessions(startDate, endDate);
     }
 
     console.log("[SESSION] ✅ Sessions fetched successfully:", {

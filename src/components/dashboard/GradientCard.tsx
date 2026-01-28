@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardBody, Button, useDisclosure } from "@heroui/react";
 import { invoke } from "@tauri-apps/api/core";
 import { QuestionnaireModal, QuestionnaireScores } from "../modals";
 import { endSessionWithSurvey } from "../../utils/sessionsApi";
+import SessionStatsCard from "./SessionStatsCard";
 
 const SESSION_ACTIVE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 const WIDTH_BREAKPOINT = 350; // Content width breakpoint (card has ~460px max content width)
@@ -305,27 +306,40 @@ const GradientCard = () => {
 
   return (
     <>
-      <Card 
-        className="w-full h-full bg-content1 border border-white/10 hover:border-white/15 transition-colors relative overflow-hidden cursor-pointer"
-        isPressable
-        onPress={handleCardClick}
-      >
-        {/* Gradient overlay */}
-        <div
-          className="absolute inset-0 bg-cv-accent-gradient transition-opacity duration-500"
-          style={{ opacity }}
-        />
+      {/* Column layout wrapper - maintains original total height with adjusted ratio */}
+      <div className="flex flex-col gap-4 w-full h-full">
+        {/* Session Stats Card - reduced height (~24%) */}
+        <div className="h-[24%] shrink-0">
+          <SessionStatsCard
+            sessionId={sessionInfo?.session_id ?? null}
+            elapsedMs={sessionInfo?.elapsed_ms ?? 0}
+          />
+        </div>
 
-        {/* Content */}
-        <CardBody
-          ref={contentRef}
-          className={`relative z-10 flex items-center h-full p-6 w-full ${
-            isWide ? "justify-start" : "justify-center"
-          }`}
+        {/* Gradient Card - increased height (~76%, flex-1 takes remaining space) */}
+        <Card 
+          className="w-full flex-1 bg-content1 border border-white/10 hover:border-white/15 transition-colors relative overflow-hidden cursor-pointer"
+          isPressable
+          onPress={handleCardClick}
         >
-          {renderContent()}
-        </CardBody>
-      </Card>
+          {/* Gradient overlay */}
+          <div
+            className="absolute inset-0 bg-cv-accent-gradient transition-opacity duration-500"
+            style={{ opacity }}
+          />
+
+          {/* Content */}
+          <CardBody
+            className={`relative z-10 flex items-center h-full p-6 w-full ${
+              isWide ? "justify-start" : "justify-center"
+            }`}
+          >
+            <div ref={contentRef} className="w-full h-full flex items-center">
+              {renderContent()}
+            </div>
+          </CardBody>
+        </Card>
+      </div>
 
       {/* Questionnaire Modal */}
       <QuestionnaireModal

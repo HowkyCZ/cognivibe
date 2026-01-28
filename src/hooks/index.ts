@@ -6,5 +6,7 @@ export { useDashboardData } from "./useDashboardData";
 export { useProductivityTime } from "./useProductivityTime";
 export { useUpdater } from "./useUpdater";
 export { useMacOSPermissions } from "./useMacOSPermissions";
+export { useSessionBehavioralMetrics } from "./useSessionBehavioralMetrics";
 export type { AppSettings } from "./useAppSettings";
 export type { CognitiveLoadDataPoint } from "./useDashboardData";
+export type { SessionStats } from "./useSessionBehavioralMetrics";
