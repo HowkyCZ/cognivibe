@@ -1,32 +1,45 @@
 use std::sync::Mutex;
 use tauri::State;
+use serde::Serialize;
 
 use crate::modules::state::AppState;
 
+/// Session info returned to the frontend
+#[derive(Debug, Clone, Serialize)]
+pub struct SessionInfo {
+    /// Elapsed time in milliseconds since session started
+    pub elapsed_ms: u64,
+    /// Current session ID (UUID)
+    pub session_id: String,
+}
+
 #[tauri::command]
-/// Returns the elapsed time since the session started in milliseconds.
+/// Returns session information including elapsed time and session ID.
 ///
 /// This Tauri command provides a way for the frontend to check how long the current
-/// session has been active, allowing it to determine if the session has been active
-/// for a certain duration (e.g., 10 minutes).
+/// session has been active and get the session ID for API calls.
 ///
 /// # Arguments
-/// * `state` - The global app state containing the session start time
+/// * `state` - The global app state containing the session start time and ID
 ///
 /// # Returns
-/// `Option<u64>` - Elapsed time in milliseconds since session started, or `None` if no active session
-pub fn get_session_info(state: State<'_, Mutex<AppState>>) -> Option<u64> {
+/// `Option<SessionInfo>` - Session info with elapsed time and ID, or `None` if no active session
+pub fn get_session_info(state: State<'_, Mutex<AppState>>) -> Option<SessionInfo> {
     let app_state = state.lock().unwrap();
     
     // Check if there's an active session
-    if app_state.current_session_id.is_none() {
-        return None;
-    }
+    let session_id = match &app_state.current_session_id {
+        Some(id) => id.clone(),
+        None => return None,
+    };
     
     // Get the elapsed time since the session started
     if let Some(start_time) = app_state.session_start_time {
         let elapsed = start_time.elapsed();
-        Some(elapsed.as_millis() as u64)
+        Some(SessionInfo {
+            elapsed_ms: elapsed.as_millis() as u64,
+            session_id,
+        })
     } else {
         None
     }

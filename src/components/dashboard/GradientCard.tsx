@@ -1,11 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Card, CardBody, Button } from "@heroui/react";
+import { Card, CardBody, Button, useDisclosure } from "@heroui/react";
 import { invoke } from "@tauri-apps/api/core";
+import { QuestionnaireModal, QuestionnaireScores } from "../modals";
+import { endSessionWithSurvey } from "../../utils/sessionsApi";
 
 const SESSION_ACTIVE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 const WIDTH_BREAKPOINT = 350; // Content width breakpoint (card has ~460px max content width)
+
+// Session info returned from Tauri backend
+interface SessionInfo {
+  elapsed_ms: number;
+  session_id: string;
+}
 
 // Clipboard icon component (default size)
 const ClipboardIcon = ({ size = 32, padding = "p-3" }: { size?: number; padding?: string }) => (
@@ -28,8 +36,12 @@ const ClipboardIcon = ({ size = 32, padding = "p-3" }: { size?: number; padding?
   </div>
 );
 
+interface ActiveViewProps {
+  onStartClick: () => void;
+}
+
 // Narrow Active View
-const NarrowActiveView = () => (
+const NarrowActiveView = ({ onStartClick }: ActiveViewProps) => (
   <div className="flex flex-col items-center justify-center gap-4 w-full">
     <ClipboardIcon />
     <h2 className="text-lg font-semibold text-white text-center">
@@ -40,6 +52,7 @@ const NarrowActiveView = () => (
     <Button
       className="w-full bg-white text-[#a07cef] font-semibold text-md"
       size="lg"
+      onPress={onStartClick}
     >
       START
     </Button>
@@ -61,7 +74,7 @@ const NarrowInactiveView = () => (
 );
 
 // Wide Active View
-const WideActiveView = () => (
+const WideActiveView = ({ onStartClick }: ActiveViewProps) => (
   <div className="flex flex-col items-start gap-4 w-full h-full">
     <div className="flex flex-row items-center gap-3">
       <ClipboardIcon />
@@ -79,6 +92,7 @@ const WideActiveView = () => (
     <Button
       className="self-end mt-auto bg-white text-[#a07cef] font-semibold text-lg"
       size="lg"
+      onPress={onStartClick}
     >
       START
     </Button>
@@ -107,7 +121,15 @@ const GradientCard = () => {
   const [cardWidth, setCardWidth] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [devToggleActive, setDevToggleActive] = useState<boolean | null>(null);
+  const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Modal state
+  const {
+    isOpen: isQuestionnaireOpen,
+    onOpen: onQuestionnaireOpen,
+    onOpenChange: onQuestionnaireOpenChange,
+  } = useDisclosure();
 
   const isWide = cardWidth >= WIDTH_BREAKPOINT;
   
@@ -116,6 +138,11 @@ const GradientCard = () => {
   
   // Use dev toggle if set, otherwise use actual session state
   const displayIsSessionActive = devToggleActive !== null ? devToggleActive : isSessionActive;
+
+  // Calculate session minutes from elapsed time
+  const sessionMinutes = sessionInfo
+    ? Math.floor(sessionInfo.elapsed_ms / (1000 * 60))
+    : 0;
 
   // Width detection using ResizeObserver
   useEffect(() => {
@@ -141,14 +168,21 @@ const GradientCard = () => {
   useEffect(() => {
     const checkSessionDuration = async () => {
       try {
-        const elapsedMs = await invoke<number | null>("get_session_info");
-        if (elapsedMs !== null && elapsedMs >= SESSION_ACTIVE_THRESHOLD_MS) {
-          setIsSessionActive(true);
+        const info = await invoke<SessionInfo | null>("get_session_info");
+        if (info !== null) {
+          setSessionInfo(info);
+          if (info.elapsed_ms >= SESSION_ACTIVE_THRESHOLD_MS) {
+            setIsSessionActive(true);
+          } else {
+            setIsSessionActive(false);
+          }
         } else {
+          setSessionInfo(null);
           setIsSessionActive(false);
         }
       } catch (error) {
         console.error("Failed to get session info:", error);
+        setSessionInfo(null);
         setIsSessionActive(false);
       }
     };
@@ -167,41 +201,83 @@ const GradientCard = () => {
     setDevToggleActive((prev) => (prev === null ? !isSessionActive : !prev));
   };
 
+  // Handle START button click - open questionnaire modal
+  const handleStartClick = () => {
+    // Refresh session info before opening modal
+    invoke<SessionInfo | null>("get_session_info")
+      .then((info) => {
+        if (info) {
+          setSessionInfo(info);
+        }
+        onQuestionnaireOpen();
+      })
+      .catch((error) => {
+        console.error("Failed to get session info:", error);
+        // Still open modal with existing info
+        onQuestionnaireOpen();
+      });
+  };
+
+  // Handle questionnaire submission
+  const handleQuestionnaireSubmit = async (scores: QuestionnaireScores) => {
+    if (!sessionInfo?.session_id) {
+      throw new Error("No active session");
+    }
+
+    await endSessionWithSurvey(sessionInfo.session_id, scores);
+    
+    // Reset session state after successful submission
+    setSessionInfo(null);
+    setIsSessionActive(false);
+    setDevToggleActive(null);
+  };
+
   // Render the appropriate view based on width and session state
   const renderContent = () => {
     if (isWide && displayIsSessionActive) {
-      return <WideActiveView />;
+      return <WideActiveView onStartClick={handleStartClick} />;
     } else if (isWide && !displayIsSessionActive) {
       return <WideInactiveView />;
     } else if (!isWide && displayIsSessionActive) {
-      return <NarrowActiveView />;
+      return <NarrowActiveView onStartClick={handleStartClick} />;
     } else {
       return <NarrowInactiveView />;
     }
   };
 
   return (
-    <Card 
-      className="w-full h-full bg-content1 border border-white/10 hover:border-white/15 transition-colors relative overflow-hidden cursor-pointer"
-      isPressable
-      onPress={handleCardClick}
-    >
-      {/* Gradient overlay */}
-      <div
-        className="absolute inset-0 bg-cv-accent-gradient transition-opacity duration-500"
-        style={{ opacity }}
-      />
-
-      {/* Content */}
-      <CardBody
-        ref={contentRef}
-        className={`relative z-10 flex items-center h-full p-6 w-full ${
-          isWide ? "justify-start" : "justify-center"
-        }`}
+    <>
+      <Card 
+        className="w-full h-full bg-content1 border border-white/10 hover:border-white/15 transition-colors relative overflow-hidden cursor-pointer"
+        isPressable
+        onPress={handleCardClick}
       >
-        {renderContent()}
-      </CardBody>
-    </Card>
+        {/* Gradient overlay */}
+        <div
+          className="absolute inset-0 bg-cv-accent-gradient transition-opacity duration-500"
+          style={{ opacity }}
+        />
+
+        {/* Content */}
+        <CardBody
+          ref={contentRef}
+          className={`relative z-10 flex items-center h-full p-6 w-full ${
+            isWide ? "justify-start" : "justify-center"
+          }`}
+        >
+          {renderContent()}
+        </CardBody>
+      </Card>
+
+      {/* Questionnaire Modal */}
+      <QuestionnaireModal
+        isOpen={isQuestionnaireOpen}
+        onOpenChange={onQuestionnaireOpenChange}
+        sessionMinutes={sessionMinutes}
+        sessionId={sessionInfo?.session_id ?? null}
+        onSubmit={handleQuestionnaireSubmit}
+      />
+    </>
   );
 };
 
