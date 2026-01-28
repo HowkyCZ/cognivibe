@@ -63,7 +63,7 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                 let session_id_clone = session_id.clone();
                                 if let Some(session) = app_state.session_data.as_ref() {
                                     let session_access_token = session.access_token.clone();
-                                    let app_handle_clone = app_handle.clone();
+                                    let _app_handle_clone = app_handle.clone();
                                     tauri::async_runtime::spawn(async move {
                                         match end_session(session_id_clone, session_access_token).await {
                                             Ok(_) => {
@@ -206,7 +206,7 @@ pub fn start_minute_logger(app_handle: AppHandle) {
 
                                 // Spawn async task to upload data
                                 let app_handle_clone = app_handle.clone();
-                                let session_id_clone = session_id.clone();
+                                let _session_id_clone = session_id.clone();
                                 #[cfg(debug_assertions)]
                                 let timestamp_for_log = minute_timestamp.clone();
                                 tauri::async_runtime::spawn(async move {

@@ -99,7 +99,7 @@ function DashboardPage() {
 
           <div className="flex flex-row gap-4 my-4 items-stretch">
             <div className="w-[500px] shrink-0 self-stretch">
-              <ProductivityTimeCard />
+              <ProductivityTimeCard selectedDate={selectedDate} />
             </div>
 
             <div className="flex-1 min-w-0 self-stretch">

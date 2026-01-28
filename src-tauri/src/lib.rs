@@ -7,7 +7,7 @@ use std::env;
 
 mod modules;
 
-use modules::api::functions::fetch_batch_scores_cmd;
+use modules::api::functions::{fetch_batch_scores_cmd, fetch_productivity_time_cmd};
 use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
 use modules::state::{get_measuring_state, get_settings_state, set_user_session, AppState};
@@ -40,7 +40,8 @@ pub fn run() {
             get_settings_state,
             set_user_session,
             update_settings_cmd,
-            fetch_batch_scores_cmd
+            fetch_batch_scores_cmd,
+            fetch_productivity_time_cmd
         ])
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // Focus main window

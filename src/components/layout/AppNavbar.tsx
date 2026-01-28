@@ -50,7 +50,7 @@ const AppNavbar: React.FC<AppNavbarProps> = () => {
   const avatarSrc = userData?.avatar_url || undefined;
 
   return (
-    <Navbar className="py-4 sticky top-0">
+    <Navbar className="py-4 sticky top-0 z-40">
       <NavbarBrand>
         <img
           src={logotypeSvg}

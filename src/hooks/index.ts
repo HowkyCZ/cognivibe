@@ -3,6 +3,7 @@ export { useUserData } from "./useUserData";
 export { useMeasuring } from "./useMeasuring";
 export { useAppSettings } from "./useAppSettings";
 export { useDashboardData } from "./useDashboardData";
+export { useProductivityTime } from "./useProductivityTime";
 export { useUpdater } from "./useUpdater";
 export { useMacOSPermissions } from "./useMacOSPermissions";
 export type { AppSettings } from "./useAppSettings";

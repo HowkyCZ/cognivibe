@@ -1,5 +1,4 @@
 import React from "react";
-import { Button } from "@heroui/button";
 import { Tooltip } from "@heroui/tooltip";
 import { IconHelpCircle } from "@tabler/icons-react";
 
@@ -7,39 +6,31 @@ type HelpButtonProps = {
   tooltipTitle: string;
   tooltipText: string;
   className?: string;
-  isInAbsoluteCard?: boolean;
 };
 
 /**
  * HelpButton Component
  *
- * A button that displays helpful information in a tooltip when hovered or clicked.
+ * A simple icon that displays helpful information in a tooltip when hovered.
  *
  * @param tooltipTitle - The title text for the tooltip
  * @param tooltipText - The main content text for the tooltip (supports HTML)
- * @param className - Additional CSS classes to apply to the button
- * @param isInAbsoluteCard - If true, positions the button absolutely (top-2 right-2 z-40).
- *                          When true, ensure the parent container has `relative` positioning.
+ * @param className - Additional CSS classes to apply (e.g., for positioning)
  *
  * @example
- * // Basic usage
- * <HelpButton tooltipTitle="Help" tooltipText="This is helpful information" />
- *
- * @example
- * // Usage in a card with absolute positioning
- * <div className="relative">
+ * // Usage in a card
+ * <Card className="relative">
  *   <HelpButton
  *     tooltipTitle="Card Help"
  *     tooltipText="Information about this card"
- *     isInAbsoluteCard={true}
+ *     className="absolute top-2 right-2"
  *   />
- * </div>
+ * </Card>
  */
 const HelpButton: React.FC<HelpButtonProps> = ({
   tooltipTitle,
   tooltipText,
   className,
-  isInAbsoluteCard = false,
 }) => {
   return (
     <Tooltip
@@ -52,15 +43,19 @@ const HelpButton: React.FC<HelpButtonProps> = ({
           />
         </div>
       }
+      placement="top"
+      showArrow
+      delay={200}
+      closeDelay={100}
+      offset={8}
     >
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className={`ml-1 ${isInAbsoluteCard ? "absolute top-2 right-2 z-40" : ""} ${className || ""}`}
+      <button
+        type="button"
+        className={`inline-flex items-center justify-center cursor-help hover:opacity-80 transition-opacity z-10 ${className || ""}`}
+        aria-label="Help"
       >
         <IconHelpCircle className="text-foreground/60" size={16} />
-      </Button>
+      </button>
     </Tooltip>
   );
 };

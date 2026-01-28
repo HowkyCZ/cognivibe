@@ -41,3 +41,18 @@ pub struct BatchScoresRequest {
     pub end_date: String,
     pub user_id: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProductivityTimeRequest {
+    pub user_id: String,
+    pub date: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProductivityTimeResponse {
+    pub success: bool,
+    pub message: String,
+    pub user_id: String,
+    pub date: String,
+    pub data: std::collections::HashMap<String, u64>,
+}

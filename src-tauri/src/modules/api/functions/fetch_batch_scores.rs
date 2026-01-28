@@ -208,7 +208,7 @@ fn generate_mock_scores(start_date: &str, end_date: &str, user_seed: &str) -> Re
             let phase = u * std::f64::consts::PI * 2.0;
 
             let drift = |tag: &str| -> f64 {
-                ((hash_unit(&format!("{user_seed}:{day_seed}:{timestamp}:{tag}")) * 2.0) - 1.0)
+                (hash_unit(&format!("{user_seed}:{day_seed}:{timestamp}:{tag}")) * 2.0) - 1.0
             };
 
             rw_focus = rw_focus * 0.86 + drift("df") * 0.75;
@@ -217,7 +217,7 @@ fn generate_mock_scores(start_date: &str, end_date: &str, user_seed: &str) -> Re
 
             let spike_r = hash_unit(&format!("{user_seed}:{day_seed}:{timestamp}:spike"));
             let spike = if spike_r > 0.992 {
-                (((hash_unit(&format!("{user_seed}:{day_seed}:{timestamp}:spike2")) * 2.0) - 1.0) * 18.0)
+                ((hash_unit(&format!("{user_seed}:{day_seed}:{timestamp}:spike2")) * 2.0) - 1.0) * 18.0
             } else {
                 0.0
             };
