@@ -1,4 +1,5 @@
 pub mod get_measuring_state;
+pub mod get_session_info;
 pub mod get_settings_state;
 pub mod get_user_session;
 pub mod set_user_session;
