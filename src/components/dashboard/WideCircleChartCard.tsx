@@ -47,14 +47,14 @@ const WideCircleChartCard = React.forwardRef<
     return (
       <Card
         ref={ref}
-        className="w-full h-auto bg-content1 border border-white/10 hover:border-white/15 transition-colors relative"
+        className="w-full h-auto bg-content1 border border-white/10 hover:border-white/15 transition-colors relative group"
         {...props}
       >
         {!isLoading && description && (
           <HelpButton
             tooltipTitle={`What is ${title}?`}
-            isInAbsoluteCard={true}
             tooltipText={description}
+            className="absolute top-2 right-2"
           />
         )}
         <CardBody className="flex flex-row items-center gap-4">

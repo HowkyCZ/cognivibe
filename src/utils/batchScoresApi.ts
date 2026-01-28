@@ -195,6 +195,7 @@ export async function fetchBatchScores(
   startDate: string,
   endDate: string
 ): Promise<BatchScoresResponse> {
+  console.log("[BATCH_SCORES_API] Fetching batch scores:", { startDate, endDate });
   const useMock = envTruthy(import.meta.env.VITE_USE_MOCK_DATA);
 
   // When running `npm run dev` (web), Tauri commands are unavailable.
@@ -209,6 +210,7 @@ export async function fetchBatchScores(
   }
 
   try {
+    console.log("[BATCH_SCORES_API] Invoking Tauri command fetch_batch_scores_cmd...");
     const response = await invoke<BatchScoresResponse>(
       "fetch_batch_scores_cmd",
       {
@@ -217,10 +219,20 @@ export async function fetchBatchScores(
       }
     );
 
-    console.log("Batch scores fetched successfully:", response);
+    console.log("[BATCH_SCORES_API] ✅ Batch scores fetched successfully:", {
+      success: response.success,
+      dataCount: response.data?.length || 0,
+      hasMissingData: !!response.missing_data,
+    });
     return response;
   } catch (error) {
-    console.error("Failed to fetch batch scores:", error);
+    console.error("[BATCH_SCORES_API] ❌ Failed to fetch batch scores:", error);
+    if (error instanceof Error) {
+      console.error("[BATCH_SCORES_API] Error details:", {
+        message: error.message,
+        stack: error.stack,
+      });
+    }
     throw error;
   }
 }

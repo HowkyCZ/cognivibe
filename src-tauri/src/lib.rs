@@ -7,11 +7,12 @@ use std::env;
 
 mod modules;
 
-use modules::api::functions::fetch_batch_scores_cmd;
+use modules::api::functions::{fetch_batch_scores_cmd, fetch_productivity_time_cmd};
 use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
-use modules::state::{get_measuring_state, get_settings_state, set_user_session, AppState};
+use modules::state::{get_measuring_state, get_session_info, get_settings_state, set_user_session, AppState};
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
+use modules::tracker::functions::session_management::end_session;
 
 #[cfg(not(debug_assertions))]
 use modules::utils::focus_main_window;
@@ -36,10 +37,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             toggle_measuring,
             get_measuring_state,
+            get_session_info,
             get_settings_state,
             set_user_session,
             update_settings_cmd,
-            fetch_batch_scores_cmd
+            fetch_batch_scores_cmd,
+            fetch_productivity_time_cmd
         ])
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // Focus main window
@@ -143,6 +146,68 @@ pub fn run() {
             #[cfg(debug_assertions)]
             println!("{}Starting global input tracker", get_init_prefix());
             start_global_input_tracker(app.handle().clone());
+
+            // Set up window close handler to end session
+            let app_handle = app.handle().clone();
+            if let Some(window) = app.get_webview_window("main") {
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { .. } = event {
+                        #[cfg(debug_assertions)]
+                        println!("{}🪟 Window close requested, checking for active session...", get_init_prefix());
+                        
+                        // End session if one exists
+                        let app_handle_clone = app_handle.clone();
+                        tauri::async_runtime::spawn(async move {
+                            let session_info = {
+                                let state = app_handle_clone.state::<Mutex<AppState>>();
+                                let app_state = match state.lock() {
+                                    Ok(state) => state,
+                                    Err(e) => {
+                                        #[cfg(debug_assertions)]
+                                        eprintln!("{}❌ Failed to lock app state on window close: {}", get_init_prefix(), e);
+                                        return;
+                                    }
+                                };
+                                
+                                if let (Some(session_id), Some(session)) = (
+                                    app_state.current_session_id.clone(),
+                                    app_state.session_data.clone(),
+                                ) {
+                                    #[cfg(debug_assertions)]
+                                    println!("{}✅ Found active session to end: {}", get_init_prefix(), session_id);
+                                    Some((session_id, session.access_token))
+                                } else {
+                                    #[cfg(debug_assertions)]
+                                    println!("{}ℹ️ No active session to end", get_init_prefix());
+                                    None
+                                }
+                            }; // MutexGuard is dropped here
+                            
+                            if let Some((session_id, access_token)) = session_info {
+                                #[cfg(debug_assertions)]
+                                println!(
+                                    "{}🛑 Ending session {} on app close",
+                                    get_init_prefix(),
+                                    session_id
+                                );
+                                match end_session(session_id, access_token).await {
+                                    Ok(_) => {
+                                        #[cfg(debug_assertions)]
+                                        println!("{}✅ Session ended successfully on app close", get_init_prefix());
+                                    }
+                                    Err(e) => {
+                                        #[cfg(debug_assertions)]
+                                        eprintln!("{}❌ Failed to end session on app close: {}", get_init_prefix(), e);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            } else {
+                #[cfg(debug_assertions)]
+                eprintln!("{}⚠️ Main window not found, cannot set up close handler", get_init_prefix());
+            }
 
             #[cfg(debug_assertions)]
             println!(

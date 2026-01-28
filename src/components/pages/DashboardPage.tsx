@@ -3,6 +3,8 @@ import {
   AppNavbar,
   CircleChartCard,
   WideCircleChartCard,
+  ProductivityTimeCard,
+  GradientCard,
 } from "..";
 import { useDashboardData } from "../../hooks";
 import { useState } from "react";
@@ -24,6 +26,7 @@ function DashboardPage() {
   const {
     cognitiveLoadData,
     metricsData,
+    sessions,
     currentCognitiveLoad,
     loading: dashboardLoading,
     session,
@@ -40,6 +43,7 @@ function DashboardPage() {
         <div className="w-full max-w-5xl mx-auto">
           <CognitiveLoadChart
             data={cognitiveLoadData}
+            sessions={sessions}
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
             firstDate={firstDate}
@@ -47,7 +51,7 @@ function DashboardPage() {
           />
 
           <div className="flex flex-row gap-4 my-4 items-stretch">
-            <div className="w-[360px] shrink-0 self-stretch">
+            <div className="w-[280px] shrink-0 self-stretch">
               <CircleChartCard
                 currentCognitiveLoad={currentCognitiveLoad}
                 isLoading={dashboardLoading}
@@ -92,6 +96,16 @@ function DashboardPage() {
                   />
                 </>
               )}
+            </div>
+          </div>
+
+          <div className="flex flex-row gap-4 my-4 items-stretch">
+            <div className="w-[500px] shrink-0 self-stretch">
+              <ProductivityTimeCard selectedDate={selectedDate} />
+            </div>
+
+            <div className="flex-1 min-w-0 self-stretch">
+              <GradientCard />
             </div>
           </div>
         </div>
