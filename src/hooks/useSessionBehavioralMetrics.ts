@@ -11,7 +11,7 @@ export interface SessionStats {
 interface BehavioralMetricsRow {
   keyboard_key_downs_count: number;
   backspace_count: number | null;
-  app_switch_count: number;
+  window_change_count: number | null;
   mouse_left_clicks_count: number;
   mouse_right_clicks_count: number;
   mouse_other_clicks_count: number;
@@ -59,7 +59,7 @@ export const useSessionBehavioralMetrics = (
       const { data, error: queryError } = await supabase
         .from("behavioral_metrics_log")
         .select(
-          "keyboard_key_downs_count, backspace_count, app_switch_count, mouse_left_clicks_count, mouse_right_clicks_count, mouse_other_clicks_count, minute_timestamp"
+          "keyboard_key_downs_count, backspace_count, window_change_count, mouse_left_clicks_count, mouse_right_clicks_count, mouse_other_clicks_count, minute_timestamp"
         )
         .eq("session_id", sessionId);
 
@@ -88,13 +88,13 @@ export const useSessionBehavioralMetrics = (
 
       let totalKeystrokes = 0;
       let totalBackspaces = 0;
-      let totalAppSwitches = 0;
+      let totalWindowSwitches = 0;
       let totalClicks = 0;
 
       metrics.forEach((row) => {
         totalKeystrokes += row.keyboard_key_downs_count || 0;
         totalBackspaces += row.backspace_count ?? 0;
-        totalAppSwitches += row.app_switch_count || 0;
+        totalWindowSwitches += row.window_change_count ?? 0;
         totalClicks +=
           (row.mouse_left_clicks_count || 0) +
           (row.mouse_right_clicks_count || 0) +
@@ -115,7 +115,7 @@ export const useSessionBehavioralMetrics = (
 
       setStats({
         typingSpeed,
-        windowSwitches: totalAppSwitches,
+        windowSwitches: totalWindowSwitches,
         errorRate,
         clicks: totalClicks,
       });
@@ -125,7 +125,7 @@ export const useSessionBehavioralMetrics = (
         minutes,
         totalKeystrokes,
         totalBackspaces,
-        totalAppSwitches,
+        totalWindowSwitches,
         totalClicks,
         typingSpeed,
         errorRate,

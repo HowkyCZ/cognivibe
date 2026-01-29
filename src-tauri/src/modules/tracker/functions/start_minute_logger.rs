@@ -256,7 +256,6 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     mouse_scroll_distance: app_state
                                         .mouse_data
                                         .wheel_scroll_distance,
-                                    app_switch_count: 1, // Placeholder for now
                                     window_change_count: app_state.window_change_count,
                                     backspace_count: app_state.keyboard_data.delete_downs,
                                     active_event_count,
