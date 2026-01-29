@@ -25,6 +25,7 @@ struct SearchRequest {
 
 /// Parses domain from Brandfetch icon URL
 /// Example: https://cdn.brandfetch.io/domain/teams.microsoft.com?c=... -> teams.microsoft.com
+#[allow(dead_code)]
 pub fn parse_domain_from_icon_url(icon_url: &str) -> Option<String> {
     use url::Url;
     if let Ok(url) = Url::parse(icon_url) {

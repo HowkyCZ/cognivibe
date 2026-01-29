@@ -60,5 +60,6 @@ pub struct CategoryChangeEvent {
     /// Timestamp when category changed
     pub timestamp: Instant,
     /// App name that triggered this category
+    #[allow(dead_code)]
     pub app_name: String,
 }

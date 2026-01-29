@@ -86,9 +86,9 @@ pub fn run() -> () {
             ));
 
             // Deep link setup
-            if let Err(e) = setup_deep_link_handlers(app.handle()) {
+            if let Err(_e) = setup_deep_link_handlers(app.handle()) {
                 #[cfg(debug_assertions)]
-                eprintln!("{}⚠️ Deep link setup failed: {}", get_init_prefix(), e);
+                eprintln!("{}⚠️ Deep link setup failed: {}", get_init_prefix(), _e);
             }
 
             // Load settings from store and initialize app state
@@ -164,9 +164,9 @@ pub fn run() -> () {
                                 let state = app_handle_clone.state::<Mutex<AppState>>();
                                 let app_state = match state.lock() {
                                     Ok(state) => state,
-                                    Err(e) => {
+                                    Err(_e) => {
                                         #[cfg(debug_assertions)]
-                                        eprintln!("{}❌ Failed to lock app state on window close: {}", get_init_prefix(), e);
+                                        eprintln!("{}❌ Failed to lock app state on window close: {}", get_init_prefix(), _e);
                                         return;
                                     }
                                 };
@@ -197,9 +197,9 @@ pub fn run() -> () {
                                         #[cfg(debug_assertions)]
                                         println!("{}✅ Session ended successfully on app close", get_init_prefix());
                                     }
-                                    Err(e) => {
+                                    Err(_e) => {
                                         #[cfg(debug_assertions)]
-                                        eprintln!("{}❌ Failed to end session on app close: {}", get_init_prefix(), e);
+                                        eprintln!("{}❌ Failed to end session on app close: {}", get_init_prefix(), _e);
                                     }
                                 }
                             }
