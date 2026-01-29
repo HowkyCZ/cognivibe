@@ -16,12 +16,21 @@ When stopping measurement: preserves current data but stops collection.
 Returns the new measuring state (true if now measuring, false if stopped).
 */
 pub fn toggle_measuring(state: State<'_, Mutex<AppState>>, app: tauri::AppHandle) -> bool {
-    let mut app_state = state.lock().unwrap();
-    app_state.is_measuring = !app_state.is_measuring;
-    let new_state = app_state.is_measuring;
-
-    // Release the lock before calling reset_input_data
-    drop(app_state);
+    let new_state = match state.lock() {
+        Ok(mut app_state) => {
+            app_state.is_measuring = !app_state.is_measuring;
+            let new_state = app_state.is_measuring;
+            // Release the lock before calling reset_input_data
+            drop(app_state);
+            new_state
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("{}⚠️ Failed to lock app state when toggling measurement: {}", get_tracker_prefix(), e);
+            // Return false (not measuring) as safe default
+            return false;
+        }
+    };
 
     if new_state {
         #[cfg(debug_assertions)]

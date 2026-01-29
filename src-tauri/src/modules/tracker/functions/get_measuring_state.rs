@@ -16,6 +16,13 @@ use crate::modules::state::AppState;
 /// # Returns
 /// `true` if currently measuring input, `false` if measurement is stopped
 pub fn get_measuring_state(state: State<'_, Mutex<AppState>>) -> bool {
-    let state = state.lock().unwrap();
-    state.is_measuring
+    match state.lock() {
+        Ok(state) => state.is_measuring,
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("⚠️ Failed to lock app state when getting measuring state: {}", e);
+            // Return false (not measuring) as safe default
+            false
+        }
+    }
 }
