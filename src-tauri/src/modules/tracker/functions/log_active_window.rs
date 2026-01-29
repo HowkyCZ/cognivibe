@@ -1,6 +1,6 @@
 #[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
-use active_win_pos_rs::get_active_window;
+use active_win_pos_rs::{get_active_window, ActiveWindow};
 use crate::modules::state::CategoryChangeEvent;
 use crate::modules::tracker::functions::search_app_directory::{search_app_directory, extract_domain_from_browser_title};
 use std::path::PathBuf;

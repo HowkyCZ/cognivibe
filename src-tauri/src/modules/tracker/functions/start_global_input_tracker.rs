@@ -76,7 +76,7 @@ pub fn start_global_input_tracker(app_handle: AppHandle) {
 
     // Start the input event listener (handles both mouse and keyboard events)
     thread::spawn(move || {
-        if let Err(_error) = listen(input_callback) {
+        if let Err(error) = listen(input_callback) {
             #[cfg(debug_assertions)]
             println!(
                 "{}Error starting global input tracker: {:?}",

@@ -30,9 +30,9 @@ pub fn get_session_info(state: State<'_, Mutex<AppState>>) -> Option<SessionInfo
     
     let app_state = match state.lock() {
         Ok(state) => state,
-        Err(e) => {
+        Err(_e) => {
             #[cfg(debug_assertions)]
-            eprintln!("[GET_SESSION_INFO] ❌ Failed to lock app state: {}", e);
+            eprintln!("[GET_SESSION_INFO] ❌ Failed to lock app state: {}", _e);
             return None;
         }
     };
@@ -56,9 +56,9 @@ pub fn get_session_info(state: State<'_, Mutex<AppState>>) -> Option<SessionInfo
         Some(start_time) => {
             let elapsed = start_time.elapsed();
             let elapsed_ms = elapsed.as_millis() as u64;
-            let elapsed_minutes = elapsed_ms / (1000 * 60);
+            let _elapsed_minutes = elapsed_ms / (1000 * 60);
             #[cfg(debug_assertions)]
-            println!("[GET_SESSION_INFO] ✅ Session info retrieved: {}ms ({} minutes)", elapsed_ms, elapsed_minutes);
+            println!("[GET_SESSION_INFO] ✅ Session info retrieved: {}ms ({} minutes)", elapsed_ms, _elapsed_minutes);
             Some(SessionInfo {
                 elapsed_ms,
                 session_id,

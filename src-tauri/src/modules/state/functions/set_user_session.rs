@@ -14,14 +14,14 @@ pub fn set_user_session(state: State<Mutex<AppState>>, session: SessionData) -> 
         .lock()
         .map_err(|e| format!("Failed to lock app state: {}", e))?;
     
-    let user_id = session.user_id.clone();
+    let _user_id = session.user_id.clone();
     app_state.session_data = Some(session.clone());
 
     #[cfg(debug_assertions)]
     println!(
         "{}🔐 User session set for user_id: {}",
         get_tracker_prefix(),
-        user_id
+        _user_id
     );
 
     Ok(())
