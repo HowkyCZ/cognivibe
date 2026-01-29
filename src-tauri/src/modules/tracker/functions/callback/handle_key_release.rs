@@ -33,7 +33,7 @@ fn check_window_switch_completion(released_key: rdev::Key) {
                 };
 
                 if should_log {
-                    let _switch_type = state.window_switch_type.clone();
+                    let switch_type = state.window_switch_type.clone();
                     state.window_switch_detected = false;
                     state.window_switch_type.clear();
 
