@@ -201,6 +201,24 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     + app_state.mouse_data.wheel_scroll_events
                                     + app_state.mouse_data.move_events;
 
+                                // Skip logging zero-activity minutes (no user interaction)
+                                // But still reset counters and update last_logged_minute
+                                if active_event_count == 0 {
+                                    #[cfg(debug_assertions)]
+                                    println!(
+                                        "{}⏭️ Skipping zero-activity minute (no events recorded)",
+                                        get_tracker_prefix()
+                                    );
+                                    // Still reset counters even if we skip logging
+                                    reset_counters(&mut app_state);
+                                    // Update last_logged_minute to prevent duplicate logging
+                                    // Note: We need to drop the lock before continuing
+                                    last_logged_minute = Some(current_minute);
+                                    // Drop the lock before continuing the loop
+                                    drop(app_state);
+                                    continue;
+                                }
+
                                 let minute_timestamp = format!(
                                     "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",
                                     now.year(),

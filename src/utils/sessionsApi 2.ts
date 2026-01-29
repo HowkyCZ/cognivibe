@@ -1,5 +1,4 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { invoke } from "@tauri-apps/api/core";
 import { getApiBaseUrl } from "./apiConfig";
 import { createSupabaseClient } from "./createSupabaseClient";
 
@@ -272,24 +271,6 @@ export async function endSessionWithSurvey(
     console.log("[SESSION] Response data:", result);
 
     if (!response.ok) {
-      // Handle already-ended sessions gracefully
-      if (response.status === 400 && result.error === "Session already ended") {
-        console.warn("[SESSION] ⚠️ Session already ended, clearing state anyway");
-        // Clear session state even if session was already ended
-        try {
-          await invoke("clear_session_state");
-          console.log("[SESSION] ✅ Session state cleared after already-ended session");
-        } catch (clearError) {
-          console.warn("[SESSION] ⚠️ Failed to clear session state:", clearError);
-        }
-        // Return a success-like response so frontend can proceed
-        return {
-          success: true,
-          message: "Session was already ended",
-          data: result.data,
-        };
-      }
-      
       console.error("[SESSION] ❌ HTTP error response:", {
         status: response.status,
         error: result.error,
@@ -312,15 +293,6 @@ export async function endSessionWithSurvey(
       session_id: result.data?.session_id,
       length: result.data?.length,
     });
-
-    // Clear session state in Rust backend
-    try {
-      await invoke("clear_session_state");
-      console.log("[SESSION] ✅ Session state cleared in backend");
-    } catch (clearError) {
-      console.warn("[SESSION] ⚠️ Failed to clear session state in backend:", clearError);
-      // Don't throw - session was ended successfully, clearing state is best effort
-    }
 
     return result;
   } catch (error) {
