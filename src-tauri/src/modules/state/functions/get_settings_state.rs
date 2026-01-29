@@ -20,6 +20,13 @@ use crate::modules::state::AppState;
 /// # Returns
 /// A clone of the current AppSettings structure
 pub fn get_settings_state(state: State<'_, Mutex<AppState>>) -> AppSettings {
-    let state = state.lock().unwrap();
-    state.settings.clone()
+    match state.lock() {
+        Ok(state) => state.settings.clone(),
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("⚠️ Failed to lock app state when getting settings: {}", e);
+            // Return default settings as safe fallback
+            AppSettings::default()
+        }
+    }
 }

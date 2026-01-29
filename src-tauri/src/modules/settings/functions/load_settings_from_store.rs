@@ -43,12 +43,14 @@ pub fn load_settings_from_store(app: &AppHandle) -> AppSettings {
                     #[cfg(debug_assertions)]
                     println!("{}No settings found, creating defaults", get_settings_prefix());
                     let default_settings = AppSettings::default();
-                    // Save default settings to store
-                    store.set(
-                        "app_settings",
-                        serde_json::to_value(&default_settings).unwrap(),
-                    );
-                    let _ = store.save();
+                    // Save default settings to store (ignore errors - defaults are fine)
+                    if let Ok(settings_value) = serde_json::to_value(&default_settings) {
+                        store.set("app_settings", settings_value);
+                        let _ = store.save();
+                    } else {
+                        #[cfg(debug_assertions)]
+                        eprintln!("{}⚠️ Failed to serialize default settings, continuing without saving", get_settings_prefix());
+                    }
                     default_settings
                 }
             }

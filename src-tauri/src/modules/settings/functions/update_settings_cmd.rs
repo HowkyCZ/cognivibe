@@ -29,7 +29,8 @@ pub fn update_settings_cmd(
     settings: AppSettings,
 ) -> Result<(), String> {
     {
-        let mut app_state = state.lock().unwrap();
+        let mut app_state = state.lock()
+            .map_err(|e| format!("Failed to lock app state: {}", e))?;
         app_state.settings = settings.clone();
         
         #[cfg(debug_assertions)]
@@ -40,7 +41,9 @@ pub fn update_settings_cmd(
     let store = app
         .store("settings.json")
         .map_err(|e| format!("Failed to get store: {}", e))?;
-    store.set("app_settings", serde_json::to_value(settings).unwrap());
+    let settings_value = serde_json::to_value(settings)
+        .map_err(|e| format!("Failed to serialize settings: {}", e))?;
+    store.set("app_settings", settings_value);
     store
         .save()
         .map_err(|e| format!("Failed to save store: {}", e))?;

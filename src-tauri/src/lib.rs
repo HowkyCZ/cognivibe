@@ -99,18 +99,26 @@ pub fn run() -> () {
 
             // Update app state with loaded settings
             {
-                let mut state = app_state.lock().unwrap();
-                state.settings = settings.clone();
+                match app_state.lock() {
+                    Ok(mut state) => {
+                        state.settings = settings.clone();
 
-                // Auto-start measuring if configured
-                if settings.should_autostart_measuring {
-                    #[cfg(debug_assertions)]
-                    println!(
-                        "{}Auto-starting measurement as configured",
-                        get_init_prefix()
-                    );
-                    state.is_measuring = true;
-                    state.is_first_minute = true;
+                        // Auto-start measuring if configured
+                        if settings.should_autostart_measuring {
+                            #[cfg(debug_assertions)]
+                            println!(
+                                "{}Auto-starting measurement as configured",
+                                get_init_prefix()
+                            );
+                            state.is_measuring = true;
+                            state.is_first_minute = true;
+                        }
+                    }
+                    Err(e) => {
+                        #[cfg(debug_assertions)]
+                        eprintln!("{}⚠️ Failed to lock app state during setup: {}", get_init_prefix(), e);
+                        // Continue anyway - state will have defaults
+                    }
                 }
             }
 
