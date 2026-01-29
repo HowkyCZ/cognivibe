@@ -121,7 +121,6 @@ const WideInactiveView = () => (
 const GradientCard = () => {
   const [cardWidth, setCardWidth] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [devToggleActive, setDevToggleActive] = useState<boolean | null>(null);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -136,9 +135,6 @@ const GradientCard = () => {
   
   // Debug: log the card width
   console.log("GradientCard width:", cardWidth, "isWide:", isWide);
-  
-  // Use dev toggle if set, otherwise use actual session state
-  const displayIsSessionActive = devToggleActive !== null ? devToggleActive : isSessionActive;
 
   // Calculate session minutes from elapsed time
   const sessionMinutes = sessionInfo
@@ -216,12 +212,7 @@ const GradientCard = () => {
   }, []);
 
   // Dynamic opacity based on session state
-  const opacity = displayIsSessionActive ? 0.75 : 0.3;
-
-  // Click handler to toggle active/inactive state (for local development)
-  const handleCardClick = () => {
-    setDevToggleActive((prev) => (prev === null ? !isSessionActive : !prev));
-  };
+  const opacity = isSessionActive ? 0.75 : 0.3;
 
   // Handle START button click - open questionnaire modal
   const handleStartClick = () => {
@@ -278,7 +269,6 @@ const GradientCard = () => {
       console.log("[GRADIENT_CARD] Resetting session state");
       setSessionInfo(null);
       setIsSessionActive(false);
-      setDevToggleActive(null);
     } catch (error) {
       console.error("[GRADIENT_CARD] ❌ Failed to submit questionnaire:", error);
       if (error instanceof Error) {
@@ -293,11 +283,11 @@ const GradientCard = () => {
 
   // Render the appropriate view based on width and session state
   const renderContent = () => {
-    if (isWide && displayIsSessionActive) {
+    if (isWide && isSessionActive) {
       return <WideActiveView onStartClick={handleStartClick} />;
-    } else if (isWide && !displayIsSessionActive) {
+    } else if (isWide && !isSessionActive) {
       return <WideInactiveView />;
-    } else if (!isWide && displayIsSessionActive) {
+    } else if (!isWide && isSessionActive) {
       return <NarrowActiveView onStartClick={handleStartClick} />;
     } else {
       return <NarrowInactiveView />;
@@ -318,9 +308,7 @@ const GradientCard = () => {
 
         {/* Gradient Card - increased height (~76%, flex-1 takes remaining space) */}
         <Card 
-          className="w-full flex-1 bg-content1 border border-white/10 hover:border-white/15 transition-colors relative overflow-hidden cursor-pointer"
-          isPressable
-          onPress={handleCardClick}
+          className="w-full flex-1 bg-content1 border border-white/10 hover:border-white/15 transition-colors relative overflow-hidden"
         >
           {/* Gradient overlay */}
           <div

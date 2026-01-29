@@ -18,7 +18,6 @@ pub struct LogData {
     pub keyboard_key_ups_count: u32,
     pub mouse_move_distance: f64,
     pub mouse_scroll_distance: f64,
-    pub app_switch_count: u32,
     pub window_change_count: u32,
     pub backspace_count: u32,
     pub active_event_count: u32,
