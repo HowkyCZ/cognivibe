@@ -22,19 +22,6 @@ function isTauriRuntime(): boolean {
   return Boolean(w.__TAURI__ || w.__TAURI_INTERNALS__);
 }
 
-function withTimeout<T>(
-  promise: Promise<T>,
-  ms: number,
-  errorMsg: string
-): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(errorMsg)), ms)
-    ),
-  ]);
-}
-
 function hashStringToU32(input: string): number {
   // FNV-1a 32-bit
   let h = 0x811c9dc5;
@@ -351,6 +338,7 @@ export async function endSessionWithSurvey(
 /**
  * Fetches sessions for a given date range.
  * Returns completed sessions with their cognitive load scores and category breakdown.
+ * Uses a Rust Tauri command for reliable HTTP handling (avoiding Tauri HTTP plugin issues).
  *
  * @param startDate - Start date in YYYY-MM-DD format
  * @param endDate - End date in YYYY-MM-DD format
@@ -362,7 +350,6 @@ export async function fetchSessions(
 ): Promise<FetchSessionsResponse> {
   console.log("[SESSION] Starting fetchSessions", { startDate, endDate });
   const useMock = envTruthy(import.meta.env.VITE_USE_MOCK_DATA);
-  const isDev = import.meta.env.DEV;
 
   // If mock mode is enabled, use mock data directly (skip API call)
   if (useMock) {
@@ -381,101 +368,32 @@ export async function fetchSessions(
     };
   }
 
-  // In development, use mock data if API fails or returns empty
-  const shouldUseMockFallback = isDev;
-
   try {
-    return await withTimeout(
-      (async (): Promise<FetchSessionsResponse> => {
-        console.log("[SESSION] Step 1: Getting auth session...");
-        const supabase = createSupabaseClient();
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+    console.log("[SESSION] Invoking Tauri command fetch_sessions_cmd...");
+    const response = await invoke<FetchSessionsResponse>("fetch_sessions_cmd", {
+      startDate,
+      endDate,
+    });
 
-        if (!session) {
-          console.error("[SESSION] ❌ No session found - authentication required");
-          return {
-            success: false,
-            message: "Authentication required",
-            data: [],
-            error: "Authentication required. Please log in again.",
-          };
-        }
+    console.log("[SESSION] ✅ Sessions fetched successfully:", {
+      success: response.success,
+      count: response.data?.length || 0,
+    });
 
-        console.log("[SESSION] ✅ Session found, fetching sessions");
-
-        const baseUrl = getApiBaseUrl();
-        const url = `${baseUrl}/api/sessions?start_date=${startDate}&end_date=${endDate}`;
-
-        console.log("[SESSION] Step 2: Making API request...");
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-        console.log("[SESSION] Response received, status:", response.status, response.statusText);
-
-        console.log("[SESSION] Step 3: Parsing response...");
-        const result = await response.json();
-        console.log("[SESSION] Response data:", {
-          success: result.success,
-          count: result.data?.length || 0,
-        });
-
-        if (!response.ok) {
-          console.error("[SESSION] ❌ HTTP error response:", {
-            status: response.status,
-            error: result.error,
-          });
-          if (shouldUseMockFallback) {
-            console.log("[SESSION] Falling back to mock data due to HTTP error");
-            return generateMockSessions(startDate, endDate);
-          }
-          return {
-            success: false,
-            message: result.message || "Failed to fetch sessions",
-            data: [],
-            error: result.error || `HTTP error! status: ${response.status}`,
-          };
-        }
-
-        if (shouldUseMockFallback && (!result.data || result.data.length === 0)) {
-          console.log("[SESSION] API returned empty array, using mock data instead");
-          return generateMockSessions(startDate, endDate);
-        }
-
-        console.log("[SESSION] ✅ Sessions fetched successfully:", {
-          count: result.data?.length || 0,
-        });
-
-        return {
-          success: true,
-          message: result.message || "Sessions retrieved successfully",
-          data: result.data || [],
-        };
-      })(),
-      10000,
-      "Sessions fetch timeout after 10 seconds"
-    );
+    return response;
   } catch (error) {
-    console.error("[SESSION] ❌ Exception in fetchSessions:", error);
+    console.error("[SESSION] ❌ Failed to fetch sessions:", error);
     if (error instanceof Error) {
       console.error("[SESSION] Error details:", {
         message: error.message,
         stack: error.stack,
       });
     }
-    if (shouldUseMockFallback) {
-      console.log("[SESSION] Falling back to mock data due to error");
-      return generateMockSessions(startDate, endDate);
-    }
     return {
       success: false,
       message: "Failed to fetch sessions",
       data: [],
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 }
