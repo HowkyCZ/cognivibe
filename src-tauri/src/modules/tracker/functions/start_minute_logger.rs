@@ -86,12 +86,12 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                     get_tracker_prefix()
                                                 );
                                             }
-                                            Err(e) => {
+                                            Err(_e) => {
                                                 #[cfg(debug_assertions)]
                                                 eprintln!(
                                                     "{}❌ Failed to end session: {}",
                                                     get_tracker_prefix(),
-                                                    e
+                                                    _e
                                                 );
                                             }
                                         }
@@ -168,12 +168,12 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                             );
                                             Some(new_session_id)
                                         }
-                                        Err(e) => {
+                                        Err(_e) => {
                                             #[cfg(debug_assertions)]
                                             eprintln!(
                                                 "{}❌ Failed to create session: {}",
                                                 get_tracker_prefix(),
-                                                e
+                                                _e
                                             );
                                             #[cfg(debug_assertions)]
                                             eprintln!(
@@ -287,12 +287,12 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 timestamp_for_log
                                             );
                                         }
-                                        Err(e) => {
+                                        Err(_e) => {
                                             #[cfg(debug_assertions)]
                                             eprintln!(
                                                 "{}❌ Failed to upload tracking data: {}",
                                                 get_tracker_prefix(),
-                                                e
+                                                _e
                                             );
                                         }
                                     }

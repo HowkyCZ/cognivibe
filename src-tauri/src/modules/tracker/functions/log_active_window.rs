@@ -1,6 +1,6 @@
 #[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
-use active_win_pos_rs::{get_active_window, ActiveWindow};
+use active_win_pos_rs::get_active_window;
 use crate::modules::state::CategoryChangeEvent;
 use crate::modules::tracker::functions::search_app_directory::{search_app_directory, extract_domain_from_browser_title};
 use std::path::PathBuf;
@@ -141,12 +141,12 @@ fn log_active_window() {
                                 }
                             }
                         }
-                        Err(e) => {
+                        Err(_e) => {
                             #[cfg(debug_assertions)]
                             eprintln!(
                                 "{}Failed to search app directory: {}",
                                 get_tracker_prefix(),
-                                e
+                                _e
                             );
                             // On error, default to "Other"
                             if let Ok(mut state) = app_handle_clone.state::<std::sync::Mutex<crate::modules::state::AppState>>().lock() {
@@ -182,12 +182,12 @@ fn log_active_window() {
                 }
             }
         }
-        Err(e) => {
+        Err(_e) => {
             #[cfg(debug_assertions)]
             println!(
                 "{}Failed to get active window (if macOS, then grant screen recording permissions): {:?}",
                 get_tracker_prefix(),
-                e
+                _e
             );
         }
     }

@@ -2,8 +2,9 @@ use std::sync::Mutex;
 use tauri::Emitter;
 use tauri::Manager;
 
-use dotenv::{dotenv, from_filename};
-use std::env;
+use dotenv::dotenv;
+#[cfg(debug_assertions)]
+use dotenv::from_filename;
 
 mod modules;
 
@@ -19,7 +20,7 @@ use modules::utils::focus_main_window;
 #[cfg(debug_assertions)]
 use modules::utils::{focus_main_window, get_init_prefix};
 
-pub fn run() {
+pub fn run() -> () {
     let builder = tauri::Builder::default();
 
     dotenv().ok();
