@@ -33,9 +33,9 @@ pub fn load_settings_from_store(app: &AppHandle) -> AppSettings {
                         println!("{}Loaded settings from store: {:?}", get_settings_prefix(), settings);
                         settings
                     }
-                    Err(e) => {
+                    Err(_e) => {
                         #[cfg(debug_assertions)]
-                        println!("{}Failed to parse settings, using defaults: {}", get_settings_prefix(), e);
+                        println!("{}Failed to parse settings, using defaults: {}", get_settings_prefix(), _e);
                         AppSettings::default()
                     }
                 },
@@ -53,9 +53,9 @@ pub fn load_settings_from_store(app: &AppHandle) -> AppSettings {
                 }
             }
         }
-        Err(e) => {
+        Err(_e) => {
             #[cfg(debug_assertions)]
-            println!("{}Failed to get store, using defaults: {}", get_settings_prefix(), e);
+            println!("{}Failed to get store, using defaults: {}", get_settings_prefix(), _e);
             AppSettings::default()
         }
     }

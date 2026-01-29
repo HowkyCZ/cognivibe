@@ -46,12 +46,12 @@ pub fn setup_deep_link_handlers(app: &AppHandle) -> Result<(), Box<dyn std::erro
             .map(|url| url.to_string())
             .collect();
 
-        if let Some(url) = cognivibe_urls.first() {
+        if let Some(_url) = cognivibe_urls.first() {
             #[cfg(debug_assertions)]
             println!(
                 "{}Processing cognivibe deep link: {}",
                 get_deeplinks_prefix(),
-                url
+                _url
             );
 
             // Focus the main window

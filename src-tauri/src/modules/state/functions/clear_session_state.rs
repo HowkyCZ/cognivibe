@@ -13,14 +13,14 @@ pub fn clear_session_state(state: State<Mutex<AppState>>) -> Result<(), String> 
         .lock()
         .map_err(|e| format!("Failed to lock app state: {}", e))?;
     
-    let had_session = app_state.current_session_id.is_some();
+    let _had_session = app_state.current_session_id.is_some();
     
     app_state.current_session_id = None;
     app_state.last_activity_time = None;
     app_state.session_start_time = None;
 
     #[cfg(debug_assertions)]
-    if had_session {
+    if _had_session {
         println!(
             "{}🧹 Session state cleared (session_id, start_time, last_activity_time reset)",
             get_tracker_prefix()
