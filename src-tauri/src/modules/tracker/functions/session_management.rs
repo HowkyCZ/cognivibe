@@ -10,6 +10,15 @@ struct CreateSessionResponse {
     timestamp_start: String,
 }
 
+/// Response from stale session cleanup API
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CleanupStaleResponse {
+    pub success: bool,
+    pub message: String,
+    pub total_checked: i64,
+    pub sessions_ended: i64,
+}
+
 /// Creates a new session on the server
 ///
 /// This function sends a request to the backend to create a new session
@@ -165,4 +174,90 @@ pub async fn end_session(
     println!("[SESSION_MGMT] ✅ Session ended successfully");
 
     Ok(())
+}
+
+/// Cleans up stale sessions on the server
+///
+/// This function calls the server endpoint to find and end any sessions
+/// that have been inactive for too long. Sessions are ended with their
+/// timestamp_end set to the last activity time, not the current time.
+///
+/// This should be called:
+/// - When the app starts measuring (to clean up sessions from previous runs)
+/// - When the user logs in
+pub async fn cleanup_stale_sessions(
+    access_token: String,
+) -> Result<CleanupStaleResponse, String> {
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] 🧹 Checking for stale sessions to clean up...");
+
+    // Get server URL using the helper function
+    let server_url = match get_api_base_url() {
+        Ok(url) => {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_MGMT] ✅ API base URL retrieved: {}", url);
+            url
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[SESSION_MGMT] ❌ Failed to get API base URL: {}", e);
+            return Err(format!("Failed to get API base URL: {}", e));
+        }
+    };
+    
+    let cleanup_url = format!("{}/api/sessions/cleanup-stale", server_url);
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] POST URL: {}", cleanup_url);
+
+    // Create the HTTP client and send request
+    let client = reqwest::Client::new();
+    #[cfg(debug_assertions)]
+    println!("[SESSION_MGMT] Sending POST request to cleanup stale sessions...");
+    
+    let response = match client
+        .post(&cleanup_url)
+        .bearer_auth(&access_token)
+        .send()
+        .await
+    {
+        Ok(resp) => {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_MGMT] ✅ Request sent successfully, status: {}", resp.status());
+            resp
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[SESSION_MGMT] ❌ HTTP request failed: {}", e);
+            return Err(format!("HTTP request failed: {}", e));
+        }
+    };
+
+    // Check response status
+    let status = response.status();
+    if !status.is_success() {
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+        #[cfg(debug_assertions)]
+        eprintln!("[SESSION_MGMT] ❌ Server returned error {}: {}", status, error_text);
+        return Err(format!("Server returned error {}: {}", status, error_text));
+    }
+
+    // Parse response
+    let cleanup_response: CleanupStaleResponse = match response.json::<CleanupStaleResponse>().await {
+        Ok(resp) => {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_MGMT] ✅ Stale session cleanup complete: {} checked, {} ended", 
+                resp.total_checked, resp.sessions_ended);
+            resp
+        }
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[SESSION_MGMT] ❌ Failed to parse response: {}", e);
+            return Err(format!("Failed to parse response: {}", e));
+        }
+    };
+
+    Ok(cleanup_response)
 }

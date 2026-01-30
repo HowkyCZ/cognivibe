@@ -56,3 +56,34 @@ pub struct ProductivityTimeResponse {
     pub date: String,
     pub data: std::collections::HashMap<String, u64>,
 }
+
+// Sessions API types
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SessionData {
+    pub id: String,
+    pub timestamp_start: String,
+    pub timestamp_end: String,
+    pub length: i64,
+    pub score_total: Option<f64>,
+    pub category_share: std::collections::HashMap<String, f64>,
+    // Actual activity timestamps from behavioral_metrics_log (MIN/MAX of minute_timestamp)
+    // These represent when user activity actually occurred, not session creation/end times
+    #[serde(default)]
+    pub activity_start: Option<String>,
+    #[serde(default)]
+    pub activity_end: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SessionsResponse {
+    pub success: bool,
+    pub message: String,
+    pub data: Vec<SessionData>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SessionsApiResponse {
+    pub success: bool,
+    pub message: String,
+    pub data: Vec<SessionData>,
+}

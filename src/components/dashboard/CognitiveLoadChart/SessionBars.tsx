@@ -20,6 +20,10 @@ interface SessionData {
   length: number;
   score_total: number | null;
   category_share: Record<string, number>;
+  // Actual activity timestamps from behavioral_metrics_log
+  // Use these for rendering to show actual work periods, not session creation times
+  activity_start: string | null;
+  activity_end: string | null;
 }
 
 interface SessionBarsProps {
@@ -223,11 +227,18 @@ const SessionBars: React.FC<SessionBarsProps> = ({
 
     const result = sessions
       .map((session, idx) => {
-        const startMs = parseTimestampMs(session.timestamp_start);
-        const endMs = parseTimestampMs(session.timestamp_end);
+        // Prefer activity timestamps (actual work period) over session timestamps
+        // Activity timestamps represent when user actually worked, not when session was created/ended
+        const startTimestamp = session.activity_start || session.timestamp_start;
+        const endTimestamp = session.activity_end || session.timestamp_end;
+        
+        const startMs = parseTimestampMs(startTimestamp);
+        const endMs = parseTimestampMs(endTimestamp);
 
         if (startMs === null || endMs === null) {
           console.log(`[SESSION_BARS] Session ${idx}: Failed to parse timestamps`, {
+            activity_start: session.activity_start,
+            activity_end: session.activity_end,
             timestamp_start: session.timestamp_start,
             timestamp_end: session.timestamp_end,
           });
@@ -246,8 +257,11 @@ const SessionBars: React.FC<SessionBarsProps> = ({
         );
 
         console.log(`[SESSION_BARS] Session ${idx}:`, {
-          start: session.timestamp_start,
-          end: session.timestamp_end,
+          usingActivityTimestamps: !!(session.activity_start && session.activity_end),
+          effectiveStart: startTimestamp,
+          effectiveEnd: endTimestamp,
+          sessionStart: session.timestamp_start,
+          sessionEnd: session.timestamp_end,
           leftPercent: leftPercent.toFixed(2),
           widthPercent: widthPercent.toFixed(2),
           clampedLeft: clampedLeft.toFixed(2),
