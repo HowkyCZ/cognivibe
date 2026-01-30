@@ -66,6 +66,12 @@ pub struct SessionData {
     pub length: i64,
     pub score_total: Option<f64>,
     pub category_share: std::collections::HashMap<String, f64>,
+    // Actual activity timestamps from behavioral_metrics_log (MIN/MAX of minute_timestamp)
+    // These represent when user activity actually occurred, not session creation/end times
+    #[serde(default)]
+    pub activity_start: Option<String>,
+    #[serde(default)]
+    pub activity_end: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

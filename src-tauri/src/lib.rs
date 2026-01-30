@@ -8,7 +8,7 @@ use dotenv::from_filename;
 
 mod modules;
 
-use modules::api::functions::{fetch_batch_scores_cmd, fetch_productivity_time_cmd, fetch_sessions_cmd};
+use modules::api::functions::{backfill_scores_cmd, fetch_batch_scores_cmd, fetch_productivity_time_cmd, fetch_sessions_cmd};
 use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
 use modules::state::{clear_session_state, get_measuring_state, get_session_info, get_settings_state, set_user_session, AppState};
@@ -43,6 +43,7 @@ pub fn run() -> () {
             set_user_session,
             clear_session_state,
             update_settings_cmd,
+            backfill_scores_cmd,
             fetch_batch_scores_cmd,
             fetch_productivity_time_cmd,
             fetch_sessions_cmd

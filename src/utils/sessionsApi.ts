@@ -160,6 +160,9 @@ function generateMockSessions(startDate: string, endDate: string): FetchSessions
         length: durationMinutes * 60, // in seconds
         score_total: scoreTotal,
         category_share: categoryShare,
+        // In mock mode, activity timestamps match session timestamps
+        activity_start: timestampStart.toISOString(),
+        activity_end: timestampEnd.toISOString(),
       });
     }
   }
@@ -193,6 +196,10 @@ export interface SessionData {
   length: number;
   score_total: number | null;
   category_share: Record<string, number>;
+  // Actual activity timestamps from behavioral_metrics_log (MIN/MAX of minute_timestamp)
+  // These represent when user activity actually occurred, not session creation/end times
+  activity_start: string | null;
+  activity_end: string | null;
 }
 
 export interface FetchSessionsResponse {

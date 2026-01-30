@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { fetchBatchScores } from "../utils/batchScoresApi";
+import { useState, useEffect, useRef } from "react";
+import { fetchBatchScores, backfillScores } from "../utils/batchScoresApi";
 import { fetchSessions, SessionData } from "../utils/sessionsApi";
 import { useAuth } from "./useAuth";
 import type { CalendarDate } from "@internationalized/date";
@@ -79,11 +79,15 @@ export const useDashboardData = (
         cognitiveLoadData.length
       : 0;
 
-  const fetchDashboardData = async () => {
+  // Track if we've already attempted backfill for this date to avoid loops
+  const backfillAttemptedRef = useRef<string | null>(null);
+
+  const fetchDashboardData = async (shouldAttemptBackfill = true) => {
     console.log("[USE_DASHBOARD_DATA] Fetching dashboard data...", {
       selectedDate: `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`,
       hasSession: !!session,
       userId: session?.user?.id,
+      shouldAttemptBackfill,
     });
     try {
       setLoading(true);
@@ -175,6 +179,31 @@ export const useDashboardData = (
           setMetricsData([]);
           setCurrentCognitiveLoad(0);
         }
+
+        // Attempt backfill if we have behavioral data but gaps might exist
+        // Only try once per date to avoid infinite loops
+        if (shouldAttemptBackfill && backfillAttemptedRef.current !== formattedDate) {
+          backfillAttemptedRef.current = formattedDate;
+          
+          // Trigger backfill in the background - it will fill any gaps
+          console.log("[USE_DASHBOARD_DATA] Triggering background backfill for:", formattedDate);
+          backfillScores(formattedDate).then((backfillResult) => {
+            if (backfillResult.success && backfillResult.gaps_filled > 0) {
+              console.log("[USE_DASHBOARD_DATA] ✅ Backfill filled", backfillResult.gaps_filled, "gaps, refetching data...");
+              // Refetch data to include newly calculated scores (without triggering another backfill)
+              fetchDashboardData(false);
+            } else {
+              console.log("[USE_DASHBOARD_DATA] Backfill result:", {
+                success: backfillResult.success,
+                gapsFound: backfillResult.gaps_found,
+                gapsFilled: backfillResult.gaps_filled,
+              });
+            }
+          }).catch((err) => {
+            console.warn("[USE_DASHBOARD_DATA] ⚠️ Backfill failed (non-critical):", err);
+            // Don't throw - backfill is a best-effort operation
+          });
+        }
       } else {
         setCognitiveLoadData([]);
         setMissingData([]);
@@ -201,7 +230,17 @@ export const useDashboardData = (
       setLoading(false);
       console.log("[USE_DASHBOARD_DATA] Fetch completed");
     }
-  }; // Load data on mount and when session or selectedDate changes
+  };
+
+  // Reset backfill tracking when date changes
+  useEffect(() => {
+    const formattedDate = `${selectedDate.year}-${String(selectedDate.month).padStart(2, "0")}-${String(selectedDate.day).padStart(2, "0")}`;
+    if (backfillAttemptedRef.current !== formattedDate) {
+      backfillAttemptedRef.current = null;
+    }
+  }, [selectedDate]);
+
+  // Load data on mount and when session or selectedDate changes
   useEffect(() => {
     fetchDashboardData();
   }, [session, selectedDate]);

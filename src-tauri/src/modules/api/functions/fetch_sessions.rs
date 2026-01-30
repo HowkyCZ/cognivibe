@@ -213,13 +213,19 @@ fn generate_mock_sessions(start_date: &str, end_date: &str) -> Result<Vec<Sessio
                 category_share.insert(cat.to_string(), pct);
             }
 
+            let start_str = timestamp_start.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string();
+            let end_str = timestamp_end.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string();
+            
             sessions.push(SessionData {
                 id: format!("{:016x}", hash_unit(&session_seed).to_bits()),
-                timestamp_start: timestamp_start.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string(),
-                timestamp_end: timestamp_end.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string(),
+                timestamp_start: start_str.clone(),
+                timestamp_end: end_str.clone(),
                 length: duration_minutes * 60, // in seconds
                 score_total: Some(score_total),
                 category_share,
+                // In mock mode, activity timestamps match session timestamps
+                activity_start: Some(start_str),
+                activity_end: Some(end_str),
             });
         }
 

@@ -237,8 +237,73 @@ export async function fetchBatchScores(
   }
 }
 
-// Example usage:
-// const scores = await fetchBatchScores(
-//   '2024-01-01',
-//   '2024-01-31'
-// );
+export interface BackfillScoresResponse {
+  success: boolean;
+  message: string;
+  user_id: string;
+  date: string;
+  total_intervals?: number;
+  gaps_found: number;
+  gaps_filled: number;
+  data: any[];
+}
+
+/**
+ * Triggers a backfill to calculate missing cognitive scores for a given date.
+ * This finds gaps where behavioral data exists but cognitive scores don't,
+ * and calculates the missing scores retroactively.
+ * 
+ * @param date - Date in ISO format (e.g., "2024-01-01")
+ * @returns Promise with the backfill response
+ */
+export async function backfillScores(date: string): Promise<BackfillScoresResponse> {
+  console.log("[BACKFILL_API] Triggering backfill for date:", date);
+  const useMock = envTruthy(import.meta.env.VITE_USE_MOCK_DATA);
+
+  // In mock mode, return no gaps (mock data is always complete)
+  if (useMock || !isTauriRuntime()) {
+    console.log("[BACKFILL_API] Mock/web mode - returning no gaps");
+    return {
+      success: true,
+      message: "Mock mode - no backfill needed",
+      user_id: "local-demo-user",
+      date,
+      gaps_found: 0,
+      gaps_filled: 0,
+      data: [],
+    };
+  }
+
+  try {
+    console.log("[BACKFILL_API] Invoking Tauri command backfill_scores_cmd...");
+    const response = await invoke<BackfillScoresResponse>(
+      "backfill_scores_cmd",
+      { date }
+    );
+
+    console.log("[BACKFILL_API] ✅ Backfill completed:", {
+      success: response.success,
+      gapsFound: response.gaps_found,
+      gapsFilled: response.gaps_filled,
+    });
+    return response;
+  } catch (error) {
+    console.error("[BACKFILL_API] ❌ Failed to backfill scores:", error);
+    if (error instanceof Error) {
+      console.error("[BACKFILL_API] Error details:", {
+        message: error.message,
+        stack: error.stack,
+      });
+    }
+    // Return a failure response instead of throwing
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Unknown error",
+      user_id: "",
+      date,
+      gaps_found: 0,
+      gaps_filled: 0,
+      data: [],
+    };
+  }
+}

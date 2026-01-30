@@ -75,7 +75,7 @@ const LazyChart = lazy(() =>
     // Custom component to render single gradient path
     const GradientPath = (props: any) => {
       const { continuousSegments, uniqueId } = props;
-      const { xAxisMap, yAxisMap } = props;
+      const { xAxisMap, yAxisMap, activePayload, isTooltipActive } = props;
       
       if (!xAxisMap || !yAxisMap || !continuousSegments || continuousSegments.length === 0) return null;
 
@@ -86,6 +86,18 @@ const LazyChart = lazy(() =>
 
       const xScale = xAxis.scale;
       const yScale = yAxis.scale;
+
+      // Find active point for rendering activeDot
+      let activeDotPosition: { x: number; y: number } | null = null;
+      if (isTooltipActive && activePayload && activePayload.length > 0) {
+        const activeData = activePayload[0]?.payload;
+        if (activeData && activeData.x != null && activeData.load != null) {
+          activeDotPosition = {
+            x: xScale(activeData.x),
+            y: yScale(activeData.load),
+          };
+        }
+      }
 
       return (
         <g>
@@ -174,6 +186,18 @@ const LazyChart = lazy(() =>
               </g>
             );
           })}
+          {/* Active dot rendered at correct data point position */}
+          {activeDotPosition && (
+            <circle
+              cx={activeDotPosition.x}
+              cy={activeDotPosition.y}
+              r={6}
+              fill="#A07CEF"
+              stroke="#fff"
+              strokeWidth={2}
+              style={{ pointerEvents: 'none' }}
+            />
+          )}
         </g>
       );
     };
@@ -327,12 +351,12 @@ const LazyChart = lazy(() =>
             
             {/* Invisible line for tooltip interaction */}
             <recharts.Line
-              type="monotoneX"
+              type="linear"
               dataKey="load"
               stroke="transparent"
               strokeWidth={20}
               dot={false}
-              activeDot={{ r: 6, fill: "#A07CEF" }}
+              activeDot={false}
               connectNulls={false}
               isAnimationActive={false}
             />
@@ -351,6 +375,9 @@ interface SessionData {
   length: number;
   score_total: number | null;
   category_share: Record<string, number>;
+  // Actual activity timestamps from behavioral_metrics_log
+  activity_start: string | null;
+  activity_end: string | null;
 }
 
 interface CognitiveLoadChartProps {
