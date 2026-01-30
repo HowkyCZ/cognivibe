@@ -27,8 +27,8 @@ const QUESTIONS: Record<QuestionId, QuestionDefinition> = {
   oa: {
     id: "oa",
     text: "How manageable was your work in the last X minutes?",
-    leftLabel: "Completely manageable",
-    rightLabel: "Not manageable at all",
+    leftLabel: "Not manageable at all",
+    rightLabel: "Completely manageable",
     isReverse: true,
   },
   ft1: {
