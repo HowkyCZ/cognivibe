@@ -9,7 +9,7 @@ use tauri::{AppHandle, Manager};
 use crate::modules::state::AppState;
 use crate::modules::tracker::functions::upload_data::{upload_tracking_data, LogData};
 use crate::modules::tracker::functions::calculate_majority_category::calculate_majority_category_for_minute;
-use crate::modules::tracker::functions::session_management::{create_session, end_session};
+use crate::modules::tracker::functions::session_management::{create_session, end_session, cleanup_stale_sessions};
 #[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
@@ -134,18 +134,73 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                 let session_user_id = session.user_id.clone();
                                 let session_access_token = session.access_token.clone();
                                 
-                                // Ensure we have an active session before uploading
+                                // IMPORTANT: Calculate active_event_count FIRST, before creating session
+                                // This ensures we don't create sessions for inactive minutes
+                                let active_event_count = app_state.keyboard_data.key_downs
+                                    + app_state.mouse_data.left_clicks
+                                    + app_state.mouse_data.right_clicks
+                                    + app_state.mouse_data.other_clicks
+                                    + app_state.mouse_data.wheel_scroll_events
+                                    + app_state.mouse_data.move_events;
+
+                                // Skip logging zero-activity minutes (no user interaction)
+                                // CRITICAL: This check must happen BEFORE session creation
+                                // to prevent creating sessions when there's no actual activity
+                                if active_event_count == 0 {
+                                    #[cfg(debug_assertions)]
+                                    println!(
+                                        "{}⏭️ Skipping zero-activity minute (no events recorded, no session created)",
+                                        get_tracker_prefix()
+                                    );
+                                    // Still reset counters even if we skip logging
+                                    reset_counters(&mut app_state);
+                                    // Update last_logged_minute to prevent duplicate logging
+                                    last_logged_minute = Some(current_minute);
+                                    // Drop the lock before continuing the loop
+                                    drop(app_state);
+                                    continue;
+                                }
+                                
+                                // Now that we know there's actual activity, ensure we have a session
                                 let session_id = if app_state.current_session_id.is_none() {
                                     #[cfg(debug_assertions)]
                                     println!(
-                                        "{}🚀 No active session found, creating new session...",
+                                        "{}🚀 Activity detected but no session - cleaning up stale sessions and creating new one...",
                                         get_tracker_prefix()
                                     );
-                                    // Create new session
+                                    
                                     let user_id = session_user_id.clone();
                                     let access_token = session_access_token.clone();
                                     
-                                    // Create session synchronously (blocking)
+                                    // First, clean up any stale sessions from previous runs
+                                    // This ensures old sessions are properly ended before starting a new one
+                                    let cleanup_token = access_token.clone();
+                                    let cleanup_result = tauri::async_runtime::block_on(async {
+                                        cleanup_stale_sessions(cleanup_token).await
+                                    });
+                                    
+                                    match cleanup_result {
+                                        Ok(result) => {
+                                            #[cfg(debug_assertions)]
+                                            println!(
+                                                "{}🧹 Stale session cleanup: {} checked, {} ended",
+                                                get_tracker_prefix(),
+                                                result.total_checked,
+                                                result.sessions_ended
+                                            );
+                                        }
+                                        Err(_e) => {
+                                            #[cfg(debug_assertions)]
+                                            eprintln!(
+                                                "{}⚠️ Stale session cleanup failed (continuing anyway): {}",
+                                                get_tracker_prefix(),
+                                                _e
+                                            );
+                                            // Continue anyway - cleanup is best effort
+                                        }
+                                    }
+                                    
+                                    // Now create new session - timestamp_start will be close to actual activity
                                     let session_result = tauri::async_runtime::block_on(async {
                                         create_session(user_id, access_token).await
                                     });
@@ -192,32 +247,6 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     );
                                     app_state.current_session_id.clone()
                                 };
-
-                                // Calculate active_event_count: sum of all events
-                                let active_event_count = app_state.keyboard_data.key_downs
-                                    + app_state.mouse_data.left_clicks
-                                    + app_state.mouse_data.right_clicks
-                                    + app_state.mouse_data.other_clicks
-                                    + app_state.mouse_data.wheel_scroll_events
-                                    + app_state.mouse_data.move_events;
-
-                                // Skip logging zero-activity minutes (no user interaction)
-                                // But still reset counters and update last_logged_minute
-                                if active_event_count == 0 {
-                                    #[cfg(debug_assertions)]
-                                    println!(
-                                        "{}⏭️ Skipping zero-activity minute (no events recorded)",
-                                        get_tracker_prefix()
-                                    );
-                                    // Still reset counters even if we skip logging
-                                    reset_counters(&mut app_state);
-                                    // Update last_logged_minute to prevent duplicate logging
-                                    // Note: We need to drop the lock before continuing
-                                    last_logged_minute = Some(current_minute);
-                                    // Drop the lock before continuing the loop
-                                    drop(app_state);
-                                    continue;
-                                }
 
                                 let minute_timestamp = format!(
                                     "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",

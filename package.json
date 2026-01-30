@@ -10,6 +10,7 @@
     "tauri": "tauri",
     "tauri:dev": "dotenv -e .env.development.local -- tauri dev --config src-tauri/tauri.dev.conf.json",
     "tauri:dev:local-server-remote-supabase": "dotenv -e .env.local-server-remote-supabase.local -- tauri dev --config src-tauri/tauri.dev.conf.json",
+    "tauri:dev:prod": "dotenv -e .env.remote-server-remote-supabase.local -- tauri dev --config src-tauri/tauri.dev.conf.json",
     "tauri:build": "dotenv -e .env.production.local -- tauri build",
     "tauri:build:production": "dotenv -e .env.production.local -- tauri build",
     "tauri:build:local-server-remote-supabase": "dotenv -e .env.local-server-remote-supabase.local -- tauri build",
