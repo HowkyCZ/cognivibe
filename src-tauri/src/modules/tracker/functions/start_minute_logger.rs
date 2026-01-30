@@ -172,6 +172,11 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     let user_id = session_user_id.clone();
                                     let access_token = session_access_token.clone();
                                     
+                                    // IMPORTANT: Drop the lock before doing async HTTP work to prevent deadlock
+                                    // This allows other threads (e.g., clear_session_state from frontend) to acquire the lock
+                                    // while we're waiting for network requests to complete
+                                    drop(app_state);
+                                    
                                     // First, clean up any stale sessions from previous runs
                                     // This ensures old sessions are properly ended before starting a new one
                                     let cleanup_token = access_token.clone();
@@ -204,6 +209,21 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     let session_result = tauri::async_runtime::block_on(async {
                                         create_session(user_id, access_token).await
                                     });
+                                    
+                                    // Re-acquire the lock to update state
+                                    let mut app_state = match app_handle.state::<Mutex<AppState>>().lock() {
+                                        Ok(state) => state,
+                                        Err(_e) => {
+                                            #[cfg(debug_assertions)]
+                                            eprintln!(
+                                                "{}❌ Failed to re-acquire lock after session creation: {}",
+                                                get_tracker_prefix(),
+                                                _e
+                                            );
+                                            last_logged_minute = Some(current_minute);
+                                            continue;
+                                        }
+                                    };
 
                                     match session_result {
                                         Ok(new_session_id) => {
@@ -221,7 +241,109 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 get_tracker_prefix(),
                                                 new_session_id
                                             );
-                                            Some(new_session_id)
+                                            
+                                            // Now continue with data preparation using the re-acquired lock
+                                            // We need to re-read session data since we dropped the lock
+                                            let session = match &app_state.session_data {
+                                                Some(s) => s,
+                                                None => {
+                                                    #[cfg(debug_assertions)]
+                                                    eprintln!(
+                                                        "{}⚠️ Session data disappeared after re-acquiring lock",
+                                                        get_tracker_prefix()
+                                                    );
+                                                    reset_counters(&mut app_state);
+                                                    last_logged_minute = Some(current_minute);
+                                                    drop(app_state);
+                                                    continue;
+                                                }
+                                            };
+                                            
+                                            let minute_timestamp = format!(
+                                                "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",
+                                                now.year(),
+                                                now.month(),
+                                                now.day(),
+                                                prev_hour,
+                                                prev_minute
+                                            );
+                                            
+                                            // Re-calculate active_event_count (counters might have changed)
+                                            let active_event_count = app_state.keyboard_data.key_downs
+                                                + app_state.mouse_data.left_clicks
+                                                + app_state.mouse_data.right_clicks
+                                                + app_state.mouse_data.other_clicks
+                                                + app_state.mouse_data.wheel_scroll_events
+                                                + app_state.mouse_data.move_events;
+                                            
+                                            // Calculate majority category for the previous minute
+                                            let app_category = {
+                                                let now_instant = std::time::Instant::now();
+                                                let minute_start_instant = now_instant.checked_sub(Duration::from_secs(60))
+                                                    .unwrap_or(now_instant);
+                                                let minute_end_instant = now_instant;
+                                                
+                                                Some(calculate_majority_category_for_minute(
+                                                    &app_state.category_change_history,
+                                                    minute_start_instant,
+                                                    minute_end_instant,
+                                                    app_state.current_app_category.as_ref(),
+                                                ))
+                                            };
+                                            
+                                            let log_data = LogData {
+                                                mouse_left_clicks_count: app_state.mouse_data.left_clicks,
+                                                mouse_right_clicks_count: app_state.mouse_data.right_clicks,
+                                                mouse_other_clicks_count: app_state.mouse_data.other_clicks,
+                                                keyboard_key_downs_count: app_state.keyboard_data.key_downs,
+                                                keyboard_key_ups_count: app_state.keyboard_data.key_ups,
+                                                mouse_move_distance: app_state.mouse_data.total_distance,
+                                                mouse_scroll_distance: app_state.mouse_data.wheel_scroll_distance,
+                                                window_change_count: app_state.window_change_count,
+                                                backspace_count: app_state.keyboard_data.delete_downs,
+                                                active_event_count,
+                                                screen_resolution_multiplier: app_state.screen_resolution_multiplier,
+                                                wheel_scroll_events_count: app_state.mouse_data.wheel_scroll_events,
+                                                minute_timestamp: minute_timestamp.clone(),
+                                                user_id: session.user_id.clone(),
+                                                app_category,
+                                                session_id: Some(new_session_id.clone()),
+                                            };
+                                            
+                                            reset_counters(&mut app_state);
+                                            
+                                            // Spawn async task to upload data
+                                            let app_handle_clone = app_handle.clone();
+                                            #[cfg(debug_assertions)]
+                                            let timestamp_for_log = minute_timestamp.clone();
+                                            tauri::async_runtime::spawn(async move {
+                                                let state = app_handle_clone.state::<Mutex<AppState>>();
+                                                match upload_tracking_data(state, log_data).await {
+                                                    Ok(_) => {
+                                                        if let Ok(mut app_state) = app_handle_clone.state::<Mutex<AppState>>().lock() {
+                                                            app_state.last_activity_time = Some(std::time::Instant::now());
+                                                        }
+                                                        #[cfg(debug_assertions)]
+                                                        println!(
+                                                            "{}✅ Successfully uploaded tracking data for {}",
+                                                            get_tracker_prefix(),
+                                                            timestamp_for_log
+                                                        );
+                                                    }
+                                                    Err(_e) => {
+                                                        #[cfg(debug_assertions)]
+                                                        eprintln!(
+                                                            "{}❌ Failed to upload tracking data: {}",
+                                                            get_tracker_prefix(),
+                                                            _e
+                                                        );
+                                                    }
+                                                }
+                                            });
+                                            
+                                            last_logged_minute = Some(current_minute);
+                                            drop(app_state);
+                                            continue;
                                         }
                                         Err(_e) => {
                                             #[cfg(debug_assertions)]
@@ -235,7 +357,11 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 "{}⚠️ Continuing without session_id - data will not be uploaded",
                                                 get_tracker_prefix()
                                             );
-                                            None // Continue without session_id if creation fails
+                                            // Still reset counters and continue
+                                            reset_counters(&mut app_state);
+                                            last_logged_minute = Some(current_minute);
+                                            drop(app_state);
+                                            continue;
                                         }
                                     }
                                 } else {

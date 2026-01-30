@@ -1,10 +1,11 @@
 import { createRootRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { AppTemplate } from "../components";
+import { useEffect, useState } from "react";
+import { platform } from "@tauri-apps/plugin-os";
+import { AppTemplate, PermissionsWelcomeModal } from "../components";
 import { setupDeepLinkHandler } from "../utils/deepLinkHandler";
 import { isDevMode } from "../utils/constants";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { useMacOSPermissions } from "../hooks";
+import { runMacOSPermissionChecks } from "../hooks/useMacOSPermissions";
 import { useAuth } from "../hooks/useAuth";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
@@ -13,10 +14,23 @@ export const Route = createRootRoute({
   component: () => {
     const navigate = useNavigate();
     const { session } = useAuth();
+    const [showPermissionsModal, setShowPermissionsModal] = useState<
+      boolean | null
+    >(null);
 
     useEffect(() => {
       setupDeepLinkHandler(navigate);
     }, []);
+
+    useEffect(() => {
+      platform().then((p) => setShowPermissionsModal(p === "macos"));
+    }, []);
+
+    useEffect(() => {
+      if (showPermissionsModal === false) {
+        runMacOSPermissionChecks();
+      }
+    }, [showPermissionsModal]);
 
     // Global event listener for session data requests from backend
     useEffect(() => {
@@ -58,11 +72,22 @@ export const Route = createRootRoute({
       };
     }, [session]);
 
-    useMacOSPermissions();
+    const handlePermissionsModalClose = (isOpen: boolean) => {
+      if (!isOpen) {
+        runMacOSPermissionChecks();
+        setShowPermissionsModal(false);
+      }
+    };
 
     return (
       <AppTemplate>
         <Outlet />
+        {showPermissionsModal === true && (
+          <PermissionsWelcomeModal
+            isOpen
+            onOpenChange={handlePermissionsModalClose}
+          />
+        )}
         {isDevMode && <TanStackRouterDevtools />}
       </AppTemplate>
     );
