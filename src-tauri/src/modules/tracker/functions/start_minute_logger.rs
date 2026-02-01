@@ -7,6 +7,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
 use crate::modules::state::AppState;
+use crate::modules::tracker::functions::callback::handle_mouse_move::finalize_mouse_segment;
 use crate::modules::tracker::functions::upload_data::{upload_tracking_data, LogData};
 use crate::modules::tracker::functions::calculate_majority_category::calculate_majority_category_for_minute;
 use crate::modules::tracker::functions::session_management::{create_session, end_session, cleanup_stale_sessions};
@@ -27,7 +28,40 @@ fn reset_counters(app_state: &mut AppState) {
     app_state.keyboard_data.delete_downs = 0;
     app_state.keyboard_data.delete_ups = 0;
     app_state.window_change_count = 0;
-    // Note: screen_resolution_multiplier and last_scroll_event_time are not reset
+    app_state.keyboard_data.pending_key_presses.clear();
+    app_state.keyboard_data.dwell_time_sum_ms = 0.0;
+    app_state.keyboard_data.dwell_time_count = 0;
+    app_state.mouse_data.deviation_sum = 0.0;
+    app_state.mouse_data.overshoot_sum = 0.0;
+    app_state.mouse_data.segment_count = 0;
+    // Note: screen_resolution_multiplier, last_scroll_event_time, current_segment are not reset
+}
+
+/// Compute optional behavioral metrics for the current minute.
+fn behavioral_metrics(app_state: &AppState) -> (Option<f64>, Option<f64>, Option<f64>) {
+    let keystroke_dwell_time = if app_state.keyboard_data.dwell_time_count > 0 {
+        Some(
+            app_state.keyboard_data.dwell_time_sum_ms
+                / app_state.keyboard_data.dwell_time_count as f64,
+        )
+    } else {
+        None
+    };
+    let mouse_deviation = if app_state.mouse_data.segment_count > 0 {
+        Some(
+            app_state.mouse_data.deviation_sum / app_state.mouse_data.segment_count as f64,
+        )
+    } else {
+        None
+    };
+    let mouse_overshoot = if app_state.mouse_data.segment_count > 0 {
+        Some(
+            app_state.mouse_data.overshoot_sum / app_state.mouse_data.segment_count as f64,
+        )
+    } else {
+        None
+    };
+    (keystroke_dwell_time, mouse_deviation, mouse_overshoot)
 }
 
 /// Starts a background thread that logs input tracking data every minute.
@@ -128,12 +162,10 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                             #[cfg(debug_assertions)]
                             log_tracking_table(&app_state, prev_hour, prev_minute);
 
-                            // Prepare log data for upload
-                            if let Some(session) = &app_state.session_data {
-                                // Clone session data before potential mutations
-                                let session_user_id = session.user_id.clone();
-                                let session_access_token = session.access_token.clone();
-                                
+                            // Prepare log data for upload (clone session data first to avoid holding ref during finalize)
+                            let session_user_id = app_state.session_data.as_ref().map(|s| s.user_id.clone());
+                            let session_access_token = app_state.session_data.as_ref().map(|s| s.access_token.clone());
+                            if let (Some(session_user_id), Some(session_access_token)) = (session_user_id, session_access_token) {
                                 // IMPORTANT: Calculate active_event_count FIRST, before creating session
                                 // This ensures we don't create sessions for inactive minutes
                                 let active_event_count = app_state.keyboard_data.key_downs
@@ -211,7 +243,8 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     });
                                     
                                     // Re-acquire the lock to update state
-                                    let mut app_state = match app_handle.state::<Mutex<AppState>>().lock() {
+                                    let state_guard = app_handle.state::<Mutex<AppState>>();
+                                    let mut app_state = match state_guard.lock() {
                                         Ok(state) => state,
                                         Err(_e) => {
                                             #[cfg(debug_assertions)]
@@ -242,10 +275,9 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 new_session_id
                                             );
                                             
-                                            // Now continue with data preparation using the re-acquired lock
-                                            // We need to re-read session data since we dropped the lock
-                                            let session = match &app_state.session_data {
-                                                Some(s) => s,
+                                            // Re-read session user_id (no persistent ref to avoid borrow conflict)
+                                            let session_user_id = match &app_state.session_data {
+                                                Some(s) => s.user_id.clone(),
                                                 None => {
                                                     #[cfg(debug_assertions)]
                                                     eprintln!(
@@ -290,6 +322,12 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                     app_state.current_app_category.as_ref(),
                                                 ))
                                             };
+
+                                            if let Some(seg) = app_state.mouse_data.current_segment.take() {
+                                                finalize_mouse_segment(seg, &mut app_state.mouse_data);
+                                            }
+                                            let (keystroke_dwell_time, mouse_deviation, mouse_overshoot) =
+                                                behavioral_metrics(&app_state);
                                             
                                             let log_data = LogData {
                                                 mouse_left_clicks_count: app_state.mouse_data.left_clicks,
@@ -305,9 +343,12 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 screen_resolution_multiplier: app_state.screen_resolution_multiplier,
                                                 wheel_scroll_events_count: app_state.mouse_data.wheel_scroll_events,
                                                 minute_timestamp: minute_timestamp.clone(),
-                                                user_id: session.user_id.clone(),
+                                                user_id: session_user_id,
                                                 app_category,
                                                 session_id: Some(new_session_id.clone()),
+                                                keystroke_dwell_time,
+                                                mouse_deviation,
+                                                mouse_overshoot,
                                             };
                                             
                                             reset_counters(&mut app_state);
@@ -401,6 +442,12 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     ))
                                 };
 
+                                if let Some(seg) = app_state.mouse_data.current_segment.take() {
+                                    finalize_mouse_segment(seg, &mut app_state.mouse_data);
+                                }
+                                let (keystroke_dwell_time, mouse_deviation, mouse_overshoot) =
+                                    behavioral_metrics(&app_state);
+
                                 let log_data = LogData {
                                     mouse_left_clicks_count: app_state.mouse_data.left_clicks,
                                     mouse_right_clicks_count: app_state.mouse_data.right_clicks,
@@ -420,6 +467,9 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     user_id: session_user_id.clone(),
                                     app_category,
                                     session_id: session_id.clone(),
+                                    keystroke_dwell_time,
+                                    mouse_deviation,
+                                    mouse_overshoot,
                                 };
 
                                 // Spawn async task to upload data

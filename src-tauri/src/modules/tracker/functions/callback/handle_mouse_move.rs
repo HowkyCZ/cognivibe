@@ -1,5 +1,58 @@
 use super::shared_utils::modify_state;
+use crate::modules::tracker::types::MouseSegment;
 use std::time::Instant;
+
+const SEGMENT_IDLE_MS: u128 = 150;
+
+/// Average perpendicular distance from points to the straight line (start -> end), in pixels.
+fn calc_deviation(start: &(f64, f64), end: &(f64, f64), points: &[(f64, f64)]) -> f64 {
+    let (x1, y1) = *start;
+    let (x2, y2) = *end;
+    let line_len = ((x2 - x1).powi(2) + (y2 - y1).powi(2)).sqrt();
+    if line_len < 1.0 {
+        return 0.0;
+    }
+    let total: f64 = points
+        .iter()
+        .map(|(px, py)| ((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1).abs() / line_len)
+        .sum();
+    total / points.len() as f64
+}
+
+/// Backward movement (away from end point) in the last portion of the trajectory, in pixels.
+fn calc_overshoot(points: &[(f64, f64)]) -> f64 {
+    if points.len() < 5 {
+        return 0.0;
+    }
+    let end = points.last().unwrap();
+    let check_count = std::cmp::max(3, points.len() / 5);
+    let start_idx = points.len() - check_count;
+    let mut reversal = 0.0;
+    for i in start_idx..points.len().saturating_sub(1) {
+        let d1 = ((points[i].0 - end.0).powi(2) + (points[i].1 - end.1).powi(2)).sqrt();
+        let d2 = ((points[i + 1].0 - end.0).powi(2) + (points[i + 1].1 - end.1).powi(2)).sqrt();
+        if d2 > d1 {
+            reversal += d2 - d1;
+        }
+    }
+    reversal
+}
+
+/// Finalize a mouse segment and add its deviation/overshoot to mouse_data sums.
+/// Call this when a segment ends (e.g. at minute boundary) to include it in the current minute.
+pub fn finalize_mouse_segment(seg: MouseSegment, mouse_data: &mut crate::modules::tracker::types::MouseData) {
+    if seg.points.len() >= 5 {
+        let end = *seg.points.last().unwrap();
+        let dist = ((end.0 - seg.start.0).powi(2) + (end.1 - seg.start.1).powi(2)).sqrt();
+        if dist >= 20.0 {
+            let deviation = calc_deviation(&seg.start, &end, &seg.points);
+            let overshoot = calc_overshoot(&seg.points);
+            mouse_data.deviation_sum += deviation;
+            mouse_data.overshoot_sum += overshoot;
+            mouse_data.segment_count += 1;
+        }
+    }
+}
 
 /// Handle mouse movement events with gating
 /// Events within 200ms are counted as a single move event (for active_sd calculation)
@@ -50,5 +103,35 @@ pub fn handle_mouse_move(x: f64, y: f64) {
         // Update last position (always, regardless of gating)
         mouse_data.last_x = x;
         mouse_data.last_y = y;
+
+        // Movement segmentation for deviation/overshoot
+        let is_new_segment = match mouse_data.last_segment_time {
+            Some(t) => now.duration_since(t).as_millis() >= SEGMENT_IDLE_MS,
+            None => true,
+        };
+
+        if is_new_segment {
+            if let Some(seg) = mouse_data.current_segment.take() {
+                if seg.points.len() >= 5 {
+                    let end = *seg.points.last().unwrap();
+                    let dist =
+                        ((end.0 - seg.start.0).powi(2) + (end.1 - seg.start.1).powi(2)).sqrt();
+                    if dist >= 20.0 {
+                        let deviation = calc_deviation(&seg.start, &end, &seg.points);
+                        let overshoot = calc_overshoot(&seg.points);
+                        mouse_data.deviation_sum += deviation;
+                        mouse_data.overshoot_sum += overshoot;
+                        mouse_data.segment_count += 1;
+                    }
+                }
+            }
+            mouse_data.current_segment = Some(MouseSegment {
+                start: (x, y),
+                points: vec![(x, y)],
+            });
+        } else if let Some(ref mut seg) = mouse_data.current_segment {
+            seg.points.push((x, y));
+        }
+        mouse_data.last_segment_time = Some(now);
     });
 }
