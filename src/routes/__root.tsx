@@ -23,7 +23,8 @@ export const Route = createRootRoute({
     }, []);
 
     useEffect(() => {
-      platform().then((p) => setShowPermissionsModal(p === "macos"));
+      const p = platform();
+      setShowPermissionsModal(p === "macos");
     }, []);
 
     useEffect(() => {
