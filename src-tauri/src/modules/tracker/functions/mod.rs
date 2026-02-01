@@ -1,10 +1,12 @@
 pub mod calculate_majority_category;
 pub mod callback;
+pub mod check_extreme_zscore;
 pub mod get_is_measuring;
 pub mod log_active_window;
 pub mod reset_input_data;
 pub mod search_app_directory;
 pub mod session_management;
+pub mod session_notifications;
 pub mod start_global_input_tracker;
 pub mod start_minute_logger;
 pub mod toggle_measuring;

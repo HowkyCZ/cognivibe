@@ -10,7 +10,7 @@ import {
   IconSettingsFilled,
   IconHelpCircleFilled,
   IconLogout,
-  IconBrain,
+  IconUser,
 } from "@tabler/icons-react";
 import { useAuth, useUserData } from "../../hooks";
 
@@ -63,7 +63,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   src={avatarSrc}
                   color="primary"
                   className="select-none"
-                  fallback={<IconBrain size={24} />}
+                  fallback={<IconUser size={24} />}
                 />
                 <div className="flex flex-col">
                   <p className="text-base font-medium">
@@ -97,7 +97,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
                 {/* <Button
                   variant="flat"
-                  startContent={<IconBrain className="h-5 w-5" />}
+                  startContent={<IconUser className="h-5 w-5" />}
                   className="justify-start h-12"
                   onPress={() => {
                     window.open("https://cognivibe.com/research", "_blank");

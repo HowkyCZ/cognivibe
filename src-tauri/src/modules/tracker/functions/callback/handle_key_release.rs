@@ -74,8 +74,17 @@ pub fn handle_key_release(key: Key) {
     // Check if this key release completes a window switching shortcut
     check_window_switch_completion(key);
 
-    // Track key statistics
+    // Track key statistics and dwell time
     modify_state(|state| {
+        let key_id = format!("{:?}", key);
+        if let Some(press_time) = state.keyboard_data.pending_key_presses.remove(&key_id) {
+            let dwell_ms = press_time.elapsed().as_secs_f64() * 1000.0;
+            if dwell_ms < 2000.0 {
+                state.keyboard_data.dwell_time_sum_ms += dwell_ms;
+                state.keyboard_data.dwell_time_count += 1;
+            }
+        }
+
         // Track delete key releases separately
         match key {
             Key::Backspace | Key::Delete => {

@@ -87,8 +87,14 @@ pub fn handle_key_press(key: Key) {
     // Check for window switching shortcuts
     check_window_switching_shortcuts(key);
 
-    // Track key statistics
+    // Track key statistics and key press timestamp for dwell time
     modify_state(|state| {
+        let key_id = format!("{:?}", key);
+        state
+            .keyboard_data
+            .pending_key_presses
+            .insert(key_id, std::time::Instant::now());
+
         // Track delete keys separately
         match key {
             Key::Backspace | Key::Delete => {

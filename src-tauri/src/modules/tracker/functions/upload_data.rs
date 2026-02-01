@@ -25,6 +25,9 @@ pub struct LogData {
     pub wheel_scroll_events_count: u32,
     pub app_category: Option<String>,
     pub session_id: Option<String>,
+    pub keystroke_dwell_time: Option<f64>,
+    pub mouse_deviation: Option<f64>,
+    pub mouse_overshoot: Option<f64>,
 }
 
 /// Upload tracking data to the server

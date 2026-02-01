@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createSupabaseClient } from "../utils/createSupabaseClient";
 
 interface User {
   user_id: string;
   avatar_url: string | undefined;
   organization: Organization | null;
+  opened_tutorial: boolean;
 }
 
 interface Organization {
@@ -16,6 +17,7 @@ interface UseUserDataReturn {
   userData: User | null;
   loading: boolean;
   error: string | null;
+  refetch: () => Promise<void>;
 }
 
 export const useUserData = (userId?: string): UseUserDataReturn => {
@@ -24,8 +26,7 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
   const [error, setError] = useState<string | null>(null);
   const supabase = createSupabaseClient();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
       if (!userId) {
         setLoading(false);
         return;
@@ -40,6 +41,7 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
             `
             user_id, 
             avatar_url,
+            opened_tutorial,
             organization_id (organization_id, brand_name)
           `
           )
@@ -54,6 +56,7 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
           const transformedData: User = {
             user_id: data.user_id,
             avatar_url: data.avatar_url,
+            opened_tutorial: data.opened_tutorial ?? false,
             organization: data.organization_id
               ? {
                   // @ts-ignore
@@ -74,13 +77,16 @@ export const useUserData = (userId?: string): UseUserDataReturn => {
       } finally {
         setLoading(false);
       }
-    };
+    }, [userId, supabase]);
+
+  useEffect(() => {
     fetchUserData();
-  }, [userId, supabase]);
+  }, [fetchUserData]);
 
   return {
     userData,
     loading,
     error,
+    refetch: fetchUserData,
   };
 };

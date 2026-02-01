@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root"
+import { Route as TourRouteRouteImport } from "./routes/tour/route"
 import { Route as DashboardRouteRouteImport } from "./routes/dashboard/route"
 import { Route as R404RouteRouteImport } from "./routes/404/route"
 import { Route as IndexRouteImport } from "./routes/index"
@@ -16,6 +17,11 @@ import { Route as AuthLoginRouteRouteImport } from "./routes/auth/login/route"
 import { Route as AuthErrorRouteRouteImport } from "./routes/auth/error/route"
 import { Route as AuthCallbackRouteRouteImport } from "./routes/auth/callback/route"
 
+const TourRouteRoute = TourRouteRouteImport.update({
+  id: "/tour",
+  path: "/tour",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
   "/dashboard": typeof DashboardRouteRoute
+  "/tour": typeof TourRouteRoute
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
   "/dashboard": typeof DashboardRouteRoute
+  "/tour": typeof TourRouteRoute
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
   "/dashboard": typeof DashboardRouteRoute
+  "/tour": typeof TourRouteRoute
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | "/"
     | "/404"
     | "/dashboard"
+    | "/tour"
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | "/"
     | "/404"
     | "/dashboard"
+    | "/tour"
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | "/"
     | "/404"
     | "/dashboard"
+    | "/tour"
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
@@ -103,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   R404RouteRoute: typeof R404RouteRoute
   DashboardRouteRoute: typeof DashboardRouteRoute
+  TourRouteRoute: typeof TourRouteRoute
   AuthCallbackRouteRoute: typeof AuthCallbackRouteRoute
   AuthErrorRouteRoute: typeof AuthErrorRouteRoute
   AuthLoginRouteRoute: typeof AuthLoginRouteRoute
@@ -110,6 +123,13 @@ export interface RootRouteChildren {
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
+    "/tour": {
+      id: "/tour"
+      path: "/tour"
+      fullPath: "/tour"
+      preLoaderRoute: typeof TourRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/dashboard": {
       id: "/dashboard"
       path: "/dashboard"
@@ -159,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R404RouteRoute: R404RouteRoute,
   DashboardRouteRoute: DashboardRouteRoute,
+  TourRouteRoute: TourRouteRoute,
   AuthCallbackRouteRoute: AuthCallbackRouteRoute,
   AuthErrorRouteRoute: AuthErrorRouteRoute,
   AuthLoginRouteRoute: AuthLoginRouteRoute,
