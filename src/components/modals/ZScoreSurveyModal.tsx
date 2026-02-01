@@ -63,34 +63,37 @@ const ZScoreSlider = ({
     onTouch();
   };
 
+  const handleChangeEnd = () => {
+    // Backup handler to ensure touch is registered
+    onTouch();
+  };
+
   return (
     <div className="w-full space-y-3">
       <p className="text-base font-medium text-foreground">{question.text}</p>
       <div className="px-2">
         <Slider
           aria-label={question.text}
-          color="primary"
-          defaultValue={50}
+          step={1}
           maxValue={100}
           minValue={0}
-          showOutline={true}
-          size="sm"
-          step={1}
           value={value}
           onChange={handleChange}
-          classNames={{
-            track: hasBeenTouched
-              ? "border-s-primary-500 bg-default-300/50"
-              : "border-s-default-400 bg-default-300/50",
-            filler: hasBeenTouched
-              ? "bg-gradient-to-r from-primary-500 to-secondary-400"
-              : "bg-default-400",
+          onChangeEnd={handleChangeEnd}
+          className="w-full"
+          size="lg"
+          color={hasBeenTouched ? "primary" : "foreground"}
+          showTooltip
+          tooltipProps={{
+            content: String(value),
           }}
         />
-        <div className="flex justify-between text-xs text-default-500 mt-1.5">
-          <span>{question.leftLabel}</span>
-          <span className="text-default-400">{hasBeenTouched ? value : "—"}</span>
-          <span>{question.rightLabel}</span>
+        <div className="flex justify-between mt-2">
+          <span className="text-xs text-default-500">{question.leftLabel}</span>
+          <span className="text-sm font-semibold text-primary">
+            {hasBeenTouched ? value : "—"}
+          </span>
+          <span className="text-xs text-default-500">{question.rightLabel}</span>
         </div>
       </div>
     </div>
@@ -192,22 +195,19 @@ export default function ZScoreSurveyModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       placement="center"
-      size="lg"
       backdrop="blur"
-      classNames={{
-        base: "bg-content1",
-        header: "border-b border-divider",
-        footer: "border-t border-divider",
-      }}
+      size="lg"
+      isDismissable={!isSubmitting}
+      isKeyboardDismissDisabled={isSubmitting}
     >
       <ModalContent>
         {(onClose) => (
           <>
             <ModalHeader className="flex items-center gap-2">
-              <IconClipboardCheck size={20} className="text-primary" />
+              <IconClipboardCheck className="h-6 w-6 text-primary" />
               <span>Quick Check-In</span>
             </ModalHeader>
-            <ModalBody className="py-6 space-y-6">
+            <ModalBody className="gap-6 py-4">
               <p className="text-sm text-default-500">
                 We noticed something unusual in your activity patterns. Help us
                 improve accuracy by answering these quick questions.
@@ -223,22 +223,28 @@ export default function ZScoreSurveyModal({
                 />
               ))}
             </ModalBody>
-            <ModalFooter>
+            <ModalFooter className="justify-between">
               <Button
-                variant="flat"
+                color="default"
+                variant="light"
                 onPress={onClose}
                 isDisabled={isSubmitting}
               >
-                Skip
+                Cancel
               </Button>
               <Button
                 color="primary"
                 onPress={handleSubmit}
-                isLoading={isSubmitting}
                 isDisabled={!allQuestionsTouched || isSubmitting}
-                endContent={!isSubmitting && <IconSend size={16} />}
+                isLoading={isSubmitting}
+                startContent={
+                  !isSubmitting ? <IconSend className="h-4 w-4" /> : undefined
+                }
+                style={{
+                  opacity: allQuestionsTouched ? 1 : 0.5,
+                }}
               >
-                Submit
+                {isSubmitting ? "Sending..." : "Send"}
               </Button>
             </ModalFooter>
           </>
