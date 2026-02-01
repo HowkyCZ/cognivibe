@@ -2,3 +2,4 @@ export { default as LoginPage } from "./LoginPage";
 export { default as ErrorPage } from "./ErrorPage";
 export { default as SpinnerPage } from "./SpinnerPage";
 export { default as DasboardPage } from "./DashboardPage";
+export { default as TourPage } from "./TourPage";

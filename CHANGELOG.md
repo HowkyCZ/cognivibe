@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-02-01
+
+### Added
+- Extreme Z-score detection card on dashboard: when a behavioral metric hits |Z| ≥ 2.5, a top card appears with dynamic text ("Your [metric] is [direction].") and opens a quick check-in survey
+- ZScoreSurveyModal: 3-question survey (focused, stressed, productive, 0–100) for extreme Z-score events; responses stored in cognitive_scores
+- Server-side extreme Z-score detection in scoring utils with metric name mapping and direction labels
+- PATCH `/api/scores/[id]/survey` endpoint to save Z-score survey responses (focused, stressed, productive)
+- Scores API now returns `cognitive_score_id` and optional `extreme_zscore` when |Z| ≥ 2.5
+- Rust: ExtremeZScoreAlert state, get/clear Tauri commands, and `extreme-zscore-alert` event
+- Rust: Check for extreme Z-score on 5-minute boundaries after upload; 30% chance push notification when alert triggers
+- Session notifications: 30% chance at 30-minute session mark; 70% chance when session ≥ 20 min and 4 consecutive inactive minutes
+- Frontend: useExtremeZScoreAlert hook (polls + event listener), notifications utility, zscoreSurveyApi
+
+### Changed
+- WelcomeTourCard: shows tour card only when `opened_tutorial` is false; when tutorial is done, shows extreme Z-score card when an alert exists
+- Minute logger: calls extreme Z-score check and session notification checks after successful uploads
+
+### Fixed
+- Rust E0597 in check_extreme_zscore: semicolon after if-let so MutexGuard is dropped before state
+- ZScoreSurveyModal imports: use relative paths (../../utils, ../../hooks) instead of @ alias
+
 ## [1.1.1] - 2026-01-29
 
 ### Changed

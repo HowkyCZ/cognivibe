@@ -41,6 +41,9 @@ const ICON_OVERLAP = 8; // Overlap amount in pixels
 const LINE_HEIGHT = 4; // 1px thinner than the 5px break lines
 const MIN_WIDTH_FOR_ICONS = 28; // Minimum session width to show 1 icon
 const MIN_WIDTH_PER_ADDITIONAL_ICON = 18; // Additional width needed per extra icon
+// Assume ~800px chart width for %→px; bars narrower than this don't show (no icon fits)
+const ESTIMATED_CHART_WIDTH = 800;
+const MIN_WIDTH_PERCENT_FOR_BAR = (MIN_WIDTH_FOR_ICONS / ESTIMATED_CHART_WIDTH) * 100;
 
 // Color interpolation helpers (matching chart colors)
 const hexToRgb = (hex: string): [number, number, number] => {
@@ -157,10 +160,10 @@ const CategoryIconOverlap = ({
         className="rounded-md p-1 relative cursor-pointer"
         style={{
           backgroundColor: "#38333E",
-          // Add inner shadow on left side for overlapping icons (not the first one)
+          // Inner shadow matches card (#221D28), slightly more opaque and a bit longer
           boxShadow: isFirst
             ? "none"
-            : "inset 10px 0 16px -6px rgba(0,0,0,0.6)",
+            : "inset 10px 0 20px -4px rgba(34,29,40,0.95)",
         }}
       >
         <div className="text-foreground/80">{getCategoryIcon(category)}</div>
@@ -271,6 +274,8 @@ const SessionBars: React.FC<SessionBarsProps> = ({
 
         // Skip sessions that are completely outside the domain
         if (clampedWidth <= 0) return null;
+        // Skip very short bars where no icon would fit
+        if (clampedWidth < MIN_WIDTH_PERCENT_FOR_BAR) return null;
 
         const color = getLoadColor(session.score_total ?? 50);
         const topCategories = getTopCategories(session.category_share, 3);

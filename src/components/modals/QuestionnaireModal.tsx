@@ -27,8 +27,8 @@ const QUESTIONS: Record<QuestionId, QuestionDefinition> = {
   oa: {
     id: "oa",
     text: "How manageable was your work in the last X minutes?",
-    leftLabel: "Completely manageable",
-    rightLabel: "Not manageable at all",
+    leftLabel: "Not manageable at all",
+    rightLabel: "Completely manageable",
     isReverse: true,
   },
   ft1: {
@@ -312,19 +312,46 @@ const QuestionnaireModal = ({
       console.log("[QUESTIONNAIRE] Final scores object:", scores);
       console.log("[QUESTIONNAIRE] Calling onSubmit callback...");
 
-      await onSubmit(scores);
-
-      console.log("[QUESTIONNAIRE] ✅ Submission successful");
-
-      addToast({
-        title: "Assessment submitted",
-        description: "Thank you for completing the assessment!",
-        color: "success",
-        timeout: 5000,
-        variant: "flat",
+      // Add timeout to prevent stuck loading state if submission hangs
+      const SUBMIT_TIMEOUT_MS = 30000; // 30 seconds
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error("SUBMISSION_TIMEOUT"));
+        }, SUBMIT_TIMEOUT_MS);
       });
 
-      onOpenChange(false);
+      try {
+        await Promise.race([onSubmit(scores), timeoutPromise]);
+        
+        console.log("[QUESTIONNAIRE] ✅ Submission successful");
+
+        addToast({
+          title: "Assessment submitted",
+          description: "Thank you for completing the assessment!",
+          color: "success",
+          timeout: 5000,
+          variant: "flat",
+        });
+
+        onOpenChange(false);
+      } catch (raceError) {
+        // Check if this was a timeout
+        if (raceError instanceof Error && raceError.message === "SUBMISSION_TIMEOUT") {
+          console.warn("[QUESTIONNAIRE] ⚠️ Submission timed out after 30s - closing modal anyway");
+          addToast({
+            title: "Submission taking longer than expected",
+            description: "Your assessment may still be processing. You can close this window.",
+            color: "warning",
+            timeout: 8000,
+            variant: "flat",
+          });
+          // Close the modal even on timeout - the backend might still process the request
+          onOpenChange(false);
+        } else {
+          // Re-throw other errors to be handled by outer catch
+          throw raceError;
+        }
+      }
     } catch (error) {
       console.error("[QUESTIONNAIRE] ❌ Error submitting questionnaire:", error);
       if (error instanceof Error) {

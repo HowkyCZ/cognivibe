@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Modifier key state structure for tracking keyboard modifier keys and window switching.
 ///
@@ -54,6 +55,28 @@ pub struct MouseData {
 
     /// Last recorded Y coordinate (used for distance calculation)
     pub last_y: f64,
+
+    /// Current mouse movement segment (from last pause)
+    #[serde(skip)]
+    pub current_segment: Option<MouseSegment>,
+    /// Last time mouse moved (for segment boundary)
+    #[serde(skip)]
+    pub last_segment_time: Option<std::time::Instant>,
+    /// Sum of deviation values for completed segments this minute
+    pub deviation_sum: f64,
+    /// Sum of overshoot values for completed segments this minute
+    pub overshoot_sum: f64,
+    /// Count of completed segments this minute
+    pub segment_count: u32,
+}
+
+/// A single mouse movement segment (from pause to pause).
+#[derive(Debug, Clone, Default)]
+pub struct MouseSegment {
+    /// Start position (x, y)
+    pub start: (f64, f64),
+    /// All sampled points including start and end
+    pub points: Vec<(f64, f64)>,
 }
 
 /// Keyboard tracking data structure that captures keyboard interaction metrics.
@@ -73,4 +96,12 @@ pub struct KeyboardData {
 
     /// Delete key ups (Backspace and Delete keys released)
     pub delete_ups: u32,
+
+    /// Pending key presses (key identifier -> press time) for dwell time
+    #[serde(skip)]
+    pub pending_key_presses: HashMap<String, std::time::Instant>,
+    /// Sum of dwell times in ms for averaging
+    pub dwell_time_sum_ms: f64,
+    /// Count of key releases with valid dwell time
+    pub dwell_time_count: u32,
 }

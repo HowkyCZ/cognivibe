@@ -7,9 +7,12 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
 use crate::modules::state::AppState;
+use crate::modules::tracker::functions::callback::handle_mouse_move::finalize_mouse_segment;
+use crate::modules::tracker::functions::check_extreme_zscore::check_and_handle_extreme_zscore;
 use crate::modules::tracker::functions::upload_data::{upload_tracking_data, LogData};
 use crate::modules::tracker::functions::calculate_majority_category::calculate_majority_category_for_minute;
 use crate::modules::tracker::functions::session_management::{create_session, end_session, cleanup_stale_sessions};
+use crate::modules::tracker::functions::session_notifications::check_session_notifications;
 #[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
@@ -27,7 +30,40 @@ fn reset_counters(app_state: &mut AppState) {
     app_state.keyboard_data.delete_downs = 0;
     app_state.keyboard_data.delete_ups = 0;
     app_state.window_change_count = 0;
-    // Note: screen_resolution_multiplier and last_scroll_event_time are not reset
+    app_state.keyboard_data.pending_key_presses.clear();
+    app_state.keyboard_data.dwell_time_sum_ms = 0.0;
+    app_state.keyboard_data.dwell_time_count = 0;
+    app_state.mouse_data.deviation_sum = 0.0;
+    app_state.mouse_data.overshoot_sum = 0.0;
+    app_state.mouse_data.segment_count = 0;
+    // Note: screen_resolution_multiplier, last_scroll_event_time, current_segment are not reset
+}
+
+/// Compute optional behavioral metrics for the current minute.
+fn behavioral_metrics(app_state: &AppState) -> (Option<f64>, Option<f64>, Option<f64>) {
+    let keystroke_dwell_time = if app_state.keyboard_data.dwell_time_count > 0 {
+        Some(
+            app_state.keyboard_data.dwell_time_sum_ms
+                / app_state.keyboard_data.dwell_time_count as f64,
+        )
+    } else {
+        None
+    };
+    let mouse_deviation = if app_state.mouse_data.segment_count > 0 {
+        Some(
+            app_state.mouse_data.deviation_sum / app_state.mouse_data.segment_count as f64,
+        )
+    } else {
+        None
+    };
+    let mouse_overshoot = if app_state.mouse_data.segment_count > 0 {
+        Some(
+            app_state.mouse_data.overshoot_sum / app_state.mouse_data.segment_count as f64,
+        )
+    } else {
+        None
+    };
+    (keystroke_dwell_time, mouse_deviation, mouse_overshoot)
 }
 
 /// Starts a background thread that logs input tracking data every minute.
@@ -128,12 +164,10 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                             #[cfg(debug_assertions)]
                             log_tracking_table(&app_state, prev_hour, prev_minute);
 
-                            // Prepare log data for upload
-                            if let Some(session) = &app_state.session_data {
-                                // Clone session data before potential mutations
-                                let session_user_id = session.user_id.clone();
-                                let session_access_token = session.access_token.clone();
-                                
+                            // Prepare log data for upload (clone session data first to avoid holding ref during finalize)
+                            let session_user_id = app_state.session_data.as_ref().map(|s| s.user_id.clone());
+                            let session_access_token = app_state.session_data.as_ref().map(|s| s.access_token.clone());
+                            if let (Some(session_user_id), Some(session_access_token)) = (session_user_id, session_access_token) {
                                 // IMPORTANT: Calculate active_event_count FIRST, before creating session
                                 // This ensures we don't create sessions for inactive minutes
                                 let active_event_count = app_state.keyboard_data.key_downs
@@ -172,6 +206,11 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     let user_id = session_user_id.clone();
                                     let access_token = session_access_token.clone();
                                     
+                                    // IMPORTANT: Drop the lock before doing async HTTP work to prevent deadlock
+                                    // This allows other threads (e.g., clear_session_state from frontend) to acquire the lock
+                                    // while we're waiting for network requests to complete
+                                    drop(app_state);
+                                    
                                     // First, clean up any stale sessions from previous runs
                                     // This ensures old sessions are properly ended before starting a new one
                                     let cleanup_token = access_token.clone();
@@ -204,6 +243,22 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     let session_result = tauri::async_runtime::block_on(async {
                                         create_session(user_id, access_token).await
                                     });
+                                    
+                                    // Re-acquire the lock to update state
+                                    let state_guard = app_handle.state::<Mutex<AppState>>();
+                                    let mut app_state = match state_guard.lock() {
+                                        Ok(state) => state,
+                                        Err(_e) => {
+                                            #[cfg(debug_assertions)]
+                                            eprintln!(
+                                                "{}❌ Failed to re-acquire lock after session creation: {}",
+                                                get_tracker_prefix(),
+                                                _e
+                                            );
+                                            last_logged_minute = Some(current_minute);
+                                            continue;
+                                        }
+                                    };
 
                                     match session_result {
                                         Ok(new_session_id) => {
@@ -221,7 +276,176 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 get_tracker_prefix(),
                                                 new_session_id
                                             );
-                                            Some(new_session_id)
+                                            
+                                            // Re-read session user_id (no persistent ref to avoid borrow conflict)
+                                            let session_user_id = match &app_state.session_data {
+                                                Some(s) => s.user_id.clone(),
+                                                None => {
+                                                    #[cfg(debug_assertions)]
+                                                    eprintln!(
+                                                        "{}⚠️ Session data disappeared after re-acquiring lock",
+                                                        get_tracker_prefix()
+                                                    );
+                                                    reset_counters(&mut app_state);
+                                                    last_logged_minute = Some(current_minute);
+                                                    drop(app_state);
+                                                    continue;
+                                                }
+                                            };
+                                            
+                                            let minute_timestamp = format!(
+                                                "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",
+                                                now.year(),
+                                                now.month(),
+                                                now.day(),
+                                                prev_hour,
+                                                prev_minute
+                                            );
+                                            
+                                            // Re-calculate active_event_count (counters might have changed)
+                                            let active_event_count = app_state.keyboard_data.key_downs
+                                                + app_state.mouse_data.left_clicks
+                                                + app_state.mouse_data.right_clicks
+                                                + app_state.mouse_data.other_clicks
+                                                + app_state.mouse_data.wheel_scroll_events
+                                                + app_state.mouse_data.move_events;
+                                            
+                                            // Calculate majority category for the previous minute
+                                            let app_category = {
+                                                let now_instant = std::time::Instant::now();
+                                                let minute_start_instant = now_instant.checked_sub(Duration::from_secs(60))
+                                                    .unwrap_or(now_instant);
+                                                let minute_end_instant = now_instant;
+                                                
+                                                Some(calculate_majority_category_for_minute(
+                                                    &app_state.category_change_history,
+                                                    minute_start_instant,
+                                                    minute_end_instant,
+                                                    app_state.current_app_category.as_ref(),
+                                                ))
+                                            };
+
+                                            if let Some(seg) = app_state.mouse_data.current_segment.take() {
+                                                finalize_mouse_segment(seg, &mut app_state.mouse_data);
+                                            }
+                                            let (keystroke_dwell_time, mouse_deviation, mouse_overshoot) =
+                                                behavioral_metrics(&app_state);
+                                            
+                                            let log_data = LogData {
+                                                mouse_left_clicks_count: app_state.mouse_data.left_clicks,
+                                                mouse_right_clicks_count: app_state.mouse_data.right_clicks,
+                                                mouse_other_clicks_count: app_state.mouse_data.other_clicks,
+                                                keyboard_key_downs_count: app_state.keyboard_data.key_downs,
+                                                keyboard_key_ups_count: app_state.keyboard_data.key_ups,
+                                                mouse_move_distance: app_state.mouse_data.total_distance,
+                                                mouse_scroll_distance: app_state.mouse_data.wheel_scroll_distance,
+                                                window_change_count: app_state.window_change_count,
+                                                backspace_count: app_state.keyboard_data.delete_downs,
+                                                active_event_count,
+                                                screen_resolution_multiplier: app_state.screen_resolution_multiplier,
+                                                wheel_scroll_events_count: app_state.mouse_data.wheel_scroll_events,
+                                                minute_timestamp: minute_timestamp.clone(),
+                                                user_id: session_user_id,
+                                                app_category,
+                                                session_id: Some(new_session_id.clone()),
+                                                keystroke_dwell_time,
+                                                mouse_deviation,
+                                                mouse_overshoot,
+                                            };
+                                            
+                                            reset_counters(&mut app_state);
+                                            
+                                            // Get tokens for zscore check before spawning
+                                            let token_for_zscore = match &app_state.session_data {
+                                                Some(s) => s.access_token.clone(),
+                                                None => String::new(),
+                                            };
+                                            let user_id_for_zscore = log_data.user_id.clone();
+                                            let timestamp_for_zscore = log_data.minute_timestamp.clone();
+                                            let is_five_minute_boundary = prev_minute % 5 == 0;
+                                            let is_active_minute_new = active_event_count > 0;
+                                            // Session just started, so duration is near 0
+                                            let session_duration_secs_new = app_state.session_start_time
+                                                .map(|st| st.elapsed().as_secs())
+                                                .unwrap_or(0);
+                                            
+                                            // Spawn async task to upload data
+                                            let app_handle_clone = app_handle.clone();
+                                            #[cfg(debug_assertions)]
+                                            let timestamp_for_log = minute_timestamp.clone();
+                                            tauri::async_runtime::spawn(async move {
+                                                let state = app_handle_clone.state::<Mutex<AppState>>();
+                                                match upload_tracking_data(state, log_data).await {
+                                                    Ok(_) => {
+                                                        if let Ok(mut app_state) = app_handle_clone.state::<Mutex<AppState>>().lock() {
+                                                            app_state.last_activity_time = Some(std::time::Instant::now());
+                                                        }
+                                                        #[cfg(debug_assertions)]
+                                                        println!(
+                                                            "{}✅ Successfully uploaded tracking data for {}",
+                                                            get_tracker_prefix(),
+                                                            timestamp_for_log
+                                                        );
+                                                        
+                                                        // Check session duration notifications
+                                                        check_session_notifications(
+                                                            &app_handle_clone,
+                                                            session_duration_secs_new,
+                                                            is_active_minute_new,
+                                                        );
+                                                        
+                                                        // Check for extreme Z-score on 5-minute boundaries
+                                                        if is_five_minute_boundary && !token_for_zscore.is_empty() {
+                                                            #[cfg(debug_assertions)]
+                                                            println!(
+                                                                "{}🔍 Checking for extreme Z-score (5-minute boundary)...",
+                                                                get_tracker_prefix()
+                                                            );
+                                                            match check_and_handle_extreme_zscore(
+                                                                &app_handle_clone,
+                                                                &timestamp_for_zscore,
+                                                                &user_id_for_zscore,
+                                                                &token_for_zscore,
+                                                            ).await {
+                                                                Ok(true) => {
+                                                                    #[cfg(debug_assertions)]
+                                                                    println!(
+                                                                        "{}⚠️ Extreme Z-score alert triggered!",
+                                                                        get_tracker_prefix()
+                                                                    );
+                                                                }
+                                                                Ok(false) => {
+                                                                    #[cfg(debug_assertions)]
+                                                                    println!(
+                                                                        "{}✓ No extreme Z-score detected",
+                                                                        get_tracker_prefix()
+                                                                    );
+                                                                }
+                                                                Err(_e) => {
+                                                                    #[cfg(debug_assertions)]
+                                                                    eprintln!(
+                                                                        "{}❌ Failed to check extreme Z-score: {}",
+                                                                        get_tracker_prefix(),
+                                                                        _e
+                                                                    );
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    Err(_e) => {
+                                                        #[cfg(debug_assertions)]
+                                                        eprintln!(
+                                                            "{}❌ Failed to upload tracking data: {}",
+                                                            get_tracker_prefix(),
+                                                            _e
+                                                        );
+                                                    }
+                                                }
+                                            });
+                                            
+                                            last_logged_minute = Some(current_minute);
+                                            drop(app_state);
+                                            continue;
                                         }
                                         Err(_e) => {
                                             #[cfg(debug_assertions)]
@@ -235,7 +459,11 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 "{}⚠️ Continuing without session_id - data will not be uploaded",
                                                 get_tracker_prefix()
                                             );
-                                            None // Continue without session_id if creation fails
+                                            // Still reset counters and continue
+                                            reset_counters(&mut app_state);
+                                            last_logged_minute = Some(current_minute);
+                                            drop(app_state);
+                                            continue;
                                         }
                                     }
                                 } else {
@@ -275,6 +503,12 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     ))
                                 };
 
+                                if let Some(seg) = app_state.mouse_data.current_segment.take() {
+                                    finalize_mouse_segment(seg, &mut app_state.mouse_data);
+                                }
+                                let (keystroke_dwell_time, mouse_deviation, mouse_overshoot) =
+                                    behavioral_metrics(&app_state);
+
                                 let log_data = LogData {
                                     mouse_left_clicks_count: app_state.mouse_data.left_clicks,
                                     mouse_right_clicks_count: app_state.mouse_data.right_clicks,
@@ -294,11 +528,24 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     user_id: session_user_id.clone(),
                                     app_category,
                                     session_id: session_id.clone(),
+                                    keystroke_dwell_time,
+                                    mouse_deviation,
+                                    mouse_overshoot,
                                 };
+
+                                // Calculate session duration for notifications
+                                let session_duration_secs = app_state.session_start_time
+                                    .map(|st| st.elapsed().as_secs())
+                                    .unwrap_or(0);
+                                let is_active_minute = active_event_count > 0;
 
                                 // Spawn async task to upload data
                                 let app_handle_clone = app_handle.clone();
                                 let _session_id_clone = session_id.clone();
+                                let timestamp_for_zscore = minute_timestamp.clone();
+                                let user_id_for_zscore = session_user_id.clone();
+                                let token_for_zscore = session_access_token.clone();
+                                let is_five_minute_boundary = prev_minute % 5 == 0;
                                 #[cfg(debug_assertions)]
                                 let timestamp_for_log = minute_timestamp.clone();
                                 tauri::async_runtime::spawn(async move {
@@ -315,6 +562,51 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 get_tracker_prefix(),
                                                 timestamp_for_log
                                             );
+                                            
+                                            // Check session duration notifications
+                                            check_session_notifications(
+                                                &app_handle_clone,
+                                                session_duration_secs,
+                                                is_active_minute,
+                                            );
+                                            
+                                            // Check for extreme Z-score on 5-minute boundaries
+                                            if is_five_minute_boundary {
+                                                #[cfg(debug_assertions)]
+                                                println!(
+                                                    "{}🔍 Checking for extreme Z-score (5-minute boundary)...",
+                                                    get_tracker_prefix()
+                                                );
+                                                match check_and_handle_extreme_zscore(
+                                                    &app_handle_clone,
+                                                    &timestamp_for_zscore,
+                                                    &user_id_for_zscore,
+                                                    &token_for_zscore,
+                                                ).await {
+                                                    Ok(true) => {
+                                                        #[cfg(debug_assertions)]
+                                                        println!(
+                                                            "{}⚠️ Extreme Z-score alert triggered!",
+                                                            get_tracker_prefix()
+                                                        );
+                                                    }
+                                                    Ok(false) => {
+                                                        #[cfg(debug_assertions)]
+                                                        println!(
+                                                            "{}✓ No extreme Z-score detected",
+                                                            get_tracker_prefix()
+                                                        );
+                                                    }
+                                                    Err(_e) => {
+                                                        #[cfg(debug_assertions)]
+                                                        eprintln!(
+                                                            "{}❌ Failed to check extreme Z-score: {}",
+                                                            get_tracker_prefix(),
+                                                            _e
+                                                        );
+                                                    }
+                                                }
+                                            }
                                         }
                                         Err(_e) => {
                                             #[cfg(debug_assertions)]
@@ -415,4 +707,40 @@ fn log_tracking_table(app_state: &AppState, hour: u32, minute: u8) {
     ]);
 
     println!("{}", table);
+
+    // Print behavioral metrics
+    let dwell_time_str = if app_state.keyboard_data.dwell_time_count > 0 {
+        format!(
+            "{:.1}ms (n={})",
+            app_state.keyboard_data.dwell_time_sum_ms / app_state.keyboard_data.dwell_time_count as f64,
+            app_state.keyboard_data.dwell_time_count
+        )
+    } else {
+        "N/A".to_string()
+    };
+    let deviation_str = if app_state.mouse_data.segment_count > 0 {
+        format!(
+            "{:.1}px (n={})",
+            app_state.mouse_data.deviation_sum / app_state.mouse_data.segment_count as f64,
+            app_state.mouse_data.segment_count
+        )
+    } else {
+        "N/A".to_string()
+    };
+    let overshoot_str = if app_state.mouse_data.segment_count > 0 {
+        format!(
+            "{:.1}px (n={})",
+            app_state.mouse_data.overshoot_sum / app_state.mouse_data.segment_count as f64,
+            app_state.mouse_data.segment_count
+        )
+    } else {
+        "N/A".to_string()
+    };
+    println!(
+        "{}📊 Behavioral: dwell_time={}, deviation={}, overshoot={}",
+        get_tracker_prefix(),
+        dwell_time_str,
+        deviation_str,
+        overshoot_str
+    );
 }

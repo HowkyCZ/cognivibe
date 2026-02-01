@@ -1,6 +1,8 @@
 use std::sync::Mutex;
 use tauri::Emitter;
 use tauri::Manager;
+use tauri::menu::MenuEvent;
+use tauri::tray::TrayIconBuilder;
 
 use dotenv::dotenv;
 #[cfg(debug_assertions)]
@@ -11,7 +13,10 @@ mod modules;
 use modules::api::functions::{backfill_scores_cmd, fetch_batch_scores_cmd, fetch_productivity_time_cmd, fetch_sessions_cmd};
 use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
-use modules::state::{clear_session_state, get_measuring_state, get_session_info, get_settings_state, set_user_session, AppState};
+use modules::state::{
+    clear_extreme_zscore_alert, clear_session_state, get_extreme_zscore_alert,
+    get_measuring_state, get_session_info, get_settings_state, set_user_session, AppState,
+};
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
 use modules::tracker::functions::session_management::end_session;
 
@@ -46,7 +51,9 @@ pub fn run() -> () {
             backfill_scores_cmd,
             fetch_batch_scores_cmd,
             fetch_productivity_time_cmd,
-            fetch_sessions_cmd
+            fetch_sessions_cmd,
+            get_extreme_zscore_alert,
+            clear_extreme_zscore_alert
         ])
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // Focus main window
@@ -76,6 +83,7 @@ pub fn run() -> () {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_macos_permissions::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_prevent_default::debug())
         .setup(|app| {
             #[cfg(debug_assertions)]
@@ -159,61 +167,72 @@ pub fn run() -> () {
             println!("{}Starting global input tracker", get_init_prefix());
             start_global_input_tracker(app.handle().clone());
 
-            // Set up window close handler to end session
+            // System tray with Show / Quit menu
+            let menu = tauri::menu::MenuBuilder::new(app.handle())
+                .text("show", "Show CogniVibe")
+                .separator()
+                .text("quit", "Quit")
+                .build()?;
+
+            let _tray = {
+                let builder = TrayIconBuilder::new()
+                    .icon(tauri::include_image!("icons/tray-icon.png"))
+                    .menu(&menu);
+                #[cfg(target_os = "macos")]
+                let builder = builder.icon_as_template(true);
+                builder.on_menu_event(move |app, event: MenuEvent| {
+                    match event.id.as_ref() {
+                        "show" => {
+                            focus_main_window(app);
+                        }
+                        "quit" => {
+                            let app_handle = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                let session_info = {
+                                    let state = app_handle.state::<Mutex<AppState>>();
+                                    let app_state = match state.lock() {
+                                        Ok(state) => state,
+                                        Err(_) => return,
+                                    };
+                                    if let (Some(session_id), Some(session)) = (
+                                        app_state.current_session_id.clone(),
+                                        app_state.session_data.clone(),
+                                    ) {
+                                        Some((session_id, session.access_token))
+                                    } else {
+                                        None
+                                    }
+                                };
+                                if let Some((session_id, access_token)) = session_info {
+                                    #[cfg(debug_assertions)]
+                                    println!(
+                                        "{}🛑 Ending session {} on quit",
+                                        get_init_prefix(),
+                                        session_id
+                                    );
+                                    let _ = end_session(session_id, access_token).await;
+                                }
+                                let handle_for_exit = app_handle.clone();
+                                let _ = app_handle.run_on_main_thread(move || {
+                                    handle_for_exit.exit(0);
+                                });
+                            });
+                        }
+                        _ => {}
+                    }
+                })
+                .build(app)?;
+            };
+
+            // Window close: hide to tray instead of quitting
             let app_handle = app.handle().clone();
             if let Some(window) = app.get_webview_window("main") {
                 window.on_window_event(move |event| {
-                    if let tauri::WindowEvent::CloseRequested { .. } = event {
-                        #[cfg(debug_assertions)]
-                        println!("{}🪟 Window close requested, checking for active session...", get_init_prefix());
-                        
-                        // End session if one exists
-                        let app_handle_clone = app_handle.clone();
-                        tauri::async_runtime::spawn(async move {
-                            let session_info = {
-                                let state = app_handle_clone.state::<Mutex<AppState>>();
-                                let app_state = match state.lock() {
-                                    Ok(state) => state,
-                                    Err(_e) => {
-                                        #[cfg(debug_assertions)]
-                                        eprintln!("{}❌ Failed to lock app state on window close: {}", get_init_prefix(), _e);
-                                        return;
-                                    }
-                                };
-                                
-                                if let (Some(session_id), Some(session)) = (
-                                    app_state.current_session_id.clone(),
-                                    app_state.session_data.clone(),
-                                ) {
-                                    #[cfg(debug_assertions)]
-                                    println!("{}✅ Found active session to end: {}", get_init_prefix(), session_id);
-                                    Some((session_id, session.access_token))
-                                } else {
-                                    #[cfg(debug_assertions)]
-                                    println!("{}ℹ️ No active session to end", get_init_prefix());
-                                    None
-                                }
-                            }; // MutexGuard is dropped here
-                            
-                            if let Some((session_id, access_token)) = session_info {
-                                #[cfg(debug_assertions)]
-                                println!(
-                                    "{}🛑 Ending session {} on app close",
-                                    get_init_prefix(),
-                                    session_id
-                                );
-                                match end_session(session_id, access_token).await {
-                                    Ok(_) => {
-                                        #[cfg(debug_assertions)]
-                                        println!("{}✅ Session ended successfully on app close", get_init_prefix());
-                                    }
-                                    Err(_e) => {
-                                        #[cfg(debug_assertions)]
-                                        eprintln!("{}❌ Failed to end session on app close: {}", get_init_prefix(), _e);
-                                    }
-                                }
-                            }
-                        });
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        if let Some(w) = app_handle.get_webview_window("main") {
+                            let _ = w.hide();
+                        }
                     }
                 });
             } else {

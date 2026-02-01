@@ -5,6 +5,7 @@ export const ROUTES = {
   ERROR: "/auth/error",
   CALLBACK: "/auth/callback",
   NOT_FOUND: "/404",
+  TOUR: "/tour",
 } as const;
 
 export type AcceptableRoutes = (typeof ROUTES)[keyof typeof ROUTES];

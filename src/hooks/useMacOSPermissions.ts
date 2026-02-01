@@ -10,40 +10,53 @@ import {
 } from "tauri-plugin-macos-permissions-api";
 
 /**
- * Custom hook to handle macOS permissions checking and requesting, Windows and Linux do not require this.
- * Automatically checks and requests accessibility and input monitoring permissions on macOS
+ * Runs macOS permission checks and requests (accessibility, input monitoring, screen recording).
+ * No-op on non-macOS. Call this when the user has acknowledged the permissions welcome modal
+ * or on non-macOS on mount.
  */
-export const useMacOSPermissions = () => {
-  useEffect(() => {
-    const checkMacOSPermissions = async () => {
-      try {
-        const currentPlatform = await platform();
-        if (currentPlatform === "macos") {
-          // Check and request accessibility permission
-          const isAccessibilityEnabled = await checkAccessibilityPermission();
-          if (!isAccessibilityEnabled) {
-            await requestAccessibilityPermission();
-          }
-
-          // Check and request input monitoring permission
-          const isInputMonitoringEnabled =
-            await checkInputMonitoringPermission();
-          if (!isInputMonitoringEnabled) {
-            await requestInputMonitoringPermission();
-          }
-
-          // Check and request screen recording permission
-          const isScreenRecordingEnabled =
-            await checkScreenRecordingPermission();
-          if (!isScreenRecordingEnabled) {
-            await requestScreenRecordingPermission();
-          }
-        }
-      } catch (error) {
-        console.error("Error checking macOS permissions:", error);
+export async function runMacOSPermissionChecks(): Promise<void> {
+  try {
+    const currentPlatform = await platform();
+    if (currentPlatform === "macos") {
+      const isAccessibilityEnabled = await checkAccessibilityPermission();
+      if (!isAccessibilityEnabled) {
+        await requestAccessibilityPermission();
       }
-    };
 
-    checkMacOSPermissions();
-  }, []);
+      const isInputMonitoringEnabled =
+        await checkInputMonitoringPermission();
+      if (!isInputMonitoringEnabled) {
+        await requestInputMonitoringPermission();
+      }
+
+      const isScreenRecordingEnabled =
+        await checkScreenRecordingPermission();
+      if (!isScreenRecordingEnabled) {
+        await requestScreenRecordingPermission();
+      }
+    }
+  } catch (error) {
+    console.error("Error checking macOS permissions:", error);
+  }
+}
+
+interface UseMacOSPermissionsOptions {
+  /** When true (default), run permission checks on mount. When false, do nothing on mount. */
+  runImmediately?: boolean;
+}
+
+/**
+ * Custom hook to handle macOS permissions checking and requesting, Windows and Linux do not require this.
+ * When runImmediately is true, automatically checks and requests permissions on mount.
+ */
+export const useMacOSPermissions = (
+  options: UseMacOSPermissionsOptions = {}
+) => {
+  const { runImmediately = true } = options;
+
+  useEffect(() => {
+    if (runImmediately) {
+      runMacOSPermissionChecks();
+    }
+  }, [runImmediately]);
 };
