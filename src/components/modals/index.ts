@@ -6,3 +6,5 @@ export { default as UserProfileModal } from "./UserProfileModal";
 export { UpdateModal } from "./UpdateModal";
 export { default as QuestionnaireModal } from "./QuestionnaireModal";
 export type { QuestionnaireScores } from "./QuestionnaireModal";
+export { default as TourModal } from "./TourModal";
+export { default as ZScoreSurveyModal } from "./ZScoreSurveyModal";

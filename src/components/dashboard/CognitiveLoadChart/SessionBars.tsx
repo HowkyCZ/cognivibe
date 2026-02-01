@@ -163,7 +163,7 @@ const CategoryIconOverlap = ({
           // Inner shadow matches card (#221D28), slightly more opaque and a bit longer
           boxShadow: isFirst
             ? "none"
-            : "inset 10px 0 20px -4px rgba(34,29,40,0.85)",
+            : "inset 10px 0 20px -4px rgba(34,29,40,0.95)",
         }}
       >
         <div className="text-foreground/80">{getCategoryIcon(category)}</div>

@@ -18,5 +18,7 @@ export const API_CONFIG = {
   ENDPOINTS: {
     SEND_FEEDBACK: "/api/sendFeedback",
     DELETE_USER: "/api/user",
+    UPDATE_USER: "/api/user",
+    ZSCORE_SURVEY: "/api/scores", // Will be appended with /{id}/survey
   },
 } as const;

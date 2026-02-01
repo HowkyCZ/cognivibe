@@ -50,6 +50,14 @@ pub struct AppState {
     pub last_activity_time: Option<Instant>,
     /// When the current session started
     pub session_start_time: Option<Instant>,
+    /// Current extreme Z-score alert (if any)
+    pub extreme_zscore_alert: Option<ExtremeZScoreAlert>,
+    /// When the extreme Z-score alert was triggered (for 5-min timeout)
+    pub extreme_zscore_alert_time: Option<Instant>,
+    /// Count of consecutive inactive minutes (for notification trigger)
+    pub consecutive_inactive_minutes: u32,
+    /// Whether the 30-minute session notification was already sent
+    pub sent_30min_notification: bool,
 }
 
 /// Represents a category change event for tracking time spent in each category
@@ -62,4 +70,17 @@ pub struct CategoryChangeEvent {
     /// App name that triggered this category
     #[allow(dead_code)]
     pub app_name: String,
+}
+
+/// Represents an extreme Z-score alert from cognitive score calculation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtremeZScoreAlert {
+    /// The cognitive_scores table row ID
+    pub cognitive_score_id: i64,
+    /// Human-readable metric name (e.g., "Window Switching")
+    pub metric_name: String,
+    /// Direction description (e.g., "higher than usual")
+    pub direction: String,
+    /// The actual Z-score value
+    pub z_score: f64,
 }

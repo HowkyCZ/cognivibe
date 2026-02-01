@@ -8,9 +8,11 @@ use tauri::{AppHandle, Manager};
 
 use crate::modules::state::AppState;
 use crate::modules::tracker::functions::callback::handle_mouse_move::finalize_mouse_segment;
+use crate::modules::tracker::functions::check_extreme_zscore::check_and_handle_extreme_zscore;
 use crate::modules::tracker::functions::upload_data::{upload_tracking_data, LogData};
 use crate::modules::tracker::functions::calculate_majority_category::calculate_majority_category_for_minute;
 use crate::modules::tracker::functions::session_management::{create_session, end_session, cleanup_stale_sessions};
+use crate::modules::tracker::functions::session_notifications::check_session_notifications;
 #[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
@@ -353,6 +355,20 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                             
                                             reset_counters(&mut app_state);
                                             
+                                            // Get tokens for zscore check before spawning
+                                            let token_for_zscore = match &app_state.session_data {
+                                                Some(s) => s.access_token.clone(),
+                                                None => String::new(),
+                                            };
+                                            let user_id_for_zscore = log_data.user_id.clone();
+                                            let timestamp_for_zscore = log_data.minute_timestamp.clone();
+                                            let is_five_minute_boundary = prev_minute % 5 == 0;
+                                            let is_active_minute_new = active_event_count > 0;
+                                            // Session just started, so duration is near 0
+                                            let session_duration_secs_new = app_state.session_start_time
+                                                .map(|st| st.elapsed().as_secs())
+                                                .unwrap_or(0);
+                                            
                                             // Spawn async task to upload data
                                             let app_handle_clone = app_handle.clone();
                                             #[cfg(debug_assertions)]
@@ -370,6 +386,51 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                             get_tracker_prefix(),
                                                             timestamp_for_log
                                                         );
+                                                        
+                                                        // Check session duration notifications
+                                                        check_session_notifications(
+                                                            &app_handle_clone,
+                                                            session_duration_secs_new,
+                                                            is_active_minute_new,
+                                                        );
+                                                        
+                                                        // Check for extreme Z-score on 5-minute boundaries
+                                                        if is_five_minute_boundary && !token_for_zscore.is_empty() {
+                                                            #[cfg(debug_assertions)]
+                                                            println!(
+                                                                "{}🔍 Checking for extreme Z-score (5-minute boundary)...",
+                                                                get_tracker_prefix()
+                                                            );
+                                                            match check_and_handle_extreme_zscore(
+                                                                &app_handle_clone,
+                                                                &timestamp_for_zscore,
+                                                                &user_id_for_zscore,
+                                                                &token_for_zscore,
+                                                            ).await {
+                                                                Ok(true) => {
+                                                                    #[cfg(debug_assertions)]
+                                                                    println!(
+                                                                        "{}⚠️ Extreme Z-score alert triggered!",
+                                                                        get_tracker_prefix()
+                                                                    );
+                                                                }
+                                                                Ok(false) => {
+                                                                    #[cfg(debug_assertions)]
+                                                                    println!(
+                                                                        "{}✓ No extreme Z-score detected",
+                                                                        get_tracker_prefix()
+                                                                    );
+                                                                }
+                                                                Err(_e) => {
+                                                                    #[cfg(debug_assertions)]
+                                                                    eprintln!(
+                                                                        "{}❌ Failed to check extreme Z-score: {}",
+                                                                        get_tracker_prefix(),
+                                                                        _e
+                                                                    );
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                     Err(_e) => {
                                                         #[cfg(debug_assertions)]
@@ -472,9 +533,19 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     mouse_overshoot,
                                 };
 
+                                // Calculate session duration for notifications
+                                let session_duration_secs = app_state.session_start_time
+                                    .map(|st| st.elapsed().as_secs())
+                                    .unwrap_or(0);
+                                let is_active_minute = active_event_count > 0;
+
                                 // Spawn async task to upload data
                                 let app_handle_clone = app_handle.clone();
                                 let _session_id_clone = session_id.clone();
+                                let timestamp_for_zscore = minute_timestamp.clone();
+                                let user_id_for_zscore = session_user_id.clone();
+                                let token_for_zscore = session_access_token.clone();
+                                let is_five_minute_boundary = prev_minute % 5 == 0;
                                 #[cfg(debug_assertions)]
                                 let timestamp_for_log = minute_timestamp.clone();
                                 tauri::async_runtime::spawn(async move {
@@ -491,6 +562,51 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 get_tracker_prefix(),
                                                 timestamp_for_log
                                             );
+                                            
+                                            // Check session duration notifications
+                                            check_session_notifications(
+                                                &app_handle_clone,
+                                                session_duration_secs,
+                                                is_active_minute,
+                                            );
+                                            
+                                            // Check for extreme Z-score on 5-minute boundaries
+                                            if is_five_minute_boundary {
+                                                #[cfg(debug_assertions)]
+                                                println!(
+                                                    "{}🔍 Checking for extreme Z-score (5-minute boundary)...",
+                                                    get_tracker_prefix()
+                                                );
+                                                match check_and_handle_extreme_zscore(
+                                                    &app_handle_clone,
+                                                    &timestamp_for_zscore,
+                                                    &user_id_for_zscore,
+                                                    &token_for_zscore,
+                                                ).await {
+                                                    Ok(true) => {
+                                                        #[cfg(debug_assertions)]
+                                                        println!(
+                                                            "{}⚠️ Extreme Z-score alert triggered!",
+                                                            get_tracker_prefix()
+                                                        );
+                                                    }
+                                                    Ok(false) => {
+                                                        #[cfg(debug_assertions)]
+                                                        println!(
+                                                            "{}✓ No extreme Z-score detected",
+                                                            get_tracker_prefix()
+                                                        );
+                                                    }
+                                                    Err(_e) => {
+                                                        #[cfg(debug_assertions)]
+                                                        eprintln!(
+                                                            "{}❌ Failed to check extreme Z-score: {}",
+                                                            get_tracker_prefix(),
+                                                            _e
+                                                        );
+                                                    }
+                                                }
+                                            }
                                         }
                                         Err(_e) => {
                                             #[cfg(debug_assertions)]

@@ -13,7 +13,10 @@ mod modules;
 use modules::api::functions::{backfill_scores_cmd, fetch_batch_scores_cmd, fetch_productivity_time_cmd, fetch_sessions_cmd};
 use modules::deeplinks::setup_deep_link_handlers;
 use modules::settings::{load_settings_from_store, update_settings_cmd};
-use modules::state::{clear_session_state, get_measuring_state, get_session_info, get_settings_state, set_user_session, AppState};
+use modules::state::{
+    clear_extreme_zscore_alert, clear_session_state, get_extreme_zscore_alert,
+    get_measuring_state, get_session_info, get_settings_state, set_user_session, AppState,
+};
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
 use modules::tracker::functions::session_management::end_session;
 
@@ -48,7 +51,9 @@ pub fn run() -> () {
             backfill_scores_cmd,
             fetch_batch_scores_cmd,
             fetch_productivity_time_cmd,
-            fetch_sessions_cmd
+            fetch_sessions_cmd,
+            get_extreme_zscore_alert,
+            clear_extreme_zscore_alert
         ])
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // Focus main window
