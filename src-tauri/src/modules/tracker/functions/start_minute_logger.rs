@@ -591,4 +591,40 @@ fn log_tracking_table(app_state: &AppState, hour: u32, minute: u8) {
     ]);
 
     println!("{}", table);
+
+    // Print behavioral metrics
+    let dwell_time_str = if app_state.keyboard_data.dwell_time_count > 0 {
+        format!(
+            "{:.1}ms (n={})",
+            app_state.keyboard_data.dwell_time_sum_ms / app_state.keyboard_data.dwell_time_count as f64,
+            app_state.keyboard_data.dwell_time_count
+        )
+    } else {
+        "N/A".to_string()
+    };
+    let deviation_str = if app_state.mouse_data.segment_count > 0 {
+        format!(
+            "{:.1}px (n={})",
+            app_state.mouse_data.deviation_sum / app_state.mouse_data.segment_count as f64,
+            app_state.mouse_data.segment_count
+        )
+    } else {
+        "N/A".to_string()
+    };
+    let overshoot_str = if app_state.mouse_data.segment_count > 0 {
+        format!(
+            "{:.1}px (n={})",
+            app_state.mouse_data.overshoot_sum / app_state.mouse_data.segment_count as f64,
+            app_state.mouse_data.segment_count
+        )
+    } else {
+        "N/A".to_string()
+    };
+    println!(
+        "{}📊 Behavioral: dwell_time={}, deviation={}, overshoot={}",
+        get_tracker_prefix(),
+        dwell_time_str,
+        deviation_str,
+        overshoot_str
+    );
 }

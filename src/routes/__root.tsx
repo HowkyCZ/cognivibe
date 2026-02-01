@@ -10,6 +10,8 @@ import { useAuth } from "../hooks/useAuth";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 
+const PERMISSIONS_ACKNOWLEDGED_KEY = "cognivibe_permissions_acknowledged";
+
 export const Route = createRootRoute({
   component: () => {
     const navigate = useNavigate();
@@ -23,8 +25,14 @@ export const Route = createRootRoute({
     }, []);
 
     useEffect(() => {
-      const p = platform();
-      setShowPermissionsModal(p === "macos");
+      const checkPermissionsModal = async () => {
+        const p = await platform();
+        const alreadyAcknowledged = localStorage.getItem(PERMISSIONS_ACKNOWLEDGED_KEY) === "true";
+        
+        // Only show modal on macOS if not already acknowledged
+        setShowPermissionsModal(p === "macos" && !alreadyAcknowledged);
+      };
+      checkPermissionsModal();
     }, []);
 
     useEffect(() => {
@@ -75,6 +83,8 @@ export const Route = createRootRoute({
 
     const handlePermissionsModalClose = (isOpen: boolean) => {
       if (!isOpen) {
+        // Save acknowledgment to localStorage so modal doesn't show again
+        localStorage.setItem(PERMISSIONS_ACKNOWLEDGED_KEY, "true");
         runMacOSPermissionChecks();
         setShowPermissionsModal(false);
       }
