@@ -73,6 +73,15 @@ pub fn extract_domain_from_browser_title(title: &str) -> Option<String> {
     None
 }
 
+/// Extracts domain (host) from a full URL
+/// Example: "https://github.com/user/repo" -> "github.com"
+pub fn extract_domain_from_url(url_str: &str) -> Option<String> {
+    use url::Url;
+    Url::parse(url_str)
+        .ok()
+        .and_then(|url| url.host_str().map(|h| h.to_string()))
+}
+
 /// Searches the app directory for a matching app/site and returns its category
 /// Returns None if not found, or the category string if found
 pub async fn search_app_directory(

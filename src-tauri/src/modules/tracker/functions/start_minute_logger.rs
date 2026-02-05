@@ -152,14 +152,14 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                         }
 
                         if !app_state.is_first_minute {
-                            // Calculate the previous minute and hour (handling wrap-around)
-                            let (prev_hour, prev_minute) = if current_minute == 0 {
-                                // If we're at minute 0, previous minute was 59 of previous hour
-                                let prev_h = if now.hour() == 0 { 23 } else { now.hour() - 1 };
-                                (prev_h, 59)
-                            } else {
-                                (now.hour(), current_minute - 1)
-                            };
+                            // Calculate the previous minute's timestamp (handling midnight wrap-around)
+                            // We need to get the actual datetime of the previous minute, not just hour/minute
+                            let prev_datetime = now - chrono::Duration::minutes(1);
+                            let prev_year = prev_datetime.year();
+                            let prev_month = prev_datetime.month();
+                            let prev_day = prev_datetime.day();
+                            let prev_hour = prev_datetime.hour();
+                            let prev_minute = prev_datetime.minute() as u8;
 
                             #[cfg(debug_assertions)]
                             log_tracking_table(&app_state, prev_hour, prev_minute);
@@ -295,9 +295,9 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                             
                                             let minute_timestamp = format!(
                                                 "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",
-                                                now.year(),
-                                                now.month(),
-                                                now.day(),
+                                                prev_year,
+                                                prev_month,
+                                                prev_day,
                                                 prev_hour,
                                                 prev_minute
                                             );
@@ -478,9 +478,9 @@ pub fn start_minute_logger(app_handle: AppHandle) {
 
                                 let minute_timestamp = format!(
                                     "{:04}-{:02}-{:02}T{:02}:{:02}:00Z",
-                                    now.year(),
-                                    now.month(),
-                                    now.day(),
+                                    prev_year,
+                                    prev_month,
+                                    prev_day,
                                     prev_hour,
                                     prev_minute
                                 );

@@ -40,6 +40,8 @@ owo-colors = "4.2.2"
 comfy-table = "7.1.1"
 # For window tracking
 active-win-pos-rs = "0.9"
+# For browser URL extraction via accessibility APIs (macOS & Windows)
+browser-info = "1.0"
 dotenv = "0.15.0"
 # For URL parsing
 url = "2.5"

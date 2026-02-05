@@ -4,10 +4,14 @@ use active_win_pos_rs::get_active_window;
 #[cfg(debug_assertions)]
 use active_win_pos_rs::ActiveWindow;
 use crate::modules::state::CategoryChangeEvent;
-use crate::modules::tracker::functions::search_app_directory::{search_app_directory, extract_domain_from_browser_title};
+use crate::modules::tracker::functions::search_app_directory::{search_app_directory, extract_domain_from_browser_title, extract_domain_from_url};
 use std::path::PathBuf;
 use std::time::Instant;
 use tauri::Manager;
+
+// Minimum window dimensions to filter out UI elements like address bar dropdowns, tooltips, etc.
+const MIN_WINDOW_HEIGHT: f64 = 100.0;
+const MIN_WINDOW_WIDTH: f64 = 200.0;
 
 /// Represents the type of change detected
 enum ChangeType {
@@ -45,6 +49,48 @@ fn is_browser_app(app_name: &str, process_path: &PathBuf) -> bool {
     false
 }
 
+/// Checks if the window is large enough to be a real application window.
+/// Filters out small UI elements like address bar dropdowns, tooltips, context menus, etc.
+fn is_valid_window_size(width: f64, height: f64) -> bool {
+    width >= MIN_WINDOW_WIDTH && height >= MIN_WINDOW_HEIGHT
+}
+
+/// Extracts domain from browser using accessibility APIs via browser-info crate.
+/// Falls back to title parsing if URL extraction fails.
+fn extract_browser_domain(current_title: &str) -> Option<String> {
+    // Try to get actual URL via accessibility APIs (works on macOS and Windows)
+    match browser_info::get_active_browser_info() {
+        Ok(info) if !info.url.is_empty() => {
+            #[cfg(debug_assertions)]
+            println!(
+                "{}Browser URL extracted: {}",
+                get_tracker_prefix(),
+                info.url
+            );
+            extract_domain_from_url(&info.url)
+        }
+        Ok(_) => {
+            // URL was empty, fallback to title parsing
+            #[cfg(debug_assertions)]
+            println!(
+                "{}Browser URL empty, falling back to title parsing",
+                get_tracker_prefix()
+            );
+            extract_domain_from_browser_title(current_title)
+        }
+        Err(_e) => {
+            // browser-info failed, fallback to title parsing
+            #[cfg(debug_assertions)]
+            println!(
+                "{}Browser info extraction failed: {:?}, falling back to title parsing",
+                get_tracker_prefix(),
+                _e
+            );
+            extract_domain_from_browser_title(current_title)
+        }
+    }
+}
+
 fn log_active_window() {
     use super::start_global_input_tracker::INPUT_APP_HANDLE;
     
@@ -65,6 +111,20 @@ fn log_active_window() {
 
     match get_active_window() {
         Ok(active_window) => {
+            // Skip small UI elements (dropdowns, tooltips, context menus)
+            // These often have empty titles and cause incorrect category detection
+            if !is_valid_window_size(active_window.position.width, active_window.position.height) {
+                #[cfg(debug_assertions)]
+                println!(
+                    "{}Skipping small window: {}x{} (app: '{}')",
+                    get_tracker_prefix(),
+                    active_window.position.width,
+                    active_window.position.height,
+                    active_window.app_name
+                );
+                return;
+            }
+
             let current_window_id = active_window.window_id.to_string();
             let current_title = active_window.title.clone();
             let current_app_name = active_window.app_name.clone();
@@ -81,9 +141,9 @@ fn log_active_window() {
             // Determine if we should search for category (window change or tab change)
             let should_search_category = matches!(change_type, ChangeType::WindowChanged | ChangeType::TabChanged);
 
-            // Extract domain for browser tabs
+            // Extract domain for browser tabs using accessibility APIs
             let domain = if is_browser {
-                extract_domain_from_browser_title(&current_title)
+                extract_browser_domain(&current_title)
             } else {
                 None
             };
