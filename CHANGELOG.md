@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-02-07
+
+### Added
+- Display score transformation: read-time trend smoothing (R²-weighted sliding regression) and percentile-based remapping so the chart uses more of the 0–100 range
+- User score percentiles (p10, p90, number_scores) from Supabase, computed every 12 hours; remapping blends in with confidence as data accumulates
+- Display categories: low/mid/high thresholds set to 30/65 (tuned for remapped scores)
+
+### Changed
+- Chart and session bar colors now use 30/65 breakpoints; tooltip and circle card thresholds updated to match
+- Tamed display amplification: target remap range 25–75 (was 15–85), blend strength 0.80 (was 0.65) to reduce wild swings while keeping trend emphasis
+
 ## [1.1.2] - 2026-02-01
 
 ### Added

@@ -115,12 +115,6 @@ export const useDashboardData = (
         sessionCount: sessionsResult.data?.length || 0,
       });
 
-      if (sessionsResult.success && Array.isArray(sessionsResult.data)) {
-        setSessions(sessionsResult.data);
-      } else {
-        setSessions([]);
-      }
-
       // Transform the API response data into CognitiveLoadDataPoint format
       if (result.success && Array.isArray(result.data)) {
         const transformedData: CognitiveLoadDataPoint[] = result.data.map(
@@ -134,6 +128,51 @@ export const useDashboardData = (
             };
           }
         );
+
+        // Derive a light remap for session scores so session bar colors
+        // are directionally consistent with the remapped chart line.
+        // We compute the average raw→display shift and apply 50 % of it.
+        const SESSION_REMAP_STRENGTH = 0.5;
+        const pairs = (result.data as any[])
+          .filter((d: any) => d.display_score != null && d.score_total != null)
+          .map((d: any) => ({
+            raw: Number(d.score_total),
+            display: Number(d.display_score),
+          }));
+
+        let sessionRemapFn = (raw: number) => raw; // identity fallback
+        if (pairs.length >= 2) {
+          // Fit a simple linear mapping: display ≈ a * raw + b
+          const n = pairs.length;
+          const sumR = pairs.reduce((s, p) => s + p.raw, 0);
+          const sumD = pairs.reduce((s, p) => s + p.display, 0);
+          const sumRR = pairs.reduce((s, p) => s + p.raw * p.raw, 0);
+          const sumRD = pairs.reduce((s, p) => s + p.raw * p.display, 0);
+          const denom = sumRR - (sumR * sumR) / n;
+          if (Math.abs(denom) > 1e-6) {
+            const a = (sumRD - (sumR * sumD) / n) / denom;
+            const b = (sumD - a * sumR) / n;
+            sessionRemapFn = (raw: number) => {
+              const remapped = a * raw + b;
+              // Blend at reduced strength so sessions shift gently
+              const blended = raw + SESSION_REMAP_STRENGTH * (remapped - raw);
+              return Math.max(0, Math.min(100, blended));
+            };
+          }
+        }
+
+        if (sessionsResult.success && Array.isArray(sessionsResult.data)) {
+          const remappedSessions = sessionsResult.data.map((s: any) => ({
+            ...s,
+            score_total:
+              s.score_total != null
+                ? Math.round(sessionRemapFn(s.score_total) * 100) / 100
+                : s.score_total,
+          }));
+          setSessions(remappedSessions);
+        } else {
+          setSessions([]);
+        }
 
         setCognitiveLoadData(transformedData);
 
@@ -205,6 +244,12 @@ export const useDashboardData = (
           });
         }
       } else {
+        // Batch scores failed, but still show sessions (un-remapped)
+        if (sessionsResult.success && Array.isArray(sessionsResult.data)) {
+          setSessions(sessionsResult.data);
+        } else {
+          setSessions([]);
+        }
         setCognitiveLoadData([]);
         setMissingData([]);
         setMetricsData([]);
