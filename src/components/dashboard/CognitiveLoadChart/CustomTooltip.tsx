@@ -2,8 +2,8 @@ import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 
 const thresholds = {
-  low: 40,
-  medium: 80,
+  low: 30,
+  medium: 65,
   high: 100,
 };
 

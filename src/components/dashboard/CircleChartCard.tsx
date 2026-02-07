@@ -28,10 +28,10 @@ const formatTotal = (value: number | undefined) => {
   return value?.toLocaleString() ?? "0";
 };
 
-// Cognitive load thresholds
+// Cognitive load thresholds (tuned for percentile-remapped display scores)
 const thresholds = {
-  low: 40,
-  medium: 80,
+  low: 30,
+  medium: 65,
   high: 100,
 };
 
@@ -85,7 +85,7 @@ const CircleChartCard = React.forwardRef<
       {!isLoading && (
         <HelpButton
           tooltipTitle="Cognitive Load Levels"
-          tooltipText="• Low (0-40): Light load, perfect for deep work<br/>• Mid (40-80): Optimal flow zone<br/>• High (80-100): Overwhelmed, consider taking a break"
+          tooltipText="• Low (0-30): Light load, perfect for deep work<br/>• Mid (30-65): Optimal flow zone<br/>• High (65-100): Overwhelmed, consider taking a break"
           className="absolute top-2 right-2"
         />
       )}

@@ -21,6 +21,10 @@ struct SearchRequest {
     app_name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     domain: Option<String>,
+    /// When true, indicates the app is a browser (Chrome, Firefox, etc.)
+    /// so the server can prioritize domain-based matches over app name matches.
+    #[serde(default)]
+    is_browser: bool,
 }
 
 /// Parses domain from Brandfetch icon URL
@@ -73,12 +77,26 @@ pub fn extract_domain_from_browser_title(title: &str) -> Option<String> {
     None
 }
 
+/// Extracts domain (host) from a full URL
+/// Example: "https://github.com/user/repo" -> "github.com"
+pub fn extract_domain_from_url(url_str: &str) -> Option<String> {
+    use url::Url;
+    Url::parse(url_str)
+        .ok()
+        .and_then(|url| url.host_str().map(|h| h.to_string()))
+}
+
 /// Searches the app directory for a matching app/site and returns its category
 /// Returns None if not found, or the category string if found
+///
+/// When `is_browser` is true, the server will prioritize domain-based matches
+/// over the browser app name match (e.g., "github.com" -> Development instead of
+/// "Google Chrome" -> Browsing and Research).
 pub async fn search_app_directory(
     app_handle: &AppHandle,
     app_name: &str,
     domain: Option<&str>,
+    is_browser: bool,
 ) -> Result<Option<String>, String> {
     // Get the current user session from app state
     let state = app_handle.state::<Mutex<AppState>>();
@@ -99,6 +117,7 @@ pub async fn search_app_directory(
     let request_body = SearchRequest {
         app_name: app_name.to_string(),
         domain: domain.map(|d| d.to_string()),
+        is_browser,
     };
 
     // Create the HTTP client and send request

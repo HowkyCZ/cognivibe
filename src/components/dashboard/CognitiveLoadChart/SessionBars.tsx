@@ -78,8 +78,8 @@ const interpolateColor = (
 };
 
 const getLoadColor = (load: number): string => {
-  if (load <= 35) return "#5C78FD"; // Blue
-  if (load <= 70) return interpolateColor(load, 35, 70, "#5C78FD", "#A07CEF");
+  if (load <= 30) return "#5C78FD"; // Blue
+  if (load <= 65) return interpolateColor(load, 30, 65, "#5C78FD", "#A07CEF");
   return "#FF709B"; // Pink
 };
 
