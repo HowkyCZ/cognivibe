@@ -58,6 +58,10 @@ pub struct AppState {
     pub consecutive_inactive_minutes: u32,
     /// Whether the 30-minute session notification was already sent
     pub sent_30min_notification: bool,
+    /// Count of consecutive scoring intervals with score_total >= 65
+    pub consecutive_high_score_count: u32,
+    /// Whether the break notification has been sent this session
+    pub sent_break_notification: bool,
 }
 
 /// Represents a category change event for tracking time spent in each category

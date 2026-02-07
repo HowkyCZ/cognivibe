@@ -148,6 +148,8 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                 app_state.current_session_id = None;
                                 app_state.last_activity_time = None;
                                 app_state.session_start_time = None;
+                                app_state.consecutive_high_score_count = 0;
+                                app_state.sent_break_notification = false;
                             }
                         }
 
@@ -406,6 +408,7 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                                 &timestamp_for_zscore,
                                                                 &user_id_for_zscore,
                                                                 &token_for_zscore,
+                                                                session_duration_secs_new,
                                                             ).await {
                                                                 Ok(true) => {
                                                                     #[cfg(debug_assertions)]
@@ -582,6 +585,7 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                     &timestamp_for_zscore,
                                                     &user_id_for_zscore,
                                                     &token_for_zscore,
+                                                    session_duration_secs,
                                                 ).await {
                                                     Ok(true) => {
                                                         #[cfg(debug_assertions)]

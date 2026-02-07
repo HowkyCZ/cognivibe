@@ -60,10 +60,10 @@ export const useDashboardData = (
   const [currentCognitiveLoad, setCurrentCognitiveLoad] = useState<number>(0);
   const { session } = useAuth();
 
-  // Cognitive load thresholds
+  // Cognitive load thresholds (tuned for percentile-remapped display scores)
   const thresholds = {
-    low: 40,
-    medium: 80,
+    low: 30,
+    medium: 65,
     high: 100,
   };
 
@@ -127,7 +127,7 @@ export const useDashboardData = (
           (item: any) => {
             return {
               timestamp: item.timestamp_iso ?? item.timestamp,
-              load: Number(item.score_total),
+              load: Number(item.display_score ?? item.score_total),
               focus: item.score_concentration,
               strain: item.score_frustration,
               energy: item.score_pressure,
@@ -148,8 +148,8 @@ export const useDashboardData = (
         if (result.data.length > 0) {
           const latestData = result.data[result.data.length - 1];
 
-          // Set current cognitive load from latest score_total
-          setCurrentCognitiveLoad(Math.round(latestData.score_total));
+          // Set current cognitive load from latest display_score (falling back to score_total)
+          setCurrentCognitiveLoad(Math.round(latestData.display_score ?? latestData.score_total));
 
           const metrics: MetricData[] = [
             {
