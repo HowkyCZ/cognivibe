@@ -7,6 +7,15 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_http::reqwest;
 use tauri_plugin_notification::NotificationExt;
 
+/// Minimum session duration (seconds) before extreme Z-score alerts are shown
+const MIN_SESSION_SECS_FOR_EXTREME_ALERT: u64 = 10 * 60; // 10 minutes
+
+/// Threshold for considering a cognitive load score "high" (on 0-100 scale)
+const HIGH_SCORE_THRESHOLD: f64 = 65.0;
+
+/// Number of consecutive high-score intervals required to trigger a break notification
+const CONSECUTIVE_HIGH_SCORE_LIMIT: u32 = 3;
+
 /// Request body for score calculation
 #[derive(Debug, Serialize)]
 struct ScoreRequest {
@@ -37,7 +46,6 @@ struct ScoreResponse {
 #[derive(Debug, Deserialize)]
 struct ScoreData {
     id: Option<i64>,
-    #[allow(dead_code)]
     score_total: Option<f64>,
     #[allow(dead_code)]
     score_frustration: Option<f64>,
@@ -48,15 +56,21 @@ struct ScoreData {
     extreme_zscore: Option<ExtremeZScoreResponse>,
 }
 
-/// Check for extreme Z-score by requesting score calculation from server
-/// This should be called after uploading metrics on 5-minute boundaries
-/// 
-/// Returns true if an extreme Z-score alert was detected and stored
+/// Check for extreme Z-score by requesting score calculation from server.
+/// Also tracks consecutive high cognitive load scores and sends break notifications.
+///
+/// This should be called after uploading metrics on 5-minute boundaries.
+///
+/// `session_duration_secs` is used to suppress extreme Z-score alerts during the
+/// first 10 minutes of a session (baselines are unreliable early on).
+///
+/// Returns true if an extreme Z-score alert was detected and stored.
 pub async fn check_and_handle_extreme_zscore(
     app_handle: &AppHandle,
     timestamp: &str,
     user_id: &str,
     access_token: &str,
+    session_duration_secs: u64,
 ) -> Result<bool, String> {
     // Get API base URL
     let api_base_url = get_api_base_url()?;
@@ -101,11 +115,68 @@ pub async fn check_and_handle_extreme_zscore(
         return Ok(false);
     }
 
-    // Check for extreme Z-score
     let data = match score_response.data {
         Some(d) => d,
         None => return Ok(false),
     };
+
+    // --- Track consecutive high cognitive load scores for break notification ---
+    let mut should_send_break_notification = false;
+    if let Some(score_total) = data.score_total {
+        let state = app_handle.state::<Mutex<AppState>>();
+        if let Ok(mut app_state) = state.lock() {
+            if score_total >= HIGH_SCORE_THRESHOLD {
+                app_state.consecutive_high_score_count += 1;
+                #[cfg(debug_assertions)]
+                println!(
+                    "[CHECK_ZSCORE] High score ({:.1}) - consecutive count: {}",
+                    score_total, app_state.consecutive_high_score_count
+                );
+            } else {
+                app_state.consecutive_high_score_count = 0;
+            }
+
+            // Flag break notification if 3+ consecutive high scores and not yet sent
+            if app_state.consecutive_high_score_count >= CONSECUTIVE_HIGH_SCORE_LIMIT
+                && !app_state.sent_break_notification
+            {
+                app_state.sent_break_notification = true;
+                should_send_break_notification = true;
+                #[cfg(debug_assertions)]
+                println!("[CHECK_ZSCORE] Sending break notification (high cognitive load for 15+ min)");
+            }
+        };
+    }
+
+    // Send break notification outside the lock
+    if should_send_break_notification {
+        let notification_body = format!(
+            "Your cognitive load has been high ({:.0}+) for the last 15 minutes. Consider taking a break.",
+            HIGH_SCORE_THRESHOLD
+        );
+        if let Err(e) = app_handle
+            .notification()
+            .builder()
+            .title("Cognivibe - Take a Break")
+            .body(&notification_body)
+            .show()
+        {
+            #[cfg(debug_assertions)]
+            eprintln!("[CHECK_ZSCORE] Failed to send break notification: {}", e);
+        }
+    }
+
+    // --- Extreme Z-score handling ---
+
+    // Skip extreme Z-score alerts during the first 10 minutes of a session
+    if session_duration_secs < MIN_SESSION_SECS_FOR_EXTREME_ALERT {
+        #[cfg(debug_assertions)]
+        println!(
+            "[CHECK_ZSCORE] Skipping extreme Z-score check (session only {}s, need {}s)",
+            session_duration_secs, MIN_SESSION_SECS_FOR_EXTREME_ALERT
+        );
+        return Ok(false);
+    }
 
     let extreme_zscore = match data.extreme_zscore {
         Some(ez) => ez,
@@ -115,6 +186,16 @@ pub async fn check_and_handle_extreme_zscore(
             return Ok(false);
         }
     };
+
+    // Skip scrolling-related metrics entirely (wheel_slope, wheel_sd, wheel_mean)
+    if extreme_zscore.metric_key.starts_with("wheel") {
+        #[cfg(debug_assertions)]
+        println!(
+            "[CHECK_ZSCORE] Ignoring scrolling extreme Z-score: {} (z={})",
+            extreme_zscore.metric_key, extreme_zscore.z_score
+        );
+        return Ok(false);
+    }
 
     let cognitive_score_id = match data.id {
         Some(id) => id,
@@ -159,8 +240,8 @@ pub async fn check_and_handle_extreme_zscore(
         println!("[CHECK_ZSCORE] Event emitted to frontend");
     }
 
-    // 30% chance to send push notification
-    if rand_chance(0.30) {
+    // 10% chance to send push notification (reduced from 30%)
+    if rand_chance(0.10) {
         let notification_body = format!(
             "Your {} is {}. Help us improve accuracy.",
             extreme_zscore.metric_name, extreme_zscore.direction

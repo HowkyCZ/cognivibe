@@ -156,7 +156,7 @@ fn log_active_window() {
                 
                 // Spawn async task to search directory
                 tauri::async_runtime::spawn(async move {
-                    match search_app_directory(&app_handle_clone, &app_name_clone, domain_clone.as_deref()).await {
+                    match search_app_directory(&app_handle_clone, &app_name_clone, domain_clone.as_deref(), is_browser).await {
                         Ok(Some(category)) => {
                             // Update category in state
                             if let Ok(mut state) = app_handle_clone.state::<std::sync::Mutex<crate::modules::state::AppState>>().lock() {
