@@ -1,5 +1,4 @@
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Divider } from "@heroui/divider";
+import { Card, CardBody } from "@heroui/card";
 
 const thresholds = {
   low: 30,
@@ -76,7 +75,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
     return (
       <Card isBlurred shadow="lg">
-        <CardHeader className="pb-2 flex flex-col gap-2">
+        <CardBody className="py-2 px-3 flex flex-col gap-2">
           <p className="text-sm font-semibold text-center text-foreground w-full">
             {hours}:{minutes}
           </p>
@@ -90,47 +89,6 @@ const CustomTooltip = ({ active, payload }: any) => {
             <span className="text-xs font-semibold text-foreground">
               {loadValue}
             </span>
-          </div>
-        </CardHeader>
-        <Divider />
-        <CardBody className="py-3">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: "#5C78FD" }}
-                ></span>
-                <span className="text-xs text-foreground/60">Focus</span>
-              </div>
-              <span className="text-xs font-semibold text-foreground">
-                {format(data.focus)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: "#A07CEF" }}
-                ></span>
-                <span className="text-xs text-foreground/60">Frustration</span>
-              </div>
-              <span className="text-xs font-semibold text-foreground">
-                {format(data.strain)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: "#FF709B" }}
-                ></span>
-                <span className="text-xs text-foreground/60">Workload</span>
-              </div>
-              <span className="text-xs font-semibold text-foreground">
-                {format(data.energy)}
-              </span>
-            </div>
           </div>
         </CardBody>
       </Card>

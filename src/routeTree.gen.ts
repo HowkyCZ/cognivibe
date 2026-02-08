@@ -10,9 +10,14 @@
 
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as TourRouteRouteImport } from "./routes/tour/route"
+import { Route as FocusTimerRouteRouteImport } from "./routes/focus-timer/route"
+import { Route as FocusNudgeRouteRouteImport } from "./routes/focus-nudge/route"
 import { Route as DashboardRouteRouteImport } from "./routes/dashboard/route"
+import { Route as BreakWarningRouteRouteImport } from "./routes/break-warning/route"
+import { Route as BreakRouteRouteImport } from "./routes/break/route"
 import { Route as R404RouteRouteImport } from "./routes/404/route"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as TourRoute2RouteImport } from "./routes/tour/route 2"
 import { Route as AuthLoginRouteRouteImport } from "./routes/auth/login/route"
 import { Route as AuthErrorRouteRouteImport } from "./routes/auth/error/route"
 import { Route as AuthCallbackRouteRouteImport } from "./routes/auth/callback/route"
@@ -22,9 +27,29 @@ const TourRouteRoute = TourRouteRouteImport.update({
   path: "/tour",
   getParentRoute: () => rootRouteImport,
 } as any)
+const FocusTimerRouteRoute = FocusTimerRouteRouteImport.update({
+  id: "/focus-timer",
+  path: "/focus-timer",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FocusNudgeRouteRoute = FocusNudgeRouteRouteImport.update({
+  id: "/focus-nudge",
+  path: "/focus-nudge",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BreakWarningRouteRoute = BreakWarningRouteRouteImport.update({
+  id: "/break-warning",
+  path: "/break-warning",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BreakRouteRoute = BreakRouteRouteImport.update({
+  id: "/break",
+  path: "/break",
   getParentRoute: () => rootRouteImport,
 } as any)
 const R404RouteRoute = R404RouteRouteImport.update({
@@ -36,6 +61,11 @@ const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRouteImport,
+} as any)
+const TourRoute2Route = TourRoute2RouteImport.update({
+  id: "/route 2",
+  path: "/route 2",
+  getParentRoute: () => TourRouteRoute,
 } as any)
 const AuthLoginRouteRoute = AuthLoginRouteRouteImport.update({
   id: "/auth/login",
@@ -56,66 +86,100 @@ const AuthCallbackRouteRoute = AuthCallbackRouteRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
+  "/break": typeof BreakRouteRoute
+  "/break-warning": typeof BreakWarningRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/tour": typeof TourRouteRoute
+  "/focus-nudge": typeof FocusNudgeRouteRoute
+  "/focus-timer": typeof FocusTimerRouteRoute
+  "/tour": typeof TourRouteRouteWithChildren
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
+  "/tour/route 2": typeof TourRoute2Route
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
+  "/break": typeof BreakRouteRoute
+  "/break-warning": typeof BreakWarningRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/tour": typeof TourRouteRoute
+  "/focus-nudge": typeof FocusNudgeRouteRoute
+  "/focus-timer": typeof FocusTimerRouteRoute
+  "/tour": typeof TourRouteRouteWithChildren
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
+  "/tour/route 2": typeof TourRoute2Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
+  "/break": typeof BreakRouteRoute
+  "/break-warning": typeof BreakWarningRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/tour": typeof TourRouteRoute
+  "/focus-nudge": typeof FocusNudgeRouteRoute
+  "/focus-timer": typeof FocusTimerRouteRoute
+  "/tour": typeof TourRouteRouteWithChildren
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
+  "/tour/route 2": typeof TourRoute2Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/"
     | "/404"
+    | "/break"
+    | "/break-warning"
     | "/dashboard"
+    | "/focus-nudge"
+    | "/focus-timer"
     | "/tour"
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
+    | "/tour/route 2"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
     | "/404"
+    | "/break"
+    | "/break-warning"
     | "/dashboard"
+    | "/focus-nudge"
+    | "/focus-timer"
     | "/tour"
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
+    | "/tour/route 2"
   id:
     | "__root__"
     | "/"
     | "/404"
+    | "/break"
+    | "/break-warning"
     | "/dashboard"
+    | "/focus-nudge"
+    | "/focus-timer"
     | "/tour"
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
+    | "/tour/route 2"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   R404RouteRoute: typeof R404RouteRoute
+  BreakRouteRoute: typeof BreakRouteRoute
+  BreakWarningRouteRoute: typeof BreakWarningRouteRoute
   DashboardRouteRoute: typeof DashboardRouteRoute
-  TourRouteRoute: typeof TourRouteRoute
+  FocusNudgeRouteRoute: typeof FocusNudgeRouteRoute
+  FocusTimerRouteRoute: typeof FocusTimerRouteRoute
+  TourRouteRoute: typeof TourRouteRouteWithChildren
   AuthCallbackRouteRoute: typeof AuthCallbackRouteRoute
   AuthErrorRouteRoute: typeof AuthErrorRouteRoute
   AuthLoginRouteRoute: typeof AuthLoginRouteRoute
@@ -130,11 +194,39 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof TourRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/focus-timer": {
+      id: "/focus-timer"
+      path: "/focus-timer"
+      fullPath: "/focus-timer"
+      preLoaderRoute: typeof FocusTimerRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/focus-nudge": {
+      id: "/focus-nudge"
+      path: "/focus-nudge"
+      fullPath: "/focus-nudge"
+      preLoaderRoute: typeof FocusNudgeRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/dashboard": {
       id: "/dashboard"
       path: "/dashboard"
       fullPath: "/dashboard"
       preLoaderRoute: typeof DashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/break-warning": {
+      id: "/break-warning"
+      path: "/break-warning"
+      fullPath: "/break-warning"
+      preLoaderRoute: typeof BreakWarningRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/break": {
+      id: "/break"
+      path: "/break"
+      fullPath: "/break"
+      preLoaderRoute: typeof BreakRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/404": {
@@ -150,6 +242,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/"
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    "/tour/route 2": {
+      id: "/tour/route 2"
+      path: "/route 2"
+      fullPath: "/tour/route 2"
+      preLoaderRoute: typeof TourRoute2RouteImport
+      parentRoute: typeof TourRouteRoute
     }
     "/auth/login": {
       id: "/auth/login"
@@ -175,11 +274,27 @@ declare module "@tanstack/react-router" {
   }
 }
 
+interface TourRouteRouteChildren {
+  TourRoute2Route: typeof TourRoute2Route
+}
+
+const TourRouteRouteChildren: TourRouteRouteChildren = {
+  TourRoute2Route: TourRoute2Route,
+}
+
+const TourRouteRouteWithChildren = TourRouteRoute._addFileChildren(
+  TourRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R404RouteRoute: R404RouteRoute,
+  BreakRouteRoute: BreakRouteRoute,
+  BreakWarningRouteRoute: BreakWarningRouteRoute,
   DashboardRouteRoute: DashboardRouteRoute,
-  TourRouteRoute: TourRouteRoute,
+  FocusNudgeRouteRoute: FocusNudgeRouteRoute,
+  FocusTimerRouteRoute: FocusTimerRouteRoute,
+  TourRouteRoute: TourRouteRouteWithChildren,
   AuthCallbackRouteRoute: AuthCallbackRouteRoute,
   AuthErrorRouteRoute: AuthErrorRouteRoute,
   AuthLoginRouteRoute: AuthLoginRouteRoute,

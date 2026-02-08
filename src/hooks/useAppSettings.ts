@@ -9,6 +9,13 @@ import {
 export interface AppSettings {
   should_start_on_boot: boolean;
   should_autostart_measuring: boolean;
+  break_nudge_enabled: boolean;
+  break_interval_minutes: number;
+  break_duration_seconds: number;
+  break_score_threshold: number;
+  break_auto_pause_categories: string[];
+  focus_nudge_enabled: boolean;
+  focus_nudge_sensitivity: number;
 }
 
 interface UseAppSettingsReturn {

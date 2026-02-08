@@ -82,7 +82,7 @@ export const useDashboardData = (
   // Track if we've already attempted backfill for this date to avoid loops
   const backfillAttemptedRef = useRef<string | null>(null);
 
-  const fetchDashboardData = async (shouldAttemptBackfill = true) => {
+  const fetchDashboardData = async (shouldAttemptBackfill = true, silentRefetch = false) => {
     console.log("[USE_DASHBOARD_DATA] Fetching dashboard data...", {
       selectedDate: `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`,
       hasSession: !!session,
@@ -90,7 +90,9 @@ export const useDashboardData = (
       shouldAttemptBackfill,
     });
     try {
-      setLoading(true);
+      if (!silentRefetch) {
+        setLoading(true);
+      }
       setError(null);
 
       // Convert CalendarDate to YYYY-MM-DD format
@@ -230,7 +232,7 @@ export const useDashboardData = (
             if (backfillResult.success && backfillResult.gaps_filled > 0) {
               console.log("[USE_DASHBOARD_DATA] ✅ Backfill filled", backfillResult.gaps_filled, "gaps, refetching data...");
               // Refetch data to include newly calculated scores (without triggering another backfill)
-              fetchDashboardData(false);
+              fetchDashboardData(false, true);
             } else {
               console.log("[USE_DASHBOARD_DATA] Backfill result:", {
                 success: backfillResult.success,
