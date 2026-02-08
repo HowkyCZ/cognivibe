@@ -234,6 +234,13 @@ fn log_active_window() {
                 }
                 ChangeType::TabChanged => {
                     update_stored_window_info(&current_window_id, &current_title, &current_app_name, false);
+                    // Increment tab change count for focus nudge tracking
+                    {
+                        use super::callback::shared_utils::modify_state;
+                        modify_state(|app_state| {
+                            app_state.tab_change_count += 1;
+                        });
+                    }
                     #[cfg(debug_assertions)]
                     log_window_info(&active_window, false);
                 }

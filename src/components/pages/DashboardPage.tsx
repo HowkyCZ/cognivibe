@@ -11,6 +11,9 @@ import { useDashboardData } from "../../hooks";
 import { useState } from "react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import type { CalendarDate } from "@internationalized/date";
+import { isDevMode } from "../../utils/constants";
+import { Button } from "@heroui/react";
+import { emit } from "@tauri-apps/api/event";
 
 function toLocalISODate(date: Date): string {
   const y = date.getFullYear();
@@ -111,6 +114,38 @@ function DashboardPage() {
               <GradientCard />
             </div>
           </div>
+          {/* Dev test buttons */}
+          {isDevMode && (
+            <div className="flex flex-row gap-2 my-4 items-center">
+              <span className="text-xs text-default-400 mr-2">Test:</span>
+              <Button
+                size="sm"
+                variant="bordered"
+                className="text-xs border-purple-500/30 text-purple-400"
+                onPress={() =>
+                  emit("break-nudge", {
+                    trigger_reason: "long_session",
+                    session_minutes: 95,
+                  })
+                }
+              >
+                Break Nudge
+              </Button>
+              <Button
+                size="sm"
+                variant="bordered"
+                className="text-xs border-teal-500/30 text-teal-400"
+                onPress={() =>
+                  emit("focus-nudge", {
+                    switching_count: 15,
+                    window_minutes: 5,
+                  })
+                }
+              >
+                Focus Nudge
+              </Button>
+            </div>
+          )}
         </div>
       </main>
     </>

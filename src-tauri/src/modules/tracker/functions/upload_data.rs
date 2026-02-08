@@ -19,6 +19,7 @@ pub struct LogData {
     pub mouse_move_distance: f64,
     pub mouse_scroll_distance: f64,
     pub window_change_count: u32,
+    pub tab_change_count: u32,
     pub backspace_count: u32,
     pub active_event_count: u32,
     pub screen_resolution_multiplier: Option<f64>,

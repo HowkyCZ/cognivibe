@@ -11,15 +11,18 @@ const SESSION_30_MINUTES_SECS: u64 = 30 * 60;
 /// 20 minutes in seconds
 const SESSION_20_MINUTES_SECS: u64 = 20 * 60;
 
+/// 70 minutes in seconds (break reminder threshold)
+const SESSION_70_MINUTES_SECS: u64 = 70 * 60;
+
 /// Number of consecutive inactive minutes to trigger notification
 const INACTIVE_MINUTES_THRESHOLD: u32 = 4;
 
 /// Check and send session duration notifications
 /// 
-/// This function handles two types of notifications:
+/// This function handles three types of notifications:
 /// 1. 30% chance when session reaches exactly 30 minutes
 /// 2. 70% chance when session >= 20 min AND 4 consecutive inactive minutes
-/// Note: Break reminders are now handled by the intervention system (check_interventions.rs)
+/// 3. Break reminder when session reaches 70 minutes of active work
 pub fn check_session_notifications(
     app_handle: &AppHandle,
     session_duration_secs: u64,
@@ -106,6 +109,36 @@ pub fn check_session_notifications(
         }
     }
 
+    // Send break reminder when session reaches 70 minutes of active work
+    if session_duration_secs >= SESSION_70_MINUTES_SECS {
+        let should_send = {
+            let app_state = match state.lock() {
+                Ok(s) => s,
+                Err(_) => return,
+            };
+            !app_state.sent_break_notification
+        };
+
+        if should_send {
+            #[cfg(debug_assertions)]
+            println!("[SESSION_NOTIFY] 📬 Sending 70-minute break reminder");
+
+            if let Err(e) = app_handle
+                .notification()
+                .builder()
+                .title("Cognivibe - Take a Break")
+                .body("You've been working for over 70 minutes. Consider taking a short break to recharge.")
+                .show()
+            {
+                #[cfg(debug_assertions)]
+                eprintln!("[SESSION_NOTIFY] Failed to send break notification: {}", e);
+            }
+
+            if let Ok(mut app_state) = state.lock() {
+                app_state.sent_break_notification = true;
+            }
+        }
+    }
 }
 
 /// Generate a random boolean with the given probability

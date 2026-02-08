@@ -2,6 +2,7 @@ import { createRootRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { platform } from "@tauri-apps/plugin-os";
 import { AppTemplate, PermissionsWelcomeModal } from "../components";
+import BreakManager from "../components/BreakManager";
 import { setupDeepLinkHandler } from "../utils/deepLinkHandler";
 import { isDevMode } from "../utils/constants";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -93,6 +94,7 @@ export const Route = createRootRoute({
     return (
       <AppTemplate>
         <Outlet />
+        <BreakManager />
         {showPermissionsModal === true && (
           <PermissionsWelcomeModal
             isOpen

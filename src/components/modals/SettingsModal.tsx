@@ -11,6 +11,11 @@ import {
   Form,
   Code,
   Alert,
+  Slider,
+  Select,
+  SelectItem,
+  Switch,
+  Divider,
 } from "@heroui/react";
 import { useState, useEffect } from "react";
 import {
@@ -20,6 +25,25 @@ import {
   IconDeviceFloppy,
 } from "@tabler/icons-react";
 import { useAppSettings, AppSettings, useAuth } from "../../hooks";
+
+const APP_CATEGORIES = [
+  "Communication",
+  "Meetings",
+  "Media and Entertainment",
+  "Docs and Writing",
+  "Productivity and Planning",
+  "Browsing and Research",
+  "Development",
+  "Design and Creative",
+  "Data and Analytics",
+  "Other",
+];
+
+const FOCUS_SENSITIVITY_OPTIONS = [
+  { value: "3.0", label: "Low (3x baseline)" },
+  { value: "2.0", label: "Medium (2x baseline)" },
+  { value: "1.5", label: "High (1.5x baseline)" },
+];
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -218,6 +242,160 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                       Auto start monitoring when app opens
                     </Checkbox>
                   </div>
+
+                  <Divider />
+
+                  {/* Breaks & Focus Section */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold">Breaks & Focus</h4>
+
+                    <div className="space-y-3">
+                      <Switch
+                        isSelected={localSettings?.break_nudge_enabled ?? true}
+                        onValueChange={(value) =>
+                          setLocalSettings((prev) =>
+                            prev ? { ...prev, break_nudge_enabled: value } : null
+                          )
+                        }
+                        isDisabled={isSaving || isDeleting || settingsLoading}
+                        size="sm"
+                      >
+                        Break nudges
+                      </Switch>
+
+                      {localSettings?.break_nudge_enabled && (
+                        <div className="space-y-4 pl-2">
+                          <Slider
+                            label="Break after (minutes)"
+                            step={10}
+                            minValue={30}
+                            maxValue={180}
+                            value={localSettings?.break_interval_minutes ?? 90}
+                            onChange={(value) =>
+                              setLocalSettings((prev) =>
+                                prev
+                                  ? { ...prev, break_interval_minutes: value as number }
+                                  : null
+                              )
+                            }
+                            isDisabled={isSaving || isDeleting || settingsLoading}
+                            size="sm"
+                            className="max-w-full"
+                          />
+                          <Slider
+                            label="Break duration (seconds)"
+                            step={30}
+                            minValue={30}
+                            maxValue={300}
+                            value={localSettings?.break_duration_seconds ?? 120}
+                            onChange={(value) =>
+                              setLocalSettings((prev) =>
+                                prev
+                                  ? { ...prev, break_duration_seconds: value as number }
+                                  : null
+                              )
+                            }
+                            isDisabled={isSaving || isDeleting || settingsLoading}
+                            size="sm"
+                            className="max-w-full"
+                          />
+                          <Slider
+                            label="Score threshold"
+                            step={5}
+                            minValue={50}
+                            maxValue={90}
+                            value={localSettings?.break_score_threshold ?? 70}
+                            onChange={(value) =>
+                              setLocalSettings((prev) =>
+                                prev
+                                  ? { ...prev, break_score_threshold: value as number }
+                                  : null
+                              )
+                            }
+                            isDisabled={isSaving || isDeleting || settingsLoading}
+                            size="sm"
+                            className="max-w-full"
+                          />
+                          <div className="space-y-2">
+                            <p className="text-sm text-default-500">
+                              Auto-pause during
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {APP_CATEGORIES.map((cat) => (
+                                <Checkbox
+                                  key={cat}
+                                  size="sm"
+                                  isSelected={
+                                    localSettings?.break_auto_pause_categories?.includes(cat) ?? false
+                                  }
+                                  onValueChange={(checked) =>
+                                    setLocalSettings((prev) => {
+                                      if (!prev) return null;
+                                      const cats = prev.break_auto_pause_categories ?? [];
+                                      return {
+                                        ...prev,
+                                        break_auto_pause_categories: checked
+                                          ? [...cats, cat]
+                                          : cats.filter((c) => c !== cat),
+                                      };
+                                    })
+                                  }
+                                  isDisabled={isSaving || isDeleting || settingsLoading}
+                                >
+                                  {cat}
+                                </Checkbox>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <Switch
+                        isSelected={localSettings?.focus_nudge_enabled ?? true}
+                        onValueChange={(value) =>
+                          setLocalSettings((prev) =>
+                            prev ? { ...prev, focus_nudge_enabled: value } : null
+                          )
+                        }
+                        isDisabled={isSaving || isDeleting || settingsLoading}
+                        size="sm"
+                      >
+                        Focus nudges
+                      </Switch>
+
+                      {localSettings?.focus_nudge_enabled && (
+                        <div className="pl-2">
+                          <Select
+                            label="Focus sensitivity"
+                            selectedKeys={[
+                              String(localSettings?.focus_nudge_sensitivity ?? 2.0),
+                            ]}
+                            onSelectionChange={(keys) => {
+                              const val = Array.from(keys)[0] as string;
+                              setLocalSettings((prev) =>
+                                prev
+                                  ? { ...prev, focus_nudge_sensitivity: parseFloat(val) }
+                                  : null
+                              );
+                            }}
+                            isDisabled={isSaving || isDeleting || settingsLoading}
+                            size="sm"
+                            className="max-w-xs"
+                          >
+                            {FOCUS_SENSITIVITY_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <Divider />
 
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold">Danger Zone</h4>

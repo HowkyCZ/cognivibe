@@ -10,6 +10,12 @@ use tauri_plugin_notification::NotificationExt;
 /// Minimum session duration (seconds) before extreme Z-score alerts are shown
 const MIN_SESSION_SECS_FOR_EXTREME_ALERT: u64 = 10 * 60; // 10 minutes
 
+/// Threshold for considering a cognitive load score "high" (on 0-100 scale)
+const HIGH_SCORE_THRESHOLD: f64 = 65.0;
+
+/// Number of consecutive high-score intervals required to trigger a break notification
+const CONSECUTIVE_HIGH_SCORE_LIMIT: u32 = 3;
+
 /// Request body for score calculation
 #[derive(Debug, Serialize)]
 struct ScoreRequest {
@@ -114,22 +120,50 @@ pub async fn check_and_handle_extreme_zscore(
         None => return Ok(false),
     };
 
-    // --- Track consecutive high cognitive load scores (used by intervention system) ---
+    // --- Track consecutive high cognitive load scores for break notification ---
+    let mut should_send_break_notification = false;
     if let Some(score_total) = data.score_total {
         let state = app_handle.state::<Mutex<AppState>>();
         if let Ok(mut app_state) = state.lock() {
-            let threshold = app_state.settings.break_score_threshold as f64;
-            if score_total >= threshold {
+            if score_total >= HIGH_SCORE_THRESHOLD {
                 app_state.consecutive_high_score_count += 1;
                 #[cfg(debug_assertions)]
                 println!(
-                    "[CHECK_ZSCORE] High score ({:.1} >= {:.0}) - consecutive count: {}",
-                    score_total, threshold, app_state.consecutive_high_score_count
+                    "[CHECK_ZSCORE] High score ({:.1}) - consecutive count: {}",
+                    score_total, app_state.consecutive_high_score_count
                 );
             } else {
                 app_state.consecutive_high_score_count = 0;
             }
+
+            // Flag break notification if 3+ consecutive high scores and not yet sent
+            if app_state.consecutive_high_score_count >= CONSECUTIVE_HIGH_SCORE_LIMIT
+                && !app_state.sent_break_notification
+            {
+                app_state.sent_break_notification = true;
+                should_send_break_notification = true;
+                #[cfg(debug_assertions)]
+                println!("[CHECK_ZSCORE] Sending break notification (high cognitive load for 15+ min)");
+            }
         };
+    }
+
+    // Send break notification outside the lock
+    if should_send_break_notification {
+        let notification_body = format!(
+            "Your cognitive load has been high ({:.0}+) for the last 15 minutes. Consider taking a break.",
+            HIGH_SCORE_THRESHOLD
+        );
+        if let Err(e) = app_handle
+            .notification()
+            .builder()
+            .title("Cognivibe - Take a Break")
+            .body(&notification_body)
+            .show()
+        {
+            #[cfg(debug_assertions)]
+            eprintln!("[CHECK_ZSCORE] Failed to send break notification: {}", e);
+        }
     }
 
     // --- Extreme Z-score handling ---

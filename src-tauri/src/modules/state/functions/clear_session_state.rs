@@ -20,6 +20,13 @@ pub fn clear_session_state(state: State<Mutex<AppState>>) -> Result<(), String> 
     app_state.session_start_time = None;
     app_state.consecutive_high_score_count = 0;
     app_state.sent_break_notification = false;
+    // Reset intervention state for new session
+    app_state.focus_nudge_count_session = 0;
+    app_state.recent_tab_changes.clear();
+    app_state.recent_window_changes.clear();
+    app_state.sent_30min_notification = false;
+    // Note: last_break_nudge_time and last_focus_nudge_time are NOT reset
+    // as their cooldowns should persist across sessions
 
     #[cfg(debug_assertions)]
     if _had_session {
