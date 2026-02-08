@@ -14,6 +14,11 @@ import type { CalendarDate } from "@internationalized/date";
 import { isDevMode } from "../../utils/constants";
 import { Button } from "@heroui/react";
 import { emit } from "@tauri-apps/api/event";
+import {
+  sendNotification,
+  isPermissionGranted,
+  requestPermission,
+} from "@tauri-apps/plugin-notification";
 
 function toLocalISODate(date: Date): string {
   const y = date.getFullYear();
@@ -114,21 +119,24 @@ function DashboardPage() {
               <GradientCard />
             </div>
           </div>
-          {/* Dev test buttons (5s delay so you can switch windows) */}
+          {/* Dev test buttons — sends notification first, then event after 3s */}
           {isDevMode && (
             <div className="flex flex-row gap-2 my-4 items-center">
-              <span className="text-xs text-default-400 mr-2">Test (5s delay):</span>
+              <span className="text-xs text-default-400 mr-2">Test:</span>
               <Button
                 size="sm"
                 variant="bordered"
                 className="text-xs border-primary/30 text-primary"
-                onPress={() => {
+                onPress={async () => {
+                  let ok = await isPermissionGranted();
+                  if (!ok) ok = (await requestPermission()) === "granted";
+                  if (ok) sendNotification({ title: "CogniVibe", body: "You've been working for 95 minutes. Time for a break." });
                   setTimeout(() => {
                     emit("break-nudge", {
                       trigger_reason: "long_session",
                       session_minutes: 95,
                     });
-                  }, 5000);
+                  }, 3000);
                 }}
               >
                 Break Nudge
@@ -137,13 +145,16 @@ function DashboardPage() {
                 size="sm"
                 variant="bordered"
                 className="text-xs border-primary/30 text-primary"
-                onPress={() => {
+                onPress={async () => {
+                  let ok = await isPermissionGranted();
+                  if (!ok) ok = (await requestPermission()) === "granted";
+                  if (ok) sendNotification({ title: "CogniVibe", body: "Lots of context switching detected." });
                   setTimeout(() => {
                     emit("focus-nudge", {
                       switching_count: 15,
                       window_minutes: 5,
                     });
-                  }, 5000);
+                  }, 3000);
                 }}
               >
                 Focus Nudge

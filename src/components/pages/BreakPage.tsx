@@ -118,15 +118,6 @@ const BreakPage = () => {
       <h1 className="text-white text-4xl font-bold mb-2">{heading}</h1>
       <p className="text-white/60 text-base mb-8">{subtitle}</p>
 
-      {/* Divider */}
-      <div
-        className="w-16 h-px mb-8"
-        style={{
-          background: "linear-gradient(90deg, #a07cef 0%, #ff709b 100%)",
-          opacity: 0.4,
-        }}
-      />
-
       {/* Timer */}
       <p
         className={`text-5xl font-light mb-8 ${

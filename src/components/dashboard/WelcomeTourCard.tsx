@@ -6,7 +6,7 @@ import { useAuth, useUserData, useExtremeZScoreAlert } from "../../hooks";
 import { ZScoreSurveyModal } from "../modals";
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { listen, emit } from "@tauri-apps/api/event";
 
 interface WelcomeTourCardProps {
   onStartClick?: () => void;
@@ -67,6 +67,7 @@ const WelcomeTourCard = ({ onStartClick }: WelcomeTourCardProps) => {
   const handleCancelFocus = async () => {
     try {
       await invoke("stop_focus_session");
+      await emit("focus-session-cancelled", {});
       setFocusRemaining(null);
     } catch {
       // ignore

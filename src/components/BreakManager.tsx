@@ -1,9 +1,19 @@
 import { useEffect, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { WebviewWindow, getAllWebviewWindows } from "@tauri-apps/api/webviewWindow";
 import { currentMonitor } from "@tauri-apps/api/window";
 import { useAppSettings } from "../hooks";
+
+/** Check if a window with the given label already exists. */
+async function windowExists(label: string): Promise<boolean> {
+  try {
+    const all = await getAllWebviewWindows();
+    return all.some((w) => w.label === label);
+  } catch {
+    return false;
+  }
+}
 
 interface BreakNudgePayload {
   trigger_reason: string;
@@ -142,8 +152,9 @@ const BreakManager = () => {
   };
 
   const spawnBreakWarning = async (payload: BreakNudgePayload) => {
-    // Don't spawn if already showing
+    // Don't spawn if already showing or window already exists
     if (breakWarningRef.current || breakOverlayRef.current) return;
+    if (await windowExists("break-warning") || await windowExists("break-overlay")) return;
 
     const winW = 410;
     const winH = 148;
@@ -185,6 +196,7 @@ const BreakManager = () => {
 
     // Don't double-spawn
     if (breakOverlayRef.current) return;
+    if (await windowExists("break-overlay")) return;
 
     const payload = lastBreakPayload.current;
     const sessionInfo = await getSessionInfo();
@@ -217,6 +229,7 @@ const BreakManager = () => {
   const spawnFocusNudge = async (payload: FocusNudgePayload) => {
     // Don't spawn if already showing a nudge or overlay
     if (focusNudgeRef.current || breakOverlayRef.current) return;
+    if (await windowExists("focus-nudge")) return;
 
     const winW = 380;
     const winH = 140;
@@ -253,7 +266,7 @@ const BreakManager = () => {
       await invoke("start_focus_session", { durationSecs: 25 * 60 });
 
       // Spawn the focus timer widget at top-right
-      if (!focusTimerRef.current) {
+      if (!focusTimerRef.current && !(await windowExists("focus-timer"))) {
         const timerW = 220;
         const timerH = 44;
         const timerPos = await getTopRightPosition(timerW, timerH);
