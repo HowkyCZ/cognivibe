@@ -84,29 +84,53 @@ const BreakPage = () => {
   };
 
   const handleSurveySubmit = async (scores: QuestionnaireScores) => {
-    if (!sessionId) return;
+    if (!sessionId || sessionId.trim() === "") {
+      console.error("[BREAK] No sessionId provided, cannot end session");
+      // Still close the window even if we can't end the session
+      await emit("break-completed", {});
+      try {
+        await getCurrentWindow().close();
+      } catch {}
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
+      console.log("[BREAK] Ending session with survey:", { sessionId, scores });
       await endSessionWithSurvey(sessionId, scores);
+      console.log("[BREAK] Session ended successfully");
       await emit("break-completed", {});
-      getCurrentWindow().close();
+      await getCurrentWindow().close();
     } catch (error) {
       console.error("[BREAK] Failed to end session with survey:", error);
+      // Still close the window even if ending failed
+      await emit("break-completed", {});
+      try {
+        await getCurrentWindow().close();
+      } catch {}
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSkip = async () => {
-    if (sessionId) {
+    if (sessionId && sessionId.trim() !== "") {
       try {
+        console.log("[BREAK] Ending session on skip:", { sessionId });
         await endSessionWithSurvey(sessionId);
+        console.log("[BREAK] Session ended successfully on skip");
       } catch (error) {
         console.error("[BREAK] Failed to end session on skip:", error);
+        // Continue to close window even if ending failed
       }
+    } else {
+      console.warn("[BREAK] No sessionId provided, skipping session end");
     }
+    
     await emit("break-skipped", {});
-    getCurrentWindow().close();
+    try {
+      await getCurrentWindow().close();
+    } catch {}
   };
 
   const heading =
@@ -162,9 +186,10 @@ const BreakPage = () => {
 
         {/* Timer */}
         <p
-          className={`text-5xl font-light mb-8 ${
-            timerDone ? "text-success" : "text-white"
-          }`}
+          className="text-5xl font-light mb-8"
+          style={{
+            color: timerDone ? "rgba(255, 255, 255, 0.6)" : "white",
+          }}
         >
           {formatTime(secondsLeft)}
         </p>
@@ -194,8 +219,9 @@ const BreakPage = () => {
         <div
           className="w-full max-w-md px-6 py-5 rounded-2xl border border-white/10"
           style={{
-            background: "rgba(34, 29, 40, 0.7)",
-            backdropFilter: "blur(16px)",
+            background: "rgba(34, 29, 40, 0.3)",
+            backdropFilter: "blur(24px) saturate(1.2)",
+            WebkitBackdropFilter: "blur(24px) saturate(1.2)",
           }}
         >
           <SessionSurvey

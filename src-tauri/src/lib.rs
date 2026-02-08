@@ -22,9 +22,9 @@ use modules::tracker::{start_global_input_tracker, toggle_measuring};
 use modules::tracker::functions::session_management::end_session;
 
 #[cfg(not(debug_assertions))]
-use modules::utils::{capture_screen, focus_main_window};
+use modules::utils::{capture_screen, focus_main_window, force_destroy_window};
 #[cfg(debug_assertions)]
-use modules::utils::{capture_screen, focus_main_window, get_init_prefix};
+use modules::utils::{capture_screen, focus_main_window, force_destroy_window, get_init_prefix};
 
 pub fn run() -> () {
     let builder = tauri::Builder::default();
@@ -58,7 +58,8 @@ pub fn run() -> () {
             start_focus_session,
             get_focus_session_state,
             stop_focus_session,
-            capture_screen
+            capture_screen,
+            force_destroy_window
         ])
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // Focus main window

@@ -34,7 +34,7 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                 std::thread::sleep(Duration::from_secs(1));
             }).await;
 
-            let (remaining, is_active) = {
+            let remaining = {
                 let state = app_handle_clone.state::<Mutex<AppState>>();
                 let app_state = match state.lock() {
                     Ok(s) => s,
@@ -52,7 +52,6 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                     println!("[FOCUS_TIMER] Background loop: session cancelled, clearing tray");
                     break;
                 }
-                let is_active = app_state.focus_session_active;
                 let remaining = match app_state.focus_session_end_time {
                     Some(end) => {
                         let now = SystemTime::now();
@@ -69,35 +68,12 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                     }
                 };
                 drop(app_state);
-                (remaining, is_active)
+                remaining
             };
 
-            // Double-check session is still active before updating tray title
-            // This prevents race conditions where stop_focus_session was called
-            // between the check above and this update
-            let still_active = {
-                let state = app_handle_clone.state::<Mutex<AppState>>();
-                let guard = match state.lock() {
-                    Ok(g) => g,
-                    Err(_) => {
-                        // Lock failed, assume inactive
-                        clear_tray_title(&app_handle_clone);
-                        break;
-                    }
-                };
-                let active = guard.focus_session_active;
-                drop(guard);
-                active
-            };
-
-            if !still_active {
-                clear_tray_title(&app_handle_clone);
-                #[cfg(debug_assertions)]
-                println!("[FOCUS_TIMER] Background loop: session cancelled before update, clearing tray");
-                break;
-            }
-
-            // Update tray title only if session is still active
+            // Update tray title
+            // Note: We rely on the check above and the multiple delayed clears in stop_focus_session
+            // to handle race conditions
             update_tray_title(&app_handle_clone, remaining);
 
             if remaining == 0 {

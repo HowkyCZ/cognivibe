@@ -1,6 +1,7 @@
 import { createRootRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { platform } from "@tauri-apps/plugin-os";
+import { HeroUIProvider } from "@heroui/react";
 import { AppTemplate, PermissionsWelcomeModal } from "../components";
 import BreakManager from "../components/BreakManager";
 import { setupDeepLinkHandler } from "../utils/deepLinkHandler";
@@ -99,12 +100,14 @@ export const Route = createRootRoute({
       window.location.pathname.startsWith(r)
     );
 
-    // Popup windows: transparent background, no devtools/BreakManager/modals
+    // Popup windows: bare HeroUI only — no AppTemplate, no useUpdater,
+    // no ToastProvider, no UpdateModal. This prevents the updater from
+    // freezing the popup's JS event loop and making buttons unresponsive.
     if (isPopupWindow) {
       return (
-        <AppTemplate>
+        <HeroUIProvider>
           <Outlet />
-        </AppTemplate>
+        </HeroUIProvider>
       );
     }
 

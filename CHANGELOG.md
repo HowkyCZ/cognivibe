@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-02-08
+
+### Added
+- Break nudge system: gentle break suggestions triggered by long sessions (90+ minutes) or high cognitive load (70+ score)
+- Break warning popup: countdown window with "Start now", "+1 min", and "Skip" options before break overlay
+- Break overlay: fullscreen glassmorphism overlay with blurred screenshot background, timer, and end-of-break survey
+- Focus nudge system: context switching detection with focus session suggestions when switching exceeds personal baseline
+- Focus nudge popup: notification-style popup suggesting focus sessions when excessive context switching is detected
+- Focus timer: visual timer widget displayed in top-right corner and macOS menu bar during focus sessions
+- Intelligent break pausing: breaks automatically pause during meetings, media consumption, or inactive periods
+- System notifications: break and focus nudges trigger system notifications visible over fullscreen apps
+
+### Changed
+- Window management: improved window closing logic to handle duplicate windows and ensure proper cleanup
+- Break overlay styling: enhanced glassmorphism effects with improved blur and transparency
+- Focus timer display: shows remaining time in macOS menu bar tray icon
+
+### Fixed
+- Window closing issues: fixed stuck windows by ensuring all duplicate windows are destroyed
+- Break overlay session end: improved session end logic to handle edge cases with missing session IDs
+- Focus timer persistence: fixed timer remaining in tray after session cancellation
+
 ## [1.1.3] - 2026-02-07
 
 ### Added

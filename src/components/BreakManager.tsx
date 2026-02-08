@@ -93,8 +93,10 @@ const BreakManager = () => {
       // Listen for focus actions (from nudge window)
       const unFocusAction = await listen<FocusAction>(
         "focus-action",
-        (event) => {
+        async (event) => {
           console.log("[BREAK_MANAGER] Focus action:", event.payload);
+          // Always close the nudge window on any action
+          await closeFocusNudgeWindow();
           if (event.payload.action === "start") {
             startFocusSession();
           }
@@ -137,31 +139,68 @@ const BreakManager = () => {
     };
   }, []);
 
+  /**
+   * Nuke ALL windows with the given label. Destroys every window matching the label,
+   * not just one. This handles the case where duplicate windows were created.
+   * Calls the Rust-side force_destroy_window FIRST (most reliable — bypasses the
+   * frozen popup JS entirely), then also tries JS-side close/destroy as belt-and-suspenders.
+   */
+  const nukeWindowByLabel = async (label: string) => {
+    // Destroy ALL windows with this label (handle duplicates)
+    let maxAttempts = 10; // Prevent infinite loops
+    
+    while (maxAttempts-- > 0) {
+      // 1. Rust-side destroy — primary method, most reliable
+      try {
+        await invoke("force_destroy_window", { label });
+      } catch {
+        // may fail if window already gone — that's fine
+      }
+
+      // Small delay to let destroy propagate
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // 2. JS-side close/destroy — belt-and-suspenders (destroy ALL matching windows)
+      try {
+        const all = await getAllWebviewWindows();
+        const matching = all.filter((w) => w.label === label);
+        if (matching.length > 0) {
+          // Destroy ALL matching windows
+          for (const win of matching) {
+            try { await win.destroy(); } catch {}
+            try { await win.close(); } catch {}
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      // Check if any windows with this label still exist
+      await new Promise(resolve => setTimeout(resolve, 50));
+      try {
+        const allAfter = await getAllWebviewWindows();
+        const stillExists = allAfter.some((w) => w.label === label);
+        if (!stillExists) {
+          // All windows destroyed, we're done
+          break;
+        }
+      } catch {
+        // If we can't check, assume done after one attempt
+        break;
+      }
+    }
+  };
+
   /** Close the break warning window aggressively. */
   const closeBreakWarningWindow = async () => {
-    // Try via ref first
-    if (breakWarningRef.current) {
-      try {
-        await breakWarningRef.current.close();
-      } catch {
-        // Window might already be closed
-      }
-      breakWarningRef.current = null;
-    }
-    // Also try by label lookup to catch any edge cases
-    try {
-      const all = await getAllWebviewWindows();
-      const existing = all.find((w) => w.label === "break-warning");
-      if (existing) {
-        try {
-          await existing.close();
-        } catch {
-          // Already closed
-        }
-      }
-    } catch {
-      // Ignore errors
-    }
+    breakWarningRef.current = null;
+    await nukeWindowByLabel("break-warning");
+  };
+
+  /** Close the focus nudge window aggressively. */
+  const closeFocusNudgeWindow = async () => {
+    focusNudgeRef.current = null;
+    await nukeWindowByLabel("focus-nudge");
   };
 
   /** Get top-right screen coordinates for a popup of the given size. */
@@ -184,7 +223,11 @@ const BreakManager = () => {
   };
 
   const spawnBreakWarning = async (payload: BreakNudgePayload) => {
-    // Don't spawn if already showing or window already exists
+    // CRITICAL: Destroy any existing windows FIRST to prevent duplicates
+    await nukeWindowByLabel("break-warning");
+    await nukeWindowByLabel("break-overlay");
+    
+    // Don't spawn if already showing or window already exists (double-check after nuke)
     if (breakWarningRef.current || breakOverlayRef.current) return;
     if (await windowExists("break-warning") || await windowExists("break-overlay")) return;
 
@@ -262,7 +305,10 @@ const BreakManager = () => {
   };
 
   const spawnFocusNudge = async (payload: FocusNudgePayload) => {
-    // Don't spawn if already showing a nudge or overlay
+    // CRITICAL: Destroy any existing windows FIRST to prevent duplicates
+    await nukeWindowByLabel("focus-nudge");
+    
+    // Don't spawn if already showing a nudge or overlay (double-check after nuke)
     if (focusNudgeRef.current || breakOverlayRef.current) return;
     if (await windowExists("focus-nudge")) return;
 
@@ -296,6 +342,9 @@ const BreakManager = () => {
   };
 
   const startFocusSession = async () => {
+    // Ensure nudge window is closed before starting session
+    await closeFocusNudgeWindow();
+
     try {
       // Start the focus session in the Rust backend (25 min default)
       await invoke("start_focus_session", { durationSecs: 25 * 60 });

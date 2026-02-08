@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@heroui/react";
 import { emit } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useSearch } from "@tanstack/react-router";
 import { IconX } from "@tabler/icons-react";
+import { forceCloseWindow } from "../../utils/forceCloseWindow";
 
 const BreakWarningPage = () => {
   const search = useSearch({ strict: false }) as {
@@ -15,19 +15,47 @@ const BreakWarningPage = () => {
 
   // 2 minute countdown (120 seconds)
   const [secondsLeft, setSecondsLeft] = useState(120);
+  const isClosingRef = useRef(false);
+
+  const doClose = useCallback(() => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
+    forceCloseWindow().catch(() => {});
+  }, []);
+
+  // Esc key handler — works even if buttons are unresponsive
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        console.log("[BreakWarning] Esc pressed, force closing");
+        doClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [doClose]);
+
+  // Auto-close timeout fallback (5 minutes max)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.warn("[BreakWarning] Auto-closing window after 5 minute timeout");
+      doClose();
+    }, 5 * 60 * 1000);
+
+    return () => clearTimeout(timeout);
+  }, [doClose]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          // Auto-start when countdown reaches 0
-          emit("break-warning-action", { action: "start" }).then(() => {
-            getCurrentWindow().close().catch(() => {});
-          }).catch(() => {
-            // Still try to close even if emit failed
-            getCurrentWindow().close().catch(() => {});
-          });
+          if (!isClosingRef.current) {
+            isClosingRef.current = true;
+            emit("break-warning-action", { action: "start" })
+              .then(() => forceCloseWindow())
+              .catch(() => forceCloseWindow());
+          }
           return 0;
         }
         return prev - 1;
@@ -44,17 +72,14 @@ const BreakWarningPage = () => {
   };
 
   const handleStart = async () => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
     try {
       await emit("break-warning-action", { action: "start" });
-      // Close immediately - BreakManager will handle spawning the overlay
-      await getCurrentWindow().close();
     } catch (error) {
       console.error("[BreakWarning] Error starting break:", error);
-      // Still try to close even if emit failed
-      try {
-        await getCurrentWindow().close();
-      } catch {}
     }
+    await forceCloseWindow();
   };
 
   const handleAddTime = () => {
@@ -62,24 +87,31 @@ const BreakWarningPage = () => {
   };
 
   const handleSkip = async () => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
     try {
       await emit("break-warning-action", { action: "skip" });
-      await getCurrentWindow().close();
     } catch (error) {
       console.error("[BreakWarning] Error skipping break:", error);
-      try {
-        await getCurrentWindow().close();
-      } catch {}
     }
+    await forceCloseWindow();
   };
 
-  const handleClose = async () => {
-    try {
-      await getCurrentWindow().close();
-    } catch (error) {
-      console.error("[BreakWarning] Error closing window:", error);
-    }
-  };
+  const handleClose = useCallback(async () => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
+    await forceCloseWindow();
+  }, []);
+
+  // Native mousedown handler — fires before React's onPress
+  const handleCloseMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleClose();
+    },
+    [handleClose]
+  );
 
   const subtitle =
     reason === "high_cognitive_load"
@@ -91,16 +123,16 @@ const BreakWarningPage = () => {
       className="h-screen w-screen flex flex-col items-start justify-center px-5 py-4 relative"
       style={{ background: "#19141c" }}
     >
-      {/* Close button */}
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className="absolute top-2 right-2 text-white/30 hover:text-white/70 min-w-6 w-6 h-6"
-        onPress={handleClose}
+      {/* Close button — onMouseDown fires even if onPress is stuck */}
+      <button
+        className="absolute top-2 right-2 text-white/30 hover:text-white/70 w-6 h-6 flex items-center justify-center rounded-md"
+        style={{ zIndex: 9999, pointerEvents: "auto", background: "transparent", border: "none", cursor: "pointer" }}
+        onMouseDown={handleCloseMouseDown}
+        onDoubleClick={handleCloseMouseDown}
+        title="Close"
       >
         <IconX size={14} />
-      </Button>
+      </button>
 
       <div className="flex flex-col gap-0 mb-2">
         <p className="text-white text-sm font-semibold">
