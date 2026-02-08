@@ -106,7 +106,7 @@ const BreakPage = () => {
       className="h-screen w-screen flex flex-col items-center justify-center overflow-auto"
       style={{
         background:
-          "linear-gradient(135deg, rgba(88, 28, 135, 0.8) 0%, rgba(59, 7, 100, 0.9) 30%, rgba(30, 10, 60, 0.95) 60%, rgba(15, 5, 30, 1) 100%)",
+          "linear-gradient(135deg, rgba(160, 124, 239, 0.35) 0%, rgba(160, 124, 239, 0.2) 25%, rgba(25, 20, 28, 0.95) 55%, #19141c 100%)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
       }}
@@ -119,12 +119,18 @@ const BreakPage = () => {
       <p className="text-white/60 text-base mb-8">{subtitle}</p>
 
       {/* Divider */}
-      <div className="w-16 h-px bg-white/20 mb-8" />
+      <div
+        className="w-16 h-px mb-8"
+        style={{
+          background: "linear-gradient(90deg, #a07cef 0%, #ff709b 100%)",
+          opacity: 0.4,
+        }}
+      />
 
       {/* Timer */}
       <p
         className={`text-5xl font-light mb-8 ${
-          timerDone ? "text-green-400" : "text-purple-300"
+          timerDone ? "text-success" : "text-primary-700"
         }`}
       >
         {formatTime(secondsLeft)}
@@ -135,7 +141,7 @@ const BreakPage = () => {
         <Button
           size="sm"
           variant="bordered"
-          className="text-white/80 border-white/20"
+          className="text-primary-600 border-primary/30"
           onPress={handleAddTime}
         >
           + 1 min
@@ -143,7 +149,7 @@ const BreakPage = () => {
         <Button
           size="sm"
           variant="bordered"
-          className="text-white/80 border-white/20"
+          className="text-primary-600 border-primary/30"
           onPress={handleSkip}
           isDisabled={isSubmitting}
         >
@@ -155,7 +161,7 @@ const BreakPage = () => {
       <div
         className="w-full max-w-md px-6 py-5 rounded-2xl border border-white/10"
         style={{
-          background: "rgba(255, 255, 255, 0.05)",
+          background: "rgba(34, 29, 40, 0.8)",
           backdropFilter: "blur(10px)",
         }}
       >

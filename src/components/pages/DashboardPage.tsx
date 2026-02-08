@@ -114,33 +114,37 @@ function DashboardPage() {
               <GradientCard />
             </div>
           </div>
-          {/* Dev test buttons */}
+          {/* Dev test buttons (5s delay so you can switch windows) */}
           {isDevMode && (
             <div className="flex flex-row gap-2 my-4 items-center">
-              <span className="text-xs text-default-400 mr-2">Test:</span>
+              <span className="text-xs text-default-400 mr-2">Test (5s delay):</span>
               <Button
                 size="sm"
                 variant="bordered"
-                className="text-xs border-purple-500/30 text-purple-400"
-                onPress={() =>
-                  emit("break-nudge", {
-                    trigger_reason: "long_session",
-                    session_minutes: 95,
-                  })
-                }
+                className="text-xs border-primary/30 text-primary"
+                onPress={() => {
+                  setTimeout(() => {
+                    emit("break-nudge", {
+                      trigger_reason: "long_session",
+                      session_minutes: 95,
+                    });
+                  }, 5000);
+                }}
               >
                 Break Nudge
               </Button>
               <Button
                 size="sm"
                 variant="bordered"
-                className="text-xs border-teal-500/30 text-teal-400"
-                onPress={() =>
-                  emit("focus-nudge", {
-                    switching_count: 15,
-                    window_minutes: 5,
-                  })
-                }
+                className="text-xs border-primary/30 text-primary"
+                onPress={() => {
+                  setTimeout(() => {
+                    emit("focus-nudge", {
+                      switching_count: 15,
+                      window_minutes: 5,
+                    });
+                  }, 5000);
+                }}
               >
                 Focus Nudge
               </Button>

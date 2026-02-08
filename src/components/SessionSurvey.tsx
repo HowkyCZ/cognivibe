@@ -156,11 +156,11 @@ const QuestionSlider = ({
           }}
         />
         <div className="flex justify-between mt-1">
-          <span className="text-xs text-default-500">{question.leftLabel}</span>
+          <span className="text-xs text-default-700">{question.leftLabel}</span>
           <span className="text-xs font-semibold text-primary">
             {hasBeenTouched ? value : "—"}
           </span>
-          <span className="text-xs text-default-500">{question.rightLabel}</span>
+          <span className="text-xs text-default-700">{question.rightLabel}</span>
         </div>
       </div>
     </div>
@@ -226,7 +226,7 @@ const SessionSurvey = ({
 
   return (
     <div className={`w-full ${compact ? "space-y-3" : "space-y-4"}`}>
-      <p className={`${compact ? "text-xs" : "text-sm"} text-default-400`}>
+      <p className={`${compact ? "text-xs" : "text-sm"} text-default-600`}>
         While you wait — how was your session?
       </p>
 

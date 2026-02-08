@@ -60,30 +60,32 @@ const BreakWarningPage = () => {
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-black/0">
       <div
-        className="w-full h-full flex flex-col items-start justify-center px-5 py-4 rounded-2xl border border-white/10"
+        className="w-full h-full flex flex-col items-start justify-center px-5 py-4 rounded-2xl border border-white/10 relative overflow-hidden"
         style={{
-          background: "rgba(24, 24, 27, 0.85)",
+          background: "rgba(25, 20, 28, 0.92)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
         }}
       >
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-            <span className="text-purple-400 text-sm">CV</span>
-          </div>
-          <div>
-            <p className="text-white text-sm font-semibold">
-              Break in {formatTime(secondsLeft)}
-            </p>
-            <p className="text-default-400 text-xs">{subtitle}</p>
-          </div>
+        {/* Subtle gradient accent along top edge */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[2px]"
+          style={{
+            background: "linear-gradient(90deg, #a07cef 0%, #ff709b 100%)",
+          }}
+        />
+
+        <div className="flex flex-col gap-0 mb-2">
+          <p className="text-white text-sm font-semibold">
+            Break in {formatTime(secondsLeft)}
+          </p>
+          <p className="text-white/50 text-xs">{subtitle}</p>
         </div>
 
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center gap-2 mt-2">
           <Button
             size="sm"
-            variant="bordered"
-            className="text-white border-white/20 text-xs"
+            className="bg-primary text-white text-xs font-semibold"
             onPress={handleStart}
           >
             Start now
@@ -91,7 +93,7 @@ const BreakWarningPage = () => {
           <Button
             size="sm"
             variant="bordered"
-            className="text-white border-white/20 text-xs"
+            className="text-primary-600 border-primary/30 text-xs"
             onPress={handleAddTime}
           >
             + 1 min
@@ -99,7 +101,7 @@ const BreakWarningPage = () => {
           <Button
             size="sm"
             variant="bordered"
-            className="text-white border-white/20 text-xs"
+            className="text-primary-600 border-primary/30 text-xs"
             onPress={handleSkip}
           >
             Skip

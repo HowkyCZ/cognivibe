@@ -65,11 +65,11 @@ const FocusTimerPage = () => {
       <div
         className="h-screen w-screen flex items-center justify-center px-4 rounded-2xl border border-white/10"
         style={{
-          background: "rgba(24, 24, 27, 0.9)",
+          background: "rgba(25, 20, 28, 0.92)",
           backdropFilter: "blur(20px)",
         }}
       >
-        <p className="text-teal-400 text-sm font-medium">
+        <p className="text-primary-600 text-sm font-medium">
           Nice focus session!
         </p>
       </div>
@@ -80,15 +80,13 @@ const FocusTimerPage = () => {
     <div
       className="h-screen w-screen flex items-center justify-between px-4 rounded-2xl border border-white/10"
       style={{
-        background: "rgba(24, 24, 27, 0.9)",
+        background: "rgba(25, 20, 28, 0.92)",
         backdropFilter: "blur(20px)",
       }}
     >
       <div className="flex items-center gap-2">
-        <div className="w-5 h-5 rounded-full bg-teal-500/20 flex items-center justify-center">
-          <span className="text-teal-400 text-[10px]">CV</span>
-        </div>
-        <p className="text-teal-300 text-sm font-medium">
+        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <p className="text-primary-700 text-sm font-medium">
           Focus: {remainingSecs !== null ? formatTime(remainingSecs) : "--:--"}
         </p>
       </div>

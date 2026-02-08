@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { currentMonitor } from "@tauri-apps/api/window";
 import { useAppSettings } from "../hooks";
 
 interface BreakNudgePayload {
@@ -121,21 +122,45 @@ const BreakManager = () => {
     };
   }, []);
 
-  const spawnBreakWarning = (payload: BreakNudgePayload) => {
+  /** Get top-right screen coordinates for a popup of the given size. */
+  const getTopRightPosition = async (winWidth: number, winHeight: number) => {
+    try {
+      const monitor = await currentMonitor();
+      if (monitor) {
+        const scale = monitor.scaleFactor;
+        const screenW = monitor.size.width / scale;
+        const padding = 20;
+        return {
+          x: Math.round(screenW - winWidth - padding),
+          y: Math.round(padding),
+        };
+      }
+    } catch {
+      // Fallback: let Tauri decide
+    }
+    return undefined;
+  };
+
+  const spawnBreakWarning = async (payload: BreakNudgePayload) => {
     // Don't spawn if already showing
     if (breakWarningRef.current || breakOverlayRef.current) return;
+
+    const winW = 400;
+    const winH = 140;
+    const pos = await getTopRightPosition(winW, winH);
 
     const url = `/break-warning?reason=${payload.trigger_reason}&minutes=${payload.session_minutes}`;
     const win = new WebviewWindow("break-warning", {
       url,
       title: "",
-      width: 400,
-      height: 160,
+      width: winW,
+      height: winH,
       alwaysOnTop: true,
       decorations: false,
       resizable: false,
       transparent: true,
       focus: true,
+      ...(pos ? { x: pos.x, y: pos.y } : {}),
     });
 
     win.once("tauri://error", (e) => {
@@ -189,21 +214,26 @@ const BreakManager = () => {
     breakOverlayRef.current = win;
   };
 
-  const spawnFocusNudge = (payload: FocusNudgePayload) => {
+  const spawnFocusNudge = async (payload: FocusNudgePayload) => {
     // Don't spawn if already showing a nudge or overlay
     if (focusNudgeRef.current || breakOverlayRef.current) return;
+
+    const winW = 380;
+    const winH = 140;
+    const pos = await getTopRightPosition(winW, winH);
 
     const url = `/focus-nudge?switches=${payload.switching_count}&minutes=${payload.window_minutes}`;
     const win = new WebviewWindow("focus-nudge", {
       url,
       title: "",
-      width: 380,
-      height: 140,
+      width: winW,
+      height: winH,
       alwaysOnTop: true,
       decorations: false,
       resizable: false,
       transparent: true,
       focus: false,
+      ...(pos ? { x: pos.x, y: pos.y } : {}),
     });
 
     win.once("tauri://error", (e) => {

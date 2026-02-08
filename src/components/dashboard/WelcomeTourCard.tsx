@@ -132,29 +132,31 @@ const WelcomeTourCard = ({ onStartClick }: WelcomeTourCardProps) => {
 
     return (
       <Card
-        className="w-full mb-4 relative overflow-hidden border border-teal-500/20"
+        className="w-full mb-4 relative overflow-hidden border border-white/10"
         style={{
           boxShadow: `
-            0 0 12px rgba(20, 184, 166, 0.15),
-            0 0 20px rgba(20, 184, 166, 0.06),
+            0 0 12px rgba(160, 124, 239, 0.2),
+            0 0 20px rgba(160, 124, 239, 0.08),
             0 4px 12px rgba(0, 0, 0, 0.3)
           `,
-          background: "rgba(20, 184, 166, 0.08)",
         }}
       >
+        {/* Gradient background - fully opaque */}
+        <div className="absolute inset-0 bg-cv-accent-gradient opacity-100" />
+
+        {/* Content */}
         <CardBody className="relative z-10 flex flex-row items-center justify-between py-4 px-6">
           <div className="flex flex-col gap-0 leading-tight">
-            <span className="text-lg font-bold text-teal-300">
+            <span className="text-lg font-bold text-white">
               Focus Session — {timeStr}
             </span>
-            <span className="text-sm text-teal-300/70">
+            <span className="text-sm text-white/90">
               Stay focused. You've got this.
             </span>
           </div>
           <Button
+            className="bg-white text-[#ff709b] font-semibold shrink-0 ml-4"
             size="sm"
-            variant="bordered"
-            className="text-teal-400 border-teal-500/30 shrink-0 ml-4"
             onPress={handleCancelFocus}
           >
             Cancel
