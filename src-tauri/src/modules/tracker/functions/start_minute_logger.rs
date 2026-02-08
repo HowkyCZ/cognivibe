@@ -13,6 +13,7 @@ use crate::modules::tracker::functions::upload_data::{upload_tracking_data, LogD
 use crate::modules::tracker::functions::calculate_majority_category::calculate_majority_category_for_minute;
 use crate::modules::tracker::functions::session_management::{create_session, end_session, cleanup_stale_sessions};
 use crate::modules::tracker::functions::session_notifications::check_session_notifications;
+use crate::modules::tracker::functions::check_interventions::check_interventions;
 #[cfg(debug_assertions)]
 use crate::modules::utils::get_tracker_prefix;
 
@@ -30,6 +31,7 @@ fn reset_counters(app_state: &mut AppState) {
     app_state.keyboard_data.delete_downs = 0;
     app_state.keyboard_data.delete_ups = 0;
     app_state.window_change_count = 0;
+    app_state.tab_change_count = 0;
     app_state.keyboard_data.pending_key_presses.clear();
     app_state.keyboard_data.dwell_time_sum_ms = 0.0;
     app_state.keyboard_data.dwell_time_count = 0;
@@ -342,6 +344,7 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 mouse_move_distance: app_state.mouse_data.total_distance,
                                                 mouse_scroll_distance: app_state.mouse_data.wheel_scroll_distance,
                                                 window_change_count: app_state.window_change_count,
+                                                tab_change_count: app_state.tab_change_count,
                                                 backspace_count: app_state.keyboard_data.delete_downs,
                                                 active_event_count,
                                                 screen_resolution_multiplier: app_state.screen_resolution_multiplier,
@@ -354,6 +357,10 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 mouse_deviation,
                                                 mouse_overshoot,
                                             };
+                                            
+                                            // Capture switching counts before reset (for intervention checks)
+                                            let wc_for_interventions = log_data.window_change_count;
+                                            let tc_for_interventions = log_data.tab_change_count;
                                             
                                             reset_counters(&mut app_state);
                                             
@@ -394,6 +401,15 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                             &app_handle_clone,
                                                             session_duration_secs_new,
                                                             is_active_minute_new,
+                                                        );
+
+                                                        // Check intervention triggers (break/focus nudges)
+                                                        check_interventions(
+                                                            &app_handle_clone,
+                                                            session_duration_secs_new,
+                                                            is_active_minute_new,
+                                                            wc_for_interventions,
+                                                            tc_for_interventions,
                                                         );
                                                         
                                                         // Check for extreme Z-score on 5-minute boundaries
@@ -523,6 +539,7 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                         .mouse_data
                                         .wheel_scroll_distance,
                                     window_change_count: app_state.window_change_count,
+                                    tab_change_count: app_state.tab_change_count,
                                     backspace_count: app_state.keyboard_data.delete_downs,
                                     active_event_count,
                                     screen_resolution_multiplier: app_state.screen_resolution_multiplier,
@@ -541,6 +558,9 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                     .map(|st| st.elapsed().as_secs())
                                     .unwrap_or(0);
                                 let is_active_minute = active_event_count > 0;
+                                // Capture switching counts for intervention checks
+                                let wc_for_interventions = log_data.window_change_count;
+                                let tc_for_interventions = log_data.tab_change_count;
 
                                 // Spawn async task to upload data
                                 let app_handle_clone = app_handle.clone();
@@ -571,6 +591,15 @@ pub fn start_minute_logger(app_handle: AppHandle) {
                                                 &app_handle_clone,
                                                 session_duration_secs,
                                                 is_active_minute,
+                                            );
+
+                                            // Check intervention triggers (break/focus nudges)
+                                            check_interventions(
+                                                &app_handle_clone,
+                                                session_duration_secs,
+                                                is_active_minute,
+                                                wc_for_interventions,
+                                                tc_for_interventions,
                                             );
                                             
                                             // Check for extreme Z-score on 5-minute boundaries

@@ -1,7 +1,9 @@
 import { createRootRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { platform } from "@tauri-apps/plugin-os";
+import { HeroUIProvider } from "@heroui/react";
 import { AppTemplate, PermissionsWelcomeModal } from "../components";
+import BreakManager from "../components/BreakManager";
 import { setupDeepLinkHandler } from "../utils/deepLinkHandler";
 import { isDevMode } from "../utils/constants";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -11,6 +13,9 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 
 const PERMISSIONS_ACKNOWLEDGED_KEY = "cognivibe_permissions_acknowledged";
+
+/** Routes that render in their own popup/overlay windows. */
+const POPUP_ROUTES = ["/break-warning", "/break", "/focus-nudge", "/focus-timer"];
 
 export const Route = createRootRoute({
   component: () => {
@@ -90,9 +95,26 @@ export const Route = createRootRoute({
       }
     };
 
+    // Check if we're in a popup window (break/focus overlays)
+    const isPopupWindow = POPUP_ROUTES.some((r) =>
+      window.location.pathname.startsWith(r)
+    );
+
+    // Popup windows: bare HeroUI only — no AppTemplate, no useUpdater,
+    // no ToastProvider, no UpdateModal. This prevents the updater from
+    // freezing the popup's JS event loop and making buttons unresponsive.
+    if (isPopupWindow) {
+      return (
+        <HeroUIProvider>
+          <Outlet />
+        </HeroUIProvider>
+      );
+    }
+
     return (
       <AppTemplate>
         <Outlet />
+        <BreakManager />
         {showPermissionsModal === true && (
           <PermissionsWelcomeModal
             isOpen

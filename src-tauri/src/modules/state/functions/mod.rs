@@ -1,5 +1,6 @@
 pub mod clear_extreme_zscore_alert;
 pub mod clear_session_state;
+pub mod focus_timer;
 pub mod get_extreme_zscore_alert;
 pub mod get_measuring_state;
 pub mod get_session_info;

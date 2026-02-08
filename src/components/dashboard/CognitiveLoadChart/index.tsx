@@ -1,10 +1,11 @@
-import React, { lazy, Suspense, useMemo } from "react";
+import React, { lazy, Suspense, useMemo, useState } from "react";
 import { Card, CardBody } from "@heroui/card";
-import { Spinner } from "@heroui/react";
+import { ButtonGroup, Button, Spinner } from "@heroui/react";
 import type { CalendarDate } from "@internationalized/date";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import DateRangePicker from "./DateRangePicker";
 import CustomTooltip from "./CustomTooltip";
+import LazySubmetricsChart from "./SubmetricsChart";
 import SessionBars from "./SessionBars";
 import coffeeMugIcon from "../../../assets/coffeemug.png";
 
@@ -63,6 +64,13 @@ type GapSegment = {
   x2: number; 
   y2: number; 
   color: string;
+  // Submetric values at gap boundaries (for dashed lines in submetrics view)
+  focus1: number | null;
+  focus2: number | null;
+  strain1: number | null;
+  strain2: number | null;
+  energy1: number | null;
+  energy2: number | null;
 };
 
 type ContinuousSegment = {
@@ -288,7 +296,7 @@ const LazyChart = lazy(() =>
         <recharts.ResponsiveContainer width="100%" height="100%">
           <recharts.ComposedChart
             data={data}
-            margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+            margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
           >
             <recharts.CartesianGrid
               strokeDasharray="3 3"
@@ -403,6 +411,8 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   firstDate,
   isLoading = false,
 }) => {
+  const [chartView, setChartView] = useState<"total" | "submetrics">("total");
+
   const todayDate = today(getLocalTimeZone());
   const isToday = selectedDate.compare(todayDate) === 0;
 
@@ -536,6 +546,12 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
           x2: next.x, 
           y2: next.load || 0,
           color: gapColor,
+          focus1: current.focus,
+          focus2: next.focus,
+          strain1: current.strain,
+          strain2: next.strain,
+          energy1: current.energy,
+          energy2: next.energy,
         });
 
         // Finish current segment
@@ -685,6 +701,8 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
             sessions={sessions}
             xDomainStart={xDomainStart}
             xDomainEnd={xDomainEnd}
+            chartLeftMargin={35}
+            chartRightMargin={10}
           />
         )}
         <div className="h-64">
@@ -695,16 +713,69 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
               </div>
             }
           >
-            <LazyChart
-              data={chartData}
-              gapSegments={gapSegments}
-              xTicks={xTicks}
-              xDomainStart={xDomainStart}
-              xDomainEnd={xDomainEnd}
-              continuousSegments={continuousSegments}
-              uniqueId={uniqueId}
-            />
+            {chartView === "total" ? (
+              <LazyChart
+                data={chartData}
+                gapSegments={gapSegments}
+                xTicks={xTicks}
+                xDomainStart={xDomainStart}
+                xDomainEnd={xDomainEnd}
+                continuousSegments={continuousSegments}
+                uniqueId={uniqueId}
+              />
+            ) : (
+              <LazySubmetricsChart
+                data={chartData}
+                gapSegments={gapSegments}
+                xTicks={xTicks}
+                xDomainStart={xDomainStart}
+                xDomainEnd={xDomainEnd}
+              />
+            )}
           </Suspense>
+        </div>
+        <div className="flex justify-between items-center mt-1.5">
+          <Button
+            size="sm"
+            variant="bordered"
+            onPress={() => setChartView(chartView === "total" ? "submetrics" : "total")}
+            className="min-w-0 px-2.5 py-1 h-7 text-xs text-foreground/60 hover:text-foreground border-white/10 hover:border-white/15"
+          >
+            {chartView === "total" ? "Total score" : "Submetrics"}
+          </Button>
+          <div className="flex items-center gap-3">
+            {chartView === "total" ? (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#5C78FD" }}></span>
+                  <span className="text-xs text-foreground/50">Low</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#A07CEF" }}></span>
+                  <span className="text-xs text-foreground/50">Medium</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#FF709B" }}></span>
+                  <span className="text-xs text-foreground/50">High</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#5C78FD" }}></span>
+                  <span className="text-xs text-foreground/50">Focus</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#A07CEF" }}></span>
+                  <span className="text-xs text-foreground/50">Frustration</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#FF709B" }}></span>
+                  <span className="text-xs text-foreground/50">Workload</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </CardBody>
     </Card>

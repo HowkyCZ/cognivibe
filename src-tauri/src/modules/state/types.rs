@@ -1,7 +1,7 @@
 use crate::modules::settings::AppSettings;
 use crate::modules::tracker::{KeyboardData, MouseData};
 use serde::{Deserialize, Serialize};
-use std::time::Instant;
+use std::time::{Instant, SystemTime};
 
 /// Session data received from the frontend
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,6 +36,8 @@ pub struct AppState {
     pub screen_resolution_multiplier: Option<f64>,
     /// Window/app change count
     pub window_change_count: u32,
+    /// Browser tab change count (within same window)
+    pub tab_change_count: u32,
     /// Last scroll event timestamp for debouncing
     pub last_scroll_event_time: Option<std::time::Instant>,
     /// Last mouse move event timestamp for gating (200ms window)
@@ -58,10 +60,24 @@ pub struct AppState {
     pub consecutive_inactive_minutes: u32,
     /// Whether the 30-minute session notification was already sent
     pub sent_30min_notification: bool,
-    /// Count of consecutive scoring intervals with score_total >= 65
+    /// Count of consecutive scoring intervals with score_total >= threshold
     pub consecutive_high_score_count: u32,
     /// Whether the break notification has been sent this session
     pub sent_break_notification: bool,
+    /// Last time a break nudge was triggered (for cooldown)
+    pub last_break_nudge_time: Option<Instant>,
+    /// Last time a focus nudge was triggered (for cooldown)
+    pub last_focus_nudge_time: Option<Instant>,
+    /// Number of focus nudges sent in the current session (max 3)
+    pub focus_nudge_count_session: u32,
+    /// Whether a focus timer session is currently active
+    pub focus_session_active: bool,
+    /// When the focus timer session ends
+    pub focus_session_end_time: Option<SystemTime>,
+    /// Rolling window of per-minute tab change counts (last 5 minutes)
+    pub recent_tab_changes: Vec<u32>,
+    /// Rolling window of per-minute window change counts (last 5 minutes)
+    pub recent_window_changes: Vec<u32>,
 }
 
 /// Represents a category change event for tracking time spent in each category

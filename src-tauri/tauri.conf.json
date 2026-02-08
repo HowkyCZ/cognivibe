@@ -23,12 +23,16 @@
     ],
     "security": {
       "csp": {
-        "default-src": "'self' cognivibe://localhost",
+        "default-src": "'self' cognivibe://localhost asset://localhost",
         "connect-src": "'self' https://server.cognivibe.tech https://fctvbjzcjsycheklmnfh.supabase.co",
         "script-src": "'self' 'unsafe-inline'",
         "style-src": "'self' 'unsafe-inline'",
-        "img-src": "'self' data: https:",
+        "img-src": "'self' data: https: asset://localhost",
         "font-src": "'self' data:"
+      },
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$TEMP/**"]
       }
     }
   },

@@ -16,14 +16,15 @@ use modules::settings::{load_settings_from_store, update_settings_cmd};
 use modules::state::{
     clear_extreme_zscore_alert, clear_session_state, get_extreme_zscore_alert,
     get_measuring_state, get_session_info, get_settings_state, set_user_session, AppState,
+    start_focus_session, get_focus_session_state, stop_focus_session,
 };
 use modules::tracker::{start_global_input_tracker, toggle_measuring};
 use modules::tracker::functions::session_management::end_session;
 
 #[cfg(not(debug_assertions))]
-use modules::utils::focus_main_window;
+use modules::utils::{capture_screen, focus_main_window, force_destroy_window};
 #[cfg(debug_assertions)]
-use modules::utils::{focus_main_window, get_init_prefix};
+use modules::utils::{capture_screen, focus_main_window, force_destroy_window, get_init_prefix};
 
 pub fn run() -> () {
     let builder = tauri::Builder::default();
@@ -53,7 +54,12 @@ pub fn run() -> () {
             fetch_productivity_time_cmd,
             fetch_sessions_cmd,
             get_extreme_zscore_alert,
-            clear_extreme_zscore_alert
+            clear_extreme_zscore_alert,
+            start_focus_session,
+            get_focus_session_state,
+            stop_focus_session,
+            capture_screen,
+            force_destroy_window
         ])
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // Focus main window
@@ -175,7 +181,7 @@ pub fn run() -> () {
                 .build()?;
 
             let _tray = {
-                let builder = TrayIconBuilder::new()
+                let builder = TrayIconBuilder::with_id("main")
                     .icon(tauri::include_image!("icons/tray-icon.png"))
                     .menu(&menu);
                 #[cfg(target_os = "macos")]
