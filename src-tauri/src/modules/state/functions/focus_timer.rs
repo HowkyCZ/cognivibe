@@ -34,7 +34,7 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                 std::thread::sleep(Duration::from_secs(1));
             }).await;
 
-            let remaining = {
+            let (remaining, is_active) = {
                 let state = app_handle_clone.state::<Mutex<AppState>>();
                 let app_state = match state.lock() {
                     Ok(s) => s,
@@ -52,7 +52,8 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                     println!("[FOCUS_TIMER] Background loop: session cancelled, clearing tray");
                     break;
                 }
-                match app_state.focus_session_end_time {
+                let is_active = app_state.focus_session_active;
+                let remaining = match app_state.focus_session_end_time {
                     Some(end) => {
                         let now = SystemTime::now();
                         if now >= end {
@@ -66,10 +67,37 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                         clear_tray_title(&app_handle_clone);
                         break;
                     }
-                }
+                };
+                drop(app_state);
+                (remaining, is_active)
             };
 
-            // Update tray title
+            // Double-check session is still active before updating tray title
+            // This prevents race conditions where stop_focus_session was called
+            // between the check above and this update
+            let still_active = {
+                let state = app_handle_clone.state::<Mutex<AppState>>();
+                let guard = match state.lock() {
+                    Ok(g) => g,
+                    Err(_) => {
+                        // Lock failed, assume inactive
+                        clear_tray_title(&app_handle_clone);
+                        break;
+                    }
+                };
+                let active = guard.focus_session_active;
+                drop(guard);
+                active
+            };
+
+            if !still_active {
+                clear_tray_title(&app_handle_clone);
+                #[cfg(debug_assertions)]
+                println!("[FOCUS_TIMER] Background loop: session cancelled before update, clearing tray");
+                break;
+            }
+
+            // Update tray title only if session is still active
             update_tray_title(&app_handle_clone, remaining);
 
             if remaining == 0 {
@@ -139,9 +167,41 @@ pub fn stop_focus_session(app_handle: AppHandle) -> Result<(), String> {
     app_state.focus_session_active = false;
     app_state.focus_session_end_time = None;
 
-    // Clear tray title
+    // Clear tray title immediately
     drop(app_state); // Release lock before accessing tray
     clear_tray_title(&app_handle);
+
+    // Schedule multiple delayed clears to beat the race with the background loop.
+    // The loop sleeps 1s between iterations and may have already read a remaining
+    // value before we set focus_session_active=false, so it could overwrite our
+    // clear. Multiple clears at different intervals ensure we win.
+    let app_handle_delayed1 = app_handle.clone();
+    let app_handle_delayed2 = app_handle.clone();
+    let app_handle_delayed3 = app_handle.clone();
+    
+    // Clear after 1.5s (after next loop iteration)
+    tauri::async_runtime::spawn(async move {
+        let _ = tauri::async_runtime::spawn_blocking(|| {
+            std::thread::sleep(Duration::from_millis(1500));
+        }).await;
+        clear_tray_title(&app_handle_delayed1);
+    });
+    
+    // Clear after 2.5s (extra safety)
+    tauri::async_runtime::spawn(async move {
+        let _ = tauri::async_runtime::spawn_blocking(|| {
+            std::thread::sleep(Duration::from_millis(2500));
+        }).await;
+        clear_tray_title(&app_handle_delayed2);
+    });
+    
+    // Clear after 3.5s (final safety net)
+    tauri::async_runtime::spawn(async move {
+        let _ = tauri::async_runtime::spawn_blocking(|| {
+            std::thread::sleep(Duration::from_millis(3500));
+        }).await;
+        clear_tray_title(&app_handle_delayed3);
+    });
 
     #[cfg(debug_assertions)]
     println!("[FOCUS_TIMER] Focus session stopped");

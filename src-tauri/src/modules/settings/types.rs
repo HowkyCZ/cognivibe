@@ -38,7 +38,7 @@ fn default_break_interval() -> u32 { 90 }
 fn default_break_duration() -> u32 { 120 }
 fn default_break_score_threshold() -> u32 { 70 }
 fn default_auto_pause_categories() -> Vec<String> {
-    vec!["Communication".to_string(), "Media and Entertainment".to_string()]
+    vec!["Meetings".to_string(), "Media and Entertainment".to_string()]
 }
 fn default_focus_sensitivity() -> f64 { 2.0 }
 

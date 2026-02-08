@@ -251,7 +251,7 @@ const SessionSurvey = ({
         size={compact ? "sm" : "md"}
         className="w-full"
       >
-        {isSubmitting ? "Submitting..." : "Submit & End Session"}
+        {isSubmitting ? "Submitting..." : "Submit"}
       </Button>
     </div>
   );

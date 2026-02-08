@@ -3,6 +3,7 @@ import { Button } from "@heroui/react";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useSearch } from "@tanstack/react-router";
+import { IconX } from "@tabler/icons-react";
 
 const BreakWarningPage = () => {
   const search = useSearch({ strict: false }) as {
@@ -20,8 +21,13 @@ const BreakWarningPage = () => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          emit("break-warning-action", { action: "start" });
-          setTimeout(() => getCurrentWindow().close(), 150);
+          // Auto-start when countdown reaches 0
+          emit("break-warning-action", { action: "start" }).then(() => {
+            getCurrentWindow().close().catch(() => {});
+          }).catch(() => {
+            // Still try to close even if emit failed
+            getCurrentWindow().close().catch(() => {});
+          });
           return 0;
         }
         return prev - 1;
@@ -38,8 +44,17 @@ const BreakWarningPage = () => {
   };
 
   const handleStart = async () => {
-    await emit("break-warning-action", { action: "start" });
-    setTimeout(() => getCurrentWindow().close(), 150);
+    try {
+      await emit("break-warning-action", { action: "start" });
+      // Close immediately - BreakManager will handle spawning the overlay
+      await getCurrentWindow().close();
+    } catch (error) {
+      console.error("[BreakWarning] Error starting break:", error);
+      // Still try to close even if emit failed
+      try {
+        await getCurrentWindow().close();
+      } catch {}
+    }
   };
 
   const handleAddTime = () => {
@@ -47,8 +62,23 @@ const BreakWarningPage = () => {
   };
 
   const handleSkip = async () => {
-    await emit("break-warning-action", { action: "skip" });
-    setTimeout(() => getCurrentWindow().close(), 150);
+    try {
+      await emit("break-warning-action", { action: "skip" });
+      await getCurrentWindow().close();
+    } catch (error) {
+      console.error("[BreakWarning] Error skipping break:", error);
+      try {
+        await getCurrentWindow().close();
+      } catch {}
+    }
+  };
+
+  const handleClose = async () => {
+    try {
+      await getCurrentWindow().close();
+    } catch (error) {
+      console.error("[BreakWarning] Error closing window:", error);
+    }
   };
 
   const subtitle =
@@ -58,9 +88,20 @@ const BreakWarningPage = () => {
 
   return (
     <div
-      className="h-screen w-screen flex flex-col items-start justify-center px-5 py-4"
+      className="h-screen w-screen flex flex-col items-start justify-center px-5 py-4 relative"
       style={{ background: "#19141c" }}
     >
+      {/* Close button */}
+      <Button
+        isIconOnly
+        size="sm"
+        variant="light"
+        className="absolute top-2 right-2 text-white/30 hover:text-white/70 min-w-6 w-6 h-6"
+        onPress={handleClose}
+      >
+        <IconX size={14} />
+      </Button>
+
       <div className="flex flex-col gap-0 mb-2">
         <p className="text-white text-sm font-semibold">
           Break in {formatTime(secondsLeft)}

@@ -75,12 +75,17 @@ const BreakManager = () => {
       // Listen for break warning actions (from warning window)
       const unBreakAction = await listen<BreakWarningAction>(
         "break-warning-action",
-        (event) => {
+        async (event) => {
           console.log("[BREAK_MANAGER] Break warning action:", event.payload);
           if (event.payload.action === "start") {
+            // Immediately close warning window before spawning overlay
+            await closeBreakWarningWindow();
             spawnBreakOverlay();
+          } else if (event.payload.action === "skip") {
+            // Ensure warning window is closed on skip
+            await closeBreakWarningWindow();
+            // Cooldown is handled by Rust
           }
-          // "skip" just means the warning closed, cooldown is handled by Rust
         }
       );
       unlisteners.push(unBreakAction);
@@ -131,6 +136,33 @@ const BreakManager = () => {
       unlisteners.forEach((unlisten) => unlisten());
     };
   }, []);
+
+  /** Close the break warning window aggressively. */
+  const closeBreakWarningWindow = async () => {
+    // Try via ref first
+    if (breakWarningRef.current) {
+      try {
+        await breakWarningRef.current.close();
+      } catch {
+        // Window might already be closed
+      }
+      breakWarningRef.current = null;
+    }
+    // Also try by label lookup to catch any edge cases
+    try {
+      const all = await getAllWebviewWindows();
+      const existing = all.find((w) => w.label === "break-warning");
+      if (existing) {
+        try {
+          await existing.close();
+        } catch {
+          // Already closed
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+  };
 
   /** Get top-right screen coordinates for a popup of the given size. */
   const getTopRightPosition = async (winWidth: number, _winHeight: number) => {
@@ -186,13 +218,8 @@ const BreakManager = () => {
   };
 
   const spawnBreakOverlay = async () => {
-    // Close the warning window if still open
-    if (breakWarningRef.current) {
-      try {
-        await breakWarningRef.current.close();
-      } catch { /* already closed */ }
-      breakWarningRef.current = null;
-    }
+    // Ensure warning window is closed (should already be closed by event handler, but double-check)
+    await closeBreakWarningWindow();
 
     // Don't double-spawn
     if (breakOverlayRef.current) return;
@@ -205,7 +232,15 @@ const BreakManager = () => {
     const reason = payload?.trigger_reason || "long_session";
     const duration = settings?.break_duration_seconds || 120;
 
-    const url = `/break?reason=${reason}&minutes=${sessionMinutes}&sessionId=${sessionId}&duration=${duration}`;
+    // Capture screenshot before opening overlay
+    let screenshotPath = "";
+    try {
+      screenshotPath = await invoke<string>("capture_screen");
+    } catch (e) {
+      console.warn("[BREAK_MANAGER] Screenshot capture failed, using gradient fallback:", e);
+    }
+
+    const url = `/break?reason=${reason}&minutes=${sessionMinutes}&sessionId=${sessionId}&duration=${duration}&screenshot=${encodeURIComponent(screenshotPath)}`;
     const win = new WebviewWindow("break-overlay", {
       url,
       title: "Break",

@@ -86,11 +86,20 @@ const ProductivityTimeCard = ({ selectedDate }: ProductivityTimeCardProps) => {
   const column1 = categories.slice(0, 5);
   const column2 = categories.slice(5, 10);
 
+  // Calculate total minutes across all categories
+  const totalMinutes = Object.values(categoryCounts).reduce(
+    (sum, mins) => sum + (mins || 0),
+    0
+  );
+
   return (
     <Card className="w-full h-full bg-content1 border border-white/10 hover:border-white/15 transition-colors">
       <CardBody className="p-6">
         <h2 className="text-2xl font-semibold text-foreground text-left mb-6">
-          Productivity time
+          Productivity time{" "}
+          <span className="text-foreground/60 text-lg font-normal">
+            {loading ? "" : formatMinutesToHHMM(totalMinutes)}
+          </span>
         </h2>
         <div className="grid grid-cols-2 gap-6">
           {/* Column 1 */}
