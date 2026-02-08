@@ -30,8 +30,6 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
     let total_secs = duration_secs;
     tauri::async_runtime::spawn(async move {
         loop {
-            // Use a blocking sleep in a spawned async task
-            // This works because tauri::async_runtime uses tokio
             let _ = tauri::async_runtime::spawn_blocking(|| {
                 std::thread::sleep(Duration::from_secs(1));
             }).await;
@@ -40,9 +38,18 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                 let state = app_handle_clone.state::<Mutex<AppState>>();
                 let app_state = match state.lock() {
                     Ok(s) => s,
-                    Err(_) => break,
+                    Err(_) => {
+                        // Lock failed — clear tray title and exit
+                        clear_tray_title(&app_handle_clone);
+                        break;
+                    }
                 };
                 if !app_state.focus_session_active {
+                    // Session was cancelled externally — clear tray title and exit
+                    drop(app_state);
+                    clear_tray_title(&app_handle_clone);
+                    #[cfg(debug_assertions)]
+                    println!("[FOCUS_TIMER] Background loop: session cancelled, clearing tray");
                     break;
                 }
                 match app_state.focus_session_end_time {
@@ -54,7 +61,11 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                             end.duration_since(now).unwrap_or_default().as_secs()
                         }
                     }
-                    None => break,
+                    None => {
+                        drop(app_state);
+                        clear_tray_title(&app_handle_clone);
+                        break;
+                    }
                 }
             };
 
@@ -70,10 +81,10 @@ pub fn start_focus_session(app_handle: AppHandle, duration_secs: u64) -> Result<
                         app_state.focus_session_end_time = None;
                     };
                 }
-                // Clear tray title
                 clear_tray_title(&app_handle_clone);
-                // Emit completion event
                 let _ = app_handle_clone.emit("focus-session-complete", total_secs);
+                #[cfg(debug_assertions)]
+                println!("[FOCUS_TIMER] Background loop: session complete, cleared tray");
                 break;
             }
         }
@@ -157,16 +168,22 @@ fn clear_tray_title(app_handle: &AppHandle) {
         #[cfg(target_os = "macos")]
         let _ = tray.set_title(None::<&str>);
         let _ = tray.set_tooltip(Some("CogniVibe"));
+        #[cfg(debug_assertions)]
+        println!("[FOCUS_TIMER] Tray title cleared");
+    } else {
+        #[cfg(debug_assertions)]
+        eprintln!("[FOCUS_TIMER] clear_tray_title: no tray icon found!");
     }
 }
 
 /// Helper to try to find a tray icon
 fn find_tray(app_handle: &AppHandle) -> Option<tauri::tray::TrayIcon> {
-    // Try common IDs - Tauri 2 assigns auto IDs
     for id in ["main", "tray", "1", "0"] {
         if let Some(tray) = app_handle.tray_by_id(id) {
             return Some(tray);
         }
     }
+    #[cfg(debug_assertions)]
+    eprintln!("[FOCUS_TIMER] find_tray: tried all IDs, none found");
     None
 }

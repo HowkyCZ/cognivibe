@@ -2,6 +2,7 @@ use std::sync::Mutex;
 use std::time::Instant;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_notification::NotificationExt;
 
 use crate::modules::state::AppState;
 
@@ -83,11 +84,11 @@ pub fn check_interventions(
         (break_trigger, focus_trigger)
     };
 
-    // Emit break nudge event
+    // Emit break nudge event + system notification
     if let Some(reason) = break_trigger {
         let session_minutes = (session_duration_secs / 60) as u32;
         let payload = BreakNudgePayload {
-            trigger_reason: reason,
+            trigger_reason: reason.clone(),
             session_minutes,
         };
 
@@ -97,6 +98,24 @@ pub fn check_interventions(
             payload
         );
 
+        // Send system notification (visible over fullscreen apps)
+        let notif_body = if reason == "high_cognitive_load" {
+            "Your cognitive load has been elevated. Time for a break.".to_string()
+        } else {
+            format!("You've been working for {} minutes. Time for a break.", session_minutes)
+        };
+        if let Err(e) = app_handle
+            .notification()
+            .builder()
+            .title("CogniVibe")
+            .body(&notif_body)
+            .show()
+        {
+            #[cfg(debug_assertions)]
+            eprintln!("[INTERVENTIONS] Failed to send break notification: {}", e);
+        }
+
+        // Emit Tauri event so BreakManager spawns the popup window
         if let Err(e) = app_handle.emit("break-nudge", &payload) {
             #[cfg(debug_assertions)]
             eprintln!("[INTERVENTIONS] Failed to emit break-nudge: {}", e);
@@ -109,7 +128,7 @@ pub fn check_interventions(
         }
     }
 
-    // Emit focus nudge event
+    // Emit focus nudge event + system notification
     if let Some(switching_count) = focus_trigger {
         let payload = FocusNudgePayload {
             switching_count,
@@ -122,6 +141,19 @@ pub fn check_interventions(
             payload
         );
 
+        // Send system notification (visible over fullscreen apps)
+        if let Err(e) = app_handle
+            .notification()
+            .builder()
+            .title("CogniVibe")
+            .body("Lots of context switching detected.")
+            .show()
+        {
+            #[cfg(debug_assertions)]
+            eprintln!("[INTERVENTIONS] Failed to send focus notification: {}", e);
+        }
+
+        // Emit Tauri event so BreakManager spawns the popup window
         if let Err(e) = app_handle.emit("focus-nudge", &payload) {
             #[cfg(debug_assertions)]
             eprintln!("[INTERVENTIONS] Failed to emit focus-nudge: {}", e);

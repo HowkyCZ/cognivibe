@@ -21,7 +21,7 @@ const FocusNudgePage = () => {
         if (prev <= 1) {
           clearInterval(interval);
           emit("focus-action", { action: "dismiss" });
-          getCurrentWindow().close();
+          setTimeout(() => getCurrentWindow().close(), 150);
           return 0;
         }
         return prev - 1;
@@ -33,67 +33,53 @@ const FocusNudgePage = () => {
 
   const handleStartFocus = async () => {
     await emit("focus-action", { action: "start" });
-    getCurrentWindow().close();
+    setTimeout(() => getCurrentWindow().close(), 150);
   };
 
   const handleDismiss = async () => {
     await emit("focus-action", { action: "dismiss" });
-    getCurrentWindow().close();
+    setTimeout(() => getCurrentWindow().close(), 150);
   };
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-black/0">
-      <div
-        className="w-full h-full flex flex-col items-start justify-center px-5 py-4 rounded-2xl border border-white/10 relative overflow-hidden"
-        style={{
-          background: "rgba(25, 20, 28, 0.92)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-        }}
-      >
-        {/* Subtle gradient accent along top edge */}
-        <div
-          className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{
-            background: "linear-gradient(90deg, #a07cef 0%, #ff709b 100%)",
-          }}
-        />
+    <div
+      className="h-screen w-screen flex flex-col items-start justify-center px-5 py-4"
+      style={{ background: "#19141c" }}
+    >
+      <div className="flex flex-col gap-0 mb-1">
+        <p className="text-white text-sm font-semibold">
+          Lots of context switching
+        </p>
+        <p className="text-white/50 text-xs">
+          {switches} switches in the last {windowMinutes} minutes
+        </p>
+      </div>
 
-        <div className="flex flex-col gap-0 mb-1">
-          <p className="text-white text-sm font-semibold">
-            Lots of context switching
-          </p>
-          <p className="text-white/50 text-xs">
-            {switches} switches in the last {windowMinutes} minutes
-          </p>
-        </div>
+      <div className="flex items-center gap-2 mt-2">
+        <Button
+          size="sm"
+          className="bg-[#ff709b]/20 text-[#ff709b] text-xs font-semibold"
+          onPress={handleStartFocus}
+        >
+          Start Focus Session
+        </Button>
+        <Button
+          size="sm"
+          variant="bordered"
+          className="text-white/70 border-white/20 text-xs"
+          onPress={handleDismiss}
+        >
+          Dismiss
+        </Button>
+      </div>
 
-        <div className="flex items-center gap-2 mt-2">
-          <Button
-            size="sm"
-            className="bg-primary text-white text-xs font-semibold"
-            onPress={handleStartFocus}
-          >
-            Start Focus Session
-          </Button>
-          <Button
-            size="sm"
-            variant="bordered"
-            className="text-primary-600 border-primary/30 text-xs"
-            onPress={handleDismiss}
-          >
-            Dismiss
-          </Button>
-        </div>
-
-        {/* Auto-dismiss indicator */}
-        <div className="w-full mt-3">
-          <div className="h-0.5 bg-white/5 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary/30 rounded-full transition-all duration-1000"
-              style={{ width: `${(autoDismissLeft / 30) * 100}%` }}
-            />
-          </div>
+      {/* Auto-dismiss indicator */}
+      <div className="w-full mt-3">
+        <div className="h-0.5 bg-white/5 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[#ff709b]/30 rounded-full transition-all duration-1000"
+            style={{ width: `${(autoDismissLeft / 30) * 100}%` }}
+          />
         </div>
       </div>
     </div>

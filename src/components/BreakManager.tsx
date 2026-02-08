@@ -123,7 +123,7 @@ const BreakManager = () => {
   }, []);
 
   /** Get top-right screen coordinates for a popup of the given size. */
-  const getTopRightPosition = async (winWidth: number, winHeight: number) => {
+  const getTopRightPosition = async (winWidth: number, _winHeight: number) => {
     try {
       const monitor = await currentMonitor();
       if (monitor) {
@@ -145,8 +145,8 @@ const BreakManager = () => {
     // Don't spawn if already showing
     if (breakWarningRef.current || breakOverlayRef.current) return;
 
-    const winW = 400;
-    const winH = 140;
+    const winW = 410;
+    const winH = 148;
     const pos = await getTopRightPosition(winW, winH);
 
     const url = `/break-warning?reason=${payload.trigger_reason}&minutes=${payload.session_minutes}`;
@@ -158,7 +158,7 @@ const BreakManager = () => {
       alwaysOnTop: true,
       decorations: false,
       resizable: false,
-      transparent: true,
+      transparent: false,
       focus: true,
       ...(pos ? { x: pos.x, y: pos.y } : {}),
     });
@@ -231,7 +231,7 @@ const BreakManager = () => {
       alwaysOnTop: true,
       decorations: false,
       resizable: false,
-      transparent: true,
+      transparent: false,
       focus: false,
       ...(pos ? { x: pos.x, y: pos.y } : {}),
     });
@@ -252,18 +252,23 @@ const BreakManager = () => {
       // Start the focus session in the Rust backend (25 min default)
       await invoke("start_focus_session", { durationSecs: 25 * 60 });
 
-      // Spawn the focus timer widget
+      // Spawn the focus timer widget at top-right
       if (!focusTimerRef.current) {
+        const timerW = 220;
+        const timerH = 44;
+        const timerPos = await getTopRightPosition(timerW, timerH);
+
         const win = new WebviewWindow("focus-timer", {
           url: "/focus-timer",
           title: "",
-          width: 220,
-          height: 50,
+          width: timerW,
+          height: timerH,
           alwaysOnTop: true,
           decorations: false,
           resizable: false,
-          transparent: true,
+          transparent: false,
           focus: false,
+          ...(timerPos ? { x: timerPos.x, y: timerPos.y } : {}),
         });
 
         win.once("tauri://error", (e) => {

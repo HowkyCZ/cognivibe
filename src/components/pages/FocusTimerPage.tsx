@@ -6,11 +6,9 @@ import { emit } from "@tauri-apps/api/event";
 import { IconX } from "@tabler/icons-react";
 
 interface FocusSessionState {
-  remaining_secs: u64;
-  total_secs: u64;
+  remaining_secs: number;
+  total_secs: number;
 }
-
-type u64 = number;
 
 const FocusTimerPage = () => {
   const [remainingSecs, setRemainingSecs] = useState<number | null>(null);
@@ -27,7 +25,6 @@ const FocusTimerPage = () => {
           if (state.remaining_secs <= 0) {
             setCompleted(true);
             clearInterval(interval);
-            // Auto-close after 5 seconds
             setTimeout(() => {
               getCurrentWindow().close();
             }, 5000);
@@ -51,7 +48,7 @@ const FocusTimerPage = () => {
     } catch {
       // Ignore
     }
-    getCurrentWindow().close();
+    setTimeout(() => getCurrentWindow().close(), 150);
   };
 
   const formatTime = (secs: number) => {
@@ -63,13 +60,10 @@ const FocusTimerPage = () => {
   if (completed) {
     return (
       <div
-        className="h-screen w-screen flex items-center justify-center px-4 rounded-2xl border border-white/10"
-        style={{
-          background: "rgba(25, 20, 28, 0.92)",
-          backdropFilter: "blur(20px)",
-        }}
+        className="h-screen w-screen flex items-center justify-center px-4"
+        style={{ background: "#19141c" }}
       >
-        <p className="text-primary-600 text-sm font-medium">
+        <p className="text-[#ff709b] text-sm font-medium">
           Nice focus session!
         </p>
       </div>
@@ -78,15 +72,12 @@ const FocusTimerPage = () => {
 
   return (
     <div
-      className="h-screen w-screen flex items-center justify-between px-4 rounded-2xl border border-white/10"
-      style={{
-        background: "rgba(25, 20, 28, 0.92)",
-        backdropFilter: "blur(20px)",
-      }}
+      className="h-screen w-screen flex items-center justify-between px-4"
+      style={{ background: "#19141c" }}
     >
       <div className="flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-        <p className="text-primary-700 text-sm font-medium">
+        <div className="w-2 h-2 rounded-full bg-[#ff709b] animate-pulse" />
+        <p className="text-[#ff709b] text-sm font-medium">
           Focus: {remainingSecs !== null ? formatTime(remainingSecs) : "--:--"}
         </p>
       </div>

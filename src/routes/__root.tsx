@@ -13,6 +13,9 @@ import { invoke } from "@tauri-apps/api/core";
 
 const PERMISSIONS_ACKNOWLEDGED_KEY = "cognivibe_permissions_acknowledged";
 
+/** Routes that render in their own popup/overlay windows. */
+const POPUP_ROUTES = ["/break-warning", "/break", "/focus-nudge", "/focus-timer"];
+
 export const Route = createRootRoute({
   component: () => {
     const navigate = useNavigate();
@@ -90,6 +93,20 @@ export const Route = createRootRoute({
         setShowPermissionsModal(false);
       }
     };
+
+    // Check if we're in a popup window (break/focus overlays)
+    const isPopupWindow = POPUP_ROUTES.some((r) =>
+      window.location.pathname.startsWith(r)
+    );
+
+    // Popup windows: transparent background, no devtools/BreakManager/modals
+    if (isPopupWindow) {
+      return (
+        <AppTemplate>
+          <Outlet />
+        </AppTemplate>
+      );
+    }
 
     return (
       <AppTemplate>
