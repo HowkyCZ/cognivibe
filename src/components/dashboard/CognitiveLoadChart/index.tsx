@@ -626,7 +626,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
   const chartHeader = useMemo(
     () => (
       <div className={`flex justify-between items-center ${sessions.length > 0 ? "mb-3" : "mb-6"}`}>
-        <h2 className="text-xl font-semibold text-foreground">
+        <h2 className="font-now text-xl font-medium text-foreground">
           Your daily mental performance
         </h2>
         <DateRangePicker

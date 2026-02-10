@@ -4,6 +4,62 @@
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
+/* Now – titles and headings */
+@font-face {
+  font-family: 'Now';
+  src: url('/fonts/Now-Thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Now';
+  src: url('/fonts/Now-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Now';
+  src: url('/fonts/Now-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Now';
+  src: url('/fonts/Now-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Now';
+  src: url('/fonts/Now-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Now';
+  src: url('/fonts/Now-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* Default body/small text */
+  --font-sans: "Montserrat", sans-serif;
+  /* Titles and headings */
+  --font-now: "Now", sans-serif;
+}
+
+/* Use Now for all headings and larger text */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Now", sans-serif;
+}
+
 /* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
   width: 10px;

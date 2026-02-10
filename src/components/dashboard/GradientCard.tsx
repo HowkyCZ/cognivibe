@@ -45,13 +45,13 @@ interface ActiveViewProps {
 const NarrowActiveView = ({ onStartClick }: ActiveViewProps) => (
   <div className="flex flex-col items-center justify-center gap-4 w-full">
     <ClipboardIcon />
-    <h2 className="text-lg font-semibold text-white text-center">
+    <h2 className="text-lg font-medium text-white text-center">
       Complete
       <br />
       Assessment
     </h2>
     <Button
-      className="w-full bg-white text-[#a07cef] font-semibold text-md"
+      className="w-full bg-white text-[#a07cef] font-medium text-md"
       size="lg"
       onPress={onStartClick}
     >
@@ -64,7 +64,7 @@ const NarrowActiveView = ({ onStartClick }: ActiveViewProps) => (
 const NarrowInactiveView = () => (
   <div className="flex flex-col items-center justify-center gap-3 w-full">
     <ClipboardIcon />
-    <h2 className="text-lg font-semibold text-white text-center">
+    <h2 className="text-lg font-medium text-white text-center">
       No
       <br />
       Assessment
@@ -79,19 +79,19 @@ const WideActiveView = ({ onStartClick }: ActiveViewProps) => (
   <div className="flex flex-col items-start gap-4 w-full h-full">
     <div className="flex flex-row items-center gap-3">
       <ClipboardIcon />
-      <h2 className="text-2xl font-semibold text-white">
+      <h2 className="text-2xl font-medium text-white">
         Complete
         <br />
         Assessment
       </h2>
     </div>
     <p className="text-sm text-white/90">
-      Take <span className="font-bold">10 seconds</span> to asses your mental
+      Take <span className="font-medium">10 seconds</span> to asses your mental
       performance and{" "}
       <span className="italic">help us make our measurements more accurate.</span>
     </p>
     <Button
-      className="self-end mt-auto bg-white text-[#a07cef] font-semibold text-lg"
+      className="self-end mt-auto bg-white text-[#a07cef] font-medium text-lg"
       size="lg"
       onPress={onStartClick}
     >
@@ -105,7 +105,7 @@ const WideInactiveView = () => (
   <div className="flex flex-col gap-4 w-full">
     <div className="flex flex-row items-center gap-4">
       <ClipboardIcon size={40} padding="p-4" />
-      <h2 className="text-3xl font-semibold text-white">
+      <h2 className="text-3xl font-medium text-white">
         Complete
         <br />
         Assessment

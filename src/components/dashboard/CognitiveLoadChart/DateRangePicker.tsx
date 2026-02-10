@@ -110,18 +110,20 @@ function DateRangePicker({
         value={value}
         defaultValue={today(getLocalTimeZone())}
         onChange={handleDateChange}
-        className="w-40"
+        className="w-40 font-sans"
         aria-label="Select date"
         variant="bordered"
         classNames={{
           // Keep `base` minimal to avoid a “double wrapper” look.
           // The DateInput inside DatePicker already renders the pill + border via `variant`.
-          base: "text-foreground",
-          selectorButton: "text-foreground/60 hover:text-foreground",
+          base: "text-foreground font-sans",
+          input: "font-sans",
+          inputWrapper: "font-sans",
+          selectorButton: "text-foreground/60 hover:text-foreground font-sans",
           selectorIcon: "text-foreground/60",
           popoverContent:
-            "bg-content1/90 backdrop-blur-md border border-white/10 text-foreground shadow-[0_10px_40px_rgba(0,0,0,0.35)]",
-          calendar: "text-foreground",
+            "bg-content1/90 backdrop-blur-md border border-white/10 text-foreground font-sans shadow-[0_10px_40px_rgba(0,0,0,0.35)]",
+          calendar: "text-foreground font-sans",
           calendarContent: "bg-content1",
         }}
         popoverProps={{
@@ -132,7 +134,7 @@ function DateRangePicker({
         CalendarTopContent={
           <ButtonGroup
             fullWidth
-            className="px-3 pb-2 pt-3 bg-content1"
+            className="px-3 pb-2 pt-3 bg-content1 font-sans"
             radius="full"
             size="sm"
           >

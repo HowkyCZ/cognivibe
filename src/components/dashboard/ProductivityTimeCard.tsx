@@ -95,7 +95,7 @@ const ProductivityTimeCard = ({ selectedDate }: ProductivityTimeCardProps) => {
   return (
     <Card className="w-full h-full bg-content1 border border-white/10 hover:border-white/15 transition-colors">
       <CardBody className="p-6">
-        <h2 className="text-2xl font-semibold text-foreground text-left mb-6">
+        <h2 className="text-2xl font-medium text-foreground text-left mb-6">
           Productivity time{" "}
           <span className="text-foreground/60 text-lg font-normal">
             {loading ? "" : formatMinutesToHHMM(totalMinutes)}
