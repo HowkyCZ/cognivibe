@@ -52,15 +52,37 @@ export function useExtremeZScoreAlert(): UseExtremeZScoreAlertReturn {
   }, []);
 
   // Initial fetch and periodic polling
+  // OPTIMIZATION: Only poll when page is visible and increase interval to 60s
   useEffect(() => {
     // Initial fetch
     fetchAlert();
 
-    // Poll every 30 seconds
-    const pollInterval = setInterval(fetchAlert, 30000);
+    // Don't poll if page is hidden
+    if (document.hidden) {
+      return;
+    }
+
+    // Poll every 60 seconds (optimized from 30s)
+    const pollInterval = setInterval(() => {
+      // Only fetch if page is still visible
+      if (!document.hidden) {
+        fetchAlert();
+      }
+    }, 60000);
+
+    // Handle visibility changes - restart polling when page becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Page became visible, fetch immediately
+        fetchAlert();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearInterval(pollInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [fetchAlert]);
 

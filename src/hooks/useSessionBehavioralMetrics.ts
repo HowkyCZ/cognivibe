@@ -18,7 +18,7 @@ interface BehavioralMetricsRow {
   minute_timestamp: string;
 }
 
-const REFRESH_INTERVAL_MS = 30000; // Refresh every 30 seconds
+const REFRESH_INTERVAL_MS = 60000; // Refresh every 60 seconds (optimized from 30s)
 
 export interface UseSessionBehavioralMetricsReturn {
   stats: SessionStats;
@@ -148,11 +148,36 @@ export const useSessionBehavioralMetrics = (
   }, [fetchMetrics]);
 
   // Refresh periodically while session is active
+  // OPTIMIZATION: Only poll when page is visible to reduce unnecessary API calls
   useEffect(() => {
     if (!sessionId) return;
 
-    const interval = setInterval(fetchMetrics, REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
+    // Don't poll if page is hidden
+    if (document.hidden) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      // Only fetch if page is still visible
+      if (!document.hidden) {
+        fetchMetrics();
+      }
+    }, REFRESH_INTERVAL_MS);
+
+    // Handle visibility changes - restart polling when page becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Page became visible, fetch immediately and restart interval
+        fetchMetrics();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [sessionId, fetchMetrics]);
 
   return {
