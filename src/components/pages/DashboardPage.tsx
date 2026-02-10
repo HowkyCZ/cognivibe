@@ -57,6 +57,7 @@ function DashboardPage() {
             <div className="w-[280px] shrink-0 self-stretch">
               <CircleChartCard
                 currentCognitiveLoad={currentCognitiveLoad}
+                hasData={cognitiveLoadData.length > 0}
                 isLoading={dashboardLoading}
               />
             </div>

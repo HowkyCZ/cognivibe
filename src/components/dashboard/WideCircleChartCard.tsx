@@ -119,7 +119,7 @@ const WideCircleChartCard = React.forwardRef<
               </div>
 
               <div>
-                <p className="text-lg font-semibold text-foreground truncate">
+                <p className="font-now text-lg font-medium text-foreground truncate">
                   {title}
                 </p>
               </div>

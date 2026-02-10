@@ -21,6 +21,8 @@ import HelpButton from "../HelpButton";
 
 type CircleChartProps = {
   currentCognitiveLoad: number;
+  /** When false, shows NO DATA state instead of treating 0 as Low */
+  hasData?: boolean;
   isLoading?: boolean;
 };
 
@@ -58,23 +60,27 @@ const getLoadText = (value: number): string => {
   return "You are getting too overwhelmed, consider taking a break.";
 };
 
+const NO_DATA_TEXT =
+  "Have the app measuring for at least 5 minutes for the score to show up. Make sure the app has all the permissions.";
+
 const CircleChartCard = React.forwardRef<
   HTMLDivElement,
   Omit<CardProps, "children"> & CircleChartProps
->(({ currentCognitiveLoad, isLoading = false, ...props }, ref) => {
-  // Default props
+>(({ currentCognitiveLoad, hasData = true, isLoading = false, ...props }, ref) => {
+  const noData = !hasData;
   const title = "Cognitive Load";
-  const color = getLoadColor(currentCognitiveLoad);
-  const bgClass =
-    color === "secondary"
+  const color = noData ? "default" : getLoadColor(currentCognitiveLoad);
+  const bgClass = noData
+    ? "bg-default-100/40"
+    : color === "secondary"
       ? "bg-secondary/40"
       : color === "primary"
         ? "bg-primary/40"
         : "bg-danger/40";
-  const loadTitle = getLoadTitle(currentCognitiveLoad);
-  const loadText = getLoadText(currentCognitiveLoad);
+  const loadTitle = noData ? "NO DATA" : getLoadTitle(currentCognitiveLoad);
+  const loadText = noData ? NO_DATA_TEXT : getLoadText(currentCognitiveLoad);
   const total = 100;
-  const chartData = [{ name: "Current Load", value: currentCognitiveLoad }];
+  const chartData = [{ name: "Current Load", value: noData ? 0 : currentCognitiveLoad }];
 
   return (
     <Card
@@ -93,7 +99,7 @@ const CircleChartCard = React.forwardRef<
         {isLoading ? (
           <Skeleton className="h-7 w-40 rounded-lg" />
         ) : (
-          <p className="text-xl font-medium text-center">{title}</p>
+          <p className="font-now text-xl font-medium text-center">{title}</p>
         )}
       </CardHeader>
       <CardBody className="flex items-center justify-center flex-1">
@@ -140,7 +146,7 @@ const CircleChartCard = React.forwardRef<
               <g>
                 <text textAnchor="middle" x="50%" y="55%">
                   <tspan className="fill-foreground text-4xl font-bold">
-                    {formatTotal(chartData?.[0]?.value)}
+                    {noData ? "X" : formatTotal(chartData?.[0]?.value)}
                   </tspan>
                 </text>
               </g>
