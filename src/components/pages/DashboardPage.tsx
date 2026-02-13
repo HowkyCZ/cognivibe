@@ -9,7 +9,7 @@ import {
   DebugNudgeButtons,
 } from "..";
 import { useDashboardData } from "../../hooks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import type { CalendarDate } from "@internationalized/date";
 
@@ -24,6 +24,17 @@ function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<CalendarDate>(
     today(getLocalTimeZone()),
   );
+
+  // Jump to today whenever the app is opened or becomes active
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        setSelectedDate(today(getLocalTimeZone()));
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
 
   const {
     cognitiveLoadData,

@@ -14,7 +14,6 @@ import { Route as DashboardRouteRouteImport } from "./routes/dashboard/route"
 import { Route as BreakRouteRouteImport } from "./routes/break/route"
 import { Route as R404RouteRouteImport } from "./routes/404/route"
 import { Route as IndexRouteImport } from "./routes/index"
-import { Route as TourRoute2RouteImport } from "./routes/tour/route 2"
 import { Route as AuthLoginRouteRouteImport } from "./routes/auth/login/route"
 import { Route as AuthErrorRouteRouteImport } from "./routes/auth/error/route"
 import { Route as AuthCallbackRouteRouteImport } from "./routes/auth/callback/route"
@@ -44,11 +43,6 @@ const IndexRoute = IndexRouteImport.update({
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
-const TourRoute2Route = TourRoute2RouteImport.update({
-  id: "/route 2",
-  path: "/route 2",
-  getParentRoute: () => TourRouteRoute,
-} as any)
 const AuthLoginRouteRoute = AuthLoginRouteRouteImport.update({
   id: "/auth/login",
   path: "/auth/login",
@@ -70,22 +64,20 @@ export interface FileRoutesByFullPath {
   "/404": typeof R404RouteRoute
   "/break": typeof BreakRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/tour": typeof TourRouteRouteWithChildren
+  "/tour": typeof TourRouteRoute
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
-  "/tour/route 2": typeof TourRoute2Route
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
   "/break": typeof BreakRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/tour": typeof TourRouteRouteWithChildren
+  "/tour": typeof TourRouteRoute
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
-  "/tour/route 2": typeof TourRoute2Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -93,11 +85,10 @@ export interface FileRoutesById {
   "/404": typeof R404RouteRoute
   "/break": typeof BreakRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/tour": typeof TourRouteRouteWithChildren
+  "/tour": typeof TourRouteRoute
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
   "/auth/login": typeof AuthLoginRouteRoute
-  "/tour/route 2": typeof TourRoute2Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,7 +101,6 @@ export interface FileRouteTypes {
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
-    | "/tour/route 2"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
@@ -121,7 +111,6 @@ export interface FileRouteTypes {
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
-    | "/tour/route 2"
   id:
     | "__root__"
     | "/"
@@ -132,7 +121,6 @@ export interface FileRouteTypes {
     | "/auth/callback"
     | "/auth/error"
     | "/auth/login"
-    | "/tour/route 2"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -140,7 +128,7 @@ export interface RootRouteChildren {
   R404RouteRoute: typeof R404RouteRoute
   BreakRouteRoute: typeof BreakRouteRoute
   DashboardRouteRoute: typeof DashboardRouteRoute
-  TourRouteRoute: typeof TourRouteRouteWithChildren
+  TourRouteRoute: typeof TourRouteRoute
   AuthCallbackRouteRoute: typeof AuthCallbackRouteRoute
   AuthErrorRouteRoute: typeof AuthErrorRouteRoute
   AuthLoginRouteRoute: typeof AuthLoginRouteRoute
@@ -183,13 +171,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/tour/route 2": {
-      id: "/tour/route 2"
-      path: "/route 2"
-      fullPath: "/tour/route 2"
-      preLoaderRoute: typeof TourRoute2RouteImport
-      parentRoute: typeof TourRouteRoute
-    }
     "/auth/login": {
       id: "/auth/login"
       path: "/auth/login"
@@ -214,24 +195,12 @@ declare module "@tanstack/react-router" {
   }
 }
 
-interface TourRouteRouteChildren {
-  TourRoute2Route: typeof TourRoute2Route
-}
-
-const TourRouteRouteChildren: TourRouteRouteChildren = {
-  TourRoute2Route: TourRoute2Route,
-}
-
-const TourRouteRouteWithChildren = TourRouteRoute._addFileChildren(
-  TourRouteRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R404RouteRoute: R404RouteRoute,
   BreakRouteRoute: BreakRouteRoute,
   DashboardRouteRoute: DashboardRouteRoute,
-  TourRouteRoute: TourRouteRouteWithChildren,
+  TourRouteRoute: TourRouteRoute,
   AuthCallbackRouteRoute: AuthCallbackRouteRoute,
   AuthErrorRouteRoute: AuthErrorRouteRoute,
   AuthLoginRouteRoute: AuthLoginRouteRoute,

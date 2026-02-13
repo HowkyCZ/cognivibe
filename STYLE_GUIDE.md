@@ -302,6 +302,27 @@ Two distinct button types, each with its own styling:
 
 ---
 
+### Survey sliders (source of truth: SessionSurvey)
+
+All survey-style sliders (0–100 scale with left/right labels) should match SessionSurvey:
+
+| Prop / Class | Value |
+|---------------|-------|
+| Slider `size` | `md` |
+| Slider `color` | `primary` when touched, `foreground` when untouched |
+| Slider | `showTooltip`, `tooltipProps={{ content: String(value) }}` |
+| Question text | `text-sm font-medium text-foreground` |
+| Container | `space-y-2`, `px-2` |
+| Labels row | `flex justify-between mt-1` |
+| Left/right labels | `text-xs text-default-700` |
+| Value display | `text-xs font-semibold text-primary` |
+
+**Used in:** SessionSurvey, QuestionnaireModal, ZScoreSurveyModal.
+
+**Note:** Settings sliders (break duration, score threshold, etc.) use `size="sm"` and a different layout — they are infrastructural controls, not survey inputs.
+
+---
+
 ## Utility Classes
 
 | Class | Purpose |
@@ -325,6 +346,7 @@ Two distinct button types, each with its own styling:
 
 - **App.css** – CSS variables, fonts, scrollbar, utilities
 - **hero.ts** – HeroUI theme (colors, dark mode)
+- **SessionSurvey** – Survey slider styling (source of truth)
 - **CognitiveLoadChart** – Load-to-color mapping
 - **CircleChartCard** – Cognitive load thresholds
 - **GradientCard** – Breakpoint, gradient usage
