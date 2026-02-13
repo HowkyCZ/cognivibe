@@ -14,12 +14,14 @@ const BreakPage = () => {
     sessionId?: string;
     duration?: string;
     screenshot?: string;
+    pomodoro?: string;
   };
   const reason = search.reason || "long_session";
   const minutes = parseInt(search.minutes || "90", 10);
   const sessionId = search.sessionId || null;
   const duration = parseInt(search.duration || "120", 10);
   const screenshotPath = search.screenshot || "";
+  const isPomodoro = search.pomodoro === "true";
 
   const [secondsLeft, setSecondsLeft] = useState(duration);
   const [timerDone, setTimerDone] = useState(false);
@@ -97,7 +99,7 @@ const BreakPage = () => {
     setIsSubmitting(true);
     try {
       console.log("[BREAK] Ending session with survey:", { sessionId, scores });
-      await endSessionWithSurvey(sessionId, scores);
+      await endSessionWithSurvey(sessionId, scores, isPomodoro);
       console.log("[BREAK] Session ended successfully");
       await emit("break-completed", {});
       await getCurrentWindow().close();
@@ -117,7 +119,7 @@ const BreakPage = () => {
     if (sessionId && sessionId.trim() !== "") {
       try {
         console.log("[BREAK] Ending session on skip:", { sessionId });
-        await endSessionWithSurvey(sessionId);
+        await endSessionWithSurvey(sessionId, undefined, isPomodoro);
         console.log("[BREAK] Session ended successfully on skip");
       } catch (error) {
         console.error("[BREAK] Failed to end session on skip:", error);

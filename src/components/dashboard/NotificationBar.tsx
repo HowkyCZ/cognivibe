@@ -21,6 +21,7 @@ interface FocusNudgePayload {
 
 interface NotificationBarProps {
   onStartClick?: () => void;
+  onEmpty?: (isEmpty: boolean) => void;
 }
 
 const CARD_STYLE = {
@@ -31,7 +32,7 @@ const CARD_STYLE = {
   `,
 };
 
-const NotificationBar = ({ onStartClick }: NotificationBarProps) => {
+const NotificationBar = ({ onStartClick, onEmpty }: NotificationBarProps) => {
   const { session } = useAuth();
   const { userData, loading, refetch } = useUserData(session?.user?.id);
   const { alert: extremeZScoreAlert, clearAlert } = useExtremeZScoreAlert();
@@ -162,6 +163,14 @@ const NotificationBar = ({ onStartClick }: NotificationBarProps) => {
     }
   };
 
+  const handleExtendFocus = async () => {
+    try {
+      await invoke("extend_focus_session", { extra_secs: 5 * 60 });
+    } catch {
+      // ignore
+    }
+  };
+
   const handleBreakStartNow = useCallback(() => {
     if (!breakStartEmittedRef.current) {
       breakStartEmittedRef.current = true;
@@ -225,7 +234,13 @@ const NotificationBar = ({ onStartClick }: NotificationBarProps) => {
   const showFocusCard = !showTourCard && !showBreakNudgeCard && !showFocusNudgeCard && focusRemaining !== null;
   const showZScoreCard = !showTourCard && !showBreakNudgeCard && !showFocusNudgeCard && !showFocusCard && extremeZScoreAlert !== null;
 
-  if (!showTourCard && !showBreakNudgeCard && !showFocusNudgeCard && !showFocusCard && !showZScoreCard) {
+  const isEmpty = !showTourCard && !showBreakNudgeCard && !showFocusNudgeCard && !showFocusCard && !showZScoreCard;
+
+  useEffect(() => {
+    onEmpty?.(isEmpty);
+  }, [isEmpty, onEmpty]);
+
+  if (isEmpty) {
     return null;
   }
 
@@ -354,13 +369,23 @@ const NotificationBar = ({ onStartClick }: NotificationBarProps) => {
               Stay focused. You've got this.
             </span>
           </div>
-          <Button
-            className="bg-white text-[#ff709b] shrink-0 ml-4"
-            size="sm"
-            onPress={handleCancelFocus}
-          >
-            Cancel
-          </Button>
+          <div className="flex items-center gap-2 shrink-0 ml-4">
+            <Button
+              size="sm"
+              variant="bordered"
+              className="btn-plain text-white/70 border-white/20"
+              onPress={handleExtendFocus}
+            >
+              + 5 min
+            </Button>
+            <Button
+              className="bg-white text-[#ff709b]"
+              size="sm"
+              onPress={handleCancelFocus}
+            >
+              Cancel
+            </Button>
+          </div>
         </CardBody>
       </Card>
     );

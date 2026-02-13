@@ -9,7 +9,9 @@ import {
   DebugNudgeButtons,
 } from "..";
 import { useDashboardData } from "../../hooks";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import PomodoroSection from "../dashboard/PomodoroSection";
+import PomodoroStartModal from "../modals/PomodoroStartModal";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import type { CalendarDate } from "@internationalized/date";
 
@@ -24,6 +26,12 @@ function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<CalendarDate>(
     today(getLocalTimeZone()),
   );
+  const [notificationBarEmpty, setNotificationBarEmpty] = useState(true);
+  const [pomodoroStartOpen, setPomodoroStartOpen] = useState(false);
+
+  const handleNotificationBarEmpty = useCallback((isEmpty: boolean) => {
+    setNotificationBarEmpty(isEmpty);
+  }, []);
 
   // Jump to today whenever the app is opened or becomes active
   useEffect(() => {
@@ -54,7 +62,15 @@ function DashboardPage() {
       <AppNavbar />
       <main className="w-full px-8 py-8">
         <div className="w-full max-w-5xl mx-auto">
-          <NotificationBar />
+          <NotificationBar onEmpty={handleNotificationBarEmpty} />
+          <PomodoroSection
+            visible={notificationBarEmpty}
+            onStartClick={() => setPomodoroStartOpen(true)}
+          />
+          <PomodoroStartModal
+            isOpen={pomodoroStartOpen}
+            onOpenChange={setPomodoroStartOpen}
+          />
 
           <CognitiveLoadChart
             data={cognitiveLoadData}

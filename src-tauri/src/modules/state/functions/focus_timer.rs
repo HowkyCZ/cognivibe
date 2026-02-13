@@ -134,6 +134,27 @@ pub fn get_focus_session_state(app_handle: AppHandle) -> Result<Option<FocusSess
     }))
 }
 
+/// Extend the current focus session by the given number of seconds.
+#[tauri::command]
+pub fn extend_focus_session(app_handle: AppHandle, extra_secs: u64) -> Result<(), String> {
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut app_state = state.lock().map_err(|e| format!("Lock error: {}", e))?;
+
+    if !app_state.focus_session_active {
+        return Err("No focus session active".to_string());
+    }
+
+    if let Some(ref mut end_time) = app_state.focus_session_end_time {
+        let new_end = *end_time + Duration::from_secs(extra_secs);
+        *end_time = new_end;
+    }
+
+    #[cfg(debug_assertions)]
+    println!("[FOCUS_TIMER] Focus session extended by {}s", extra_secs);
+
+    Ok(())
+}
+
 /// Stop the current focus session.
 #[tauri::command]
 pub fn stop_focus_session(app_handle: AppHandle) -> Result<(), String> {

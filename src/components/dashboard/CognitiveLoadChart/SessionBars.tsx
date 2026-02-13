@@ -20,6 +20,7 @@ interface SessionData {
   length: number;
   score_total: number | null;
   category_share: Record<string, number>;
+  pomodoro?: boolean;
   // Actual activity timestamps from behavioral_metrics_log
   // Use these for rendering to show actual work periods, not session creation times
   activity_start: string | null;
@@ -244,6 +245,7 @@ const SessionBars: React.FC<SessionBarsProps> = ({
 
         const color = getLoadColor(session.score_total ?? 50);
         const topCategories = getTopCategories(session.category_share, 3);
+        const isPomodoro = session.pomodoro === true;
 
         return {
           id: session.id,
@@ -251,6 +253,7 @@ const SessionBars: React.FC<SessionBarsProps> = ({
           widthPercent: clampedWidth,
           color,
           categories: topCategories,
+          isPomodoro,
         };
       })
       .filter(
@@ -296,7 +299,14 @@ const SessionBars: React.FC<SessionBarsProps> = ({
               className="w-full rounded-full mt-1"
               style={{
                 height: LINE_HEIGHT,
-                backgroundColor: bar.color,
+                ...(bar.isPomodoro
+                  ? {
+                      background:
+                        "linear-gradient(90deg, #A07CEF 0%, #A07CEF 60%, #FF709B 100%)",
+                      boxShadow:
+                        "0 0 8px rgba(160,124,239,0.4), 0 0 16px rgba(255,112,155,0.2)",
+                    }
+                  : { backgroundColor: bar.color }),
               }}
             />
           </div>

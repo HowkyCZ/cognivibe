@@ -4,6 +4,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { HeroUIProvider } from "@heroui/react";
 import { AppTemplate, PermissionsWelcomeModal } from "../components";
 import BreakManager from "../components/BreakManager";
+import { PomodoroProvider } from "../contexts/PomodoroContext";
 import { setupDeepLinkHandler } from "../utils/deepLinkHandler";
 import { isDevMode } from "../utils/constants";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -112,9 +113,10 @@ export const Route = createRootRoute({
     }
 
     return (
-      <AppTemplate>
-        <Outlet />
-        <BreakManager />
+      <PomodoroProvider>
+        <AppTemplate>
+          <Outlet />
+          <BreakManager />
         {showPermissionsModal === true && (
           <PermissionsWelcomeModal
             isOpen
@@ -123,6 +125,7 @@ export const Route = createRootRoute({
         )}
         {isDevMode && <TanStackRouterDevtools />}
       </AppTemplate>
+      </PomodoroProvider>
     );
   },
 });

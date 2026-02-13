@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { WebviewWindow, getAllWebviewWindows } from "@tauri-apps/api/webviewWindow";
 import { useAppSettings } from "../hooks";
+import { usePomodoroOptional } from "../contexts/PomodoroContext";
+import PomodoroNextModal from "./modals/PomodoroNextModal";
 
 /** Check if a window with the given label already exists. */
 async function windowExists(label: string): Promise<boolean> {
@@ -37,11 +39,20 @@ interface FocusAction {
  * Listens for Tauri events; break/focus nudges are shown in the dashboard NotificationBar.
  * Handles break overlay spawning and focus session start.
  */
+interface SpawnBreakOverlayParams {
+  duration?: number;
+  pomodoro?: boolean;
+  sessionMinutes?: number;
+  reason?: string;
+}
+
 const BreakManager = () => {
   const { settings } = useAppSettings();
+  const pomodoro = usePomodoroOptional();
   const breakOverlayRef = useRef<WebviewWindow | null>(null);
   const lastBreakPayload = useRef<BreakNudgePayload | null>(null);
   const spawningOverlayRef = useRef(false);
+  const [showPomodoroNextModal, setShowPomodoroNextModal] = useState(false);
 
   useEffect(() => {
     const unlisteners: (() => void)[] = [];
@@ -67,7 +78,7 @@ const BreakManager = () => {
           console.log("[BREAK_MANAGER] Break warning action:", event.payload);
           if (event.payload.action === "start") {
             await invoke("focus_main_window").catch(() => {});
-            spawnBreakOverlay();
+            spawnBreakOverlay({});
           }
           // Skip: cooldown is handled by Rust
         }
@@ -86,22 +97,44 @@ const BreakManager = () => {
       const unBreakCompleted = await listen("break-completed", () => {
         console.log("[BREAK_MANAGER] Break completed");
         breakOverlayRef.current = null;
+        if (pomodoro?.active && pomodoro.currentSession < pomodoro.totalSessions) {
+          setShowPomodoroNextModal(true);
+        } else if (pomodoro?.active) {
+          pomodoro.endPomodoro();
+        }
       });
       unlisteners.push(unBreakCompleted);
 
       const unBreakSkipped = await listen("break-skipped", () => {
         console.log("[BREAK_MANAGER] Break skipped");
         breakOverlayRef.current = null;
+        if (pomodoro?.active && pomodoro.currentSession < pomodoro.totalSessions) {
+          setShowPomodoroNextModal(true);
+        } else if (pomodoro?.active) {
+          pomodoro.endPomodoro();
+        }
       });
       unlisteners.push(unBreakSkipped);
 
       const unFocusCancelled = await listen("focus-session-cancelled", () => {
         console.log("[BREAK_MANAGER] Focus session cancelled");
+        if (pomodoro?.active) {
+          pomodoro.endPomodoro();
+        }
       });
       unlisteners.push(unFocusCancelled);
 
       const unFocusComplete = await listen("focus-session-complete", () => {
         console.log("[BREAK_MANAGER] Focus session complete");
+        if (pomodoro?.active) {
+          pomodoro.recordFocusComplete();
+          spawnBreakOverlay({
+            duration: pomodoro.baseBreakMin * 60,
+            pomodoro: true,
+            sessionMinutes: pomodoro.nextFocusMin,
+            reason: "pomodoro",
+          });
+        }
       });
       unlisteners.push(unFocusComplete);
     };
@@ -111,7 +144,7 @@ const BreakManager = () => {
     return () => {
       unlisteners.forEach((unlisten) => unlisten());
     };
-  }, []);
+  }, [pomodoro]);
 
   const nukeWindowByLabel = async (label: string) => {
     try {
@@ -136,7 +169,7 @@ const BreakManager = () => {
     }
   };
 
-  const spawnBreakOverlay = async () => {
+  const spawnBreakOverlay = async (overrides: SpawnBreakOverlayParams = {}) => {
     // Synchronous guard to prevent double-spawn (e.g. from Strict Mode or countdown+button race)
     if (spawningOverlayRef.current || breakOverlayRef.current) return;
     spawningOverlayRef.current = true;
@@ -148,9 +181,10 @@ const BreakManager = () => {
       const payload = lastBreakPayload.current;
       const sessionInfo = await getSessionInfo();
       const sessionId = sessionInfo?.session_id || "";
-      const sessionMinutes = payload?.session_minutes || 90;
-      const reason = payload?.trigger_reason || "long_session";
-      const duration = settings?.break_duration_seconds || 120;
+      const sessionMinutes = overrides.sessionMinutes ?? payload?.session_minutes ?? 90;
+      const reason = overrides.reason ?? payload?.trigger_reason ?? "long_session";
+      const duration = overrides.duration ?? settings?.break_duration_seconds ?? 120;
+      const pomodoroParam = overrides.pomodoro ? "&pomodoro=true" : "";
 
       let screenshotPath = "";
       try {
@@ -159,7 +193,7 @@ const BreakManager = () => {
         console.warn("[BREAK_MANAGER] Screenshot capture failed, using gradient fallback:", e);
       }
 
-      const url = `/break?reason=${reason}&minutes=${sessionMinutes}&sessionId=${sessionId}&duration=${duration}&screenshot=${encodeURIComponent(screenshotPath)}`;
+      const url = `/break?reason=${reason}&minutes=${sessionMinutes}&sessionId=${sessionId}&duration=${duration}&screenshot=${encodeURIComponent(screenshotPath)}${pomodoroParam}`;
       const win = new WebviewWindow("break-overlay", {
         url,
         title: "Break",
@@ -194,7 +228,28 @@ const BreakManager = () => {
     }
   };
 
-  return null;
+  return (
+    <>
+      <PomodoroNextModal
+        isOpen={showPomodoroNextModal}
+        onOpenChange={setShowPomodoroNextModal}
+        onContinue={(durationMin) => {
+          setShowPomodoroNextModal(false);
+          if (pomodoro) {
+            pomodoro.setNextFocusMin(durationMin);
+            pomodoro.startNextFocusSession();
+            invoke("start_focus_session", {
+              durationSecs: durationMin * 60,
+            }).catch(console.error);
+          }
+        }}
+        onEndPomodoro={() => {
+          setShowPomodoroNextModal(false);
+          pomodoro?.endPomodoro();
+        }}
+      />
+    </>
+  );
 };
 
 async function getSessionInfo(): Promise<{ elapsed_ms: number; session_id: string } | null> {
