@@ -209,27 +209,13 @@ const SessionBars: React.FC<SessionBarsProps> = ({
 
   // Calculate session positions and widths
   const sessionBars = useMemo(() => {
-    console.log("[SESSION_BARS] Input:", {
-      sessionCount: sessions?.length || 0,
-      xDomainStart,
-      xDomainEnd,
-      xDomainStartDate: xDomainStart ? new Date(xDomainStart).toISOString() : null,
-      xDomainEndDate: xDomainEnd ? new Date(xDomainEnd).toISOString() : null,
-    });
-
-    if (!sessions || sessions.length === 0) {
-      console.log("[SESSION_BARS] No sessions provided");
-      return [];
-    }
+    if (!sessions || sessions.length === 0) return [];
 
     const domainWidth = xDomainEnd - xDomainStart;
-    if (domainWidth <= 0) {
-      console.log("[SESSION_BARS] Invalid domain width:", domainWidth);
-      return [];
-    }
+    if (domainWidth <= 0) return [];
 
     const result = sessions
-      .map((session, idx) => {
+      .map((session) => {
         // Prefer activity timestamps (actual work period) over session timestamps
         // Activity timestamps represent when user actually worked, not when session was created/ended
         const startTimestamp = session.activity_start || session.timestamp_start;
@@ -238,15 +224,7 @@ const SessionBars: React.FC<SessionBarsProps> = ({
         const startMs = parseTimestampMs(startTimestamp);
         const endMs = parseTimestampMs(endTimestamp);
 
-        if (startMs === null || endMs === null) {
-          console.log(`[SESSION_BARS] Session ${idx}: Failed to parse timestamps`, {
-            activity_start: session.activity_start,
-            activity_end: session.activity_end,
-            timestamp_start: session.timestamp_start,
-            timestamp_end: session.timestamp_end,
-          });
-          return null;
-        }
+        if (startMs === null || endMs === null) return null;
 
         // Calculate position as percentage of domain
         const leftPercent = ((startMs - xDomainStart) / domainWidth) * 100;
@@ -258,19 +236,6 @@ const SessionBars: React.FC<SessionBarsProps> = ({
           0,
           Math.min(100 - clampedLeft, widthPercent)
         );
-
-        console.log(`[SESSION_BARS] Session ${idx}:`, {
-          usingActivityTimestamps: !!(session.activity_start && session.activity_end),
-          effectiveStart: startTimestamp,
-          effectiveEnd: endTimestamp,
-          sessionStart: session.timestamp_start,
-          sessionEnd: session.timestamp_end,
-          leftPercent: leftPercent.toFixed(2),
-          widthPercent: widthPercent.toFixed(2),
-          clampedLeft: clampedLeft.toFixed(2),
-          clampedWidth: clampedWidth.toFixed(2),
-          score_total: session.score_total,
-        });
 
         // Skip sessions that are completely outside the domain
         if (clampedWidth <= 0) return null;
@@ -292,7 +257,6 @@ const SessionBars: React.FC<SessionBarsProps> = ({
         (bar): bar is NonNullable<typeof bar> => bar !== null && bar.widthPercent > 0.5
       );
 
-    console.log("[SESSION_BARS] Final bars:", result.length);
     return result;
   }, [sessions, xDomainStart, xDomainEnd]);
 

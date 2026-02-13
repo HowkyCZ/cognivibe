@@ -5,7 +5,8 @@ import {
   WideCircleChartCard,
   ProductivityTimeCard,
   GradientCard,
-  WelcomeTourCard,
+  NotificationBar,
+  DebugNudgeButtons,
 } from "..";
 import { useDashboardData } from "../../hooks";
 import { useState } from "react";
@@ -42,7 +43,7 @@ function DashboardPage() {
       <AppNavbar />
       <main className="w-full px-8 py-8">
         <div className="w-full max-w-5xl mx-auto">
-          <WelcomeTourCard />
+          <NotificationBar />
 
           <CognitiveLoadChart
             data={cognitiveLoadData}
@@ -112,6 +113,8 @@ function DashboardPage() {
               <GradientCard />
             </div>
           </div>
+
+          <DebugNudgeButtons />
         </div>
       </main>
     </>

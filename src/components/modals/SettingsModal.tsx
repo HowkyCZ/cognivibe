@@ -400,6 +400,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold">Danger Zone</h4>
                     <Button
+                      className="btn-plain"
                       color="danger"
                       variant="ghost"
                       startContent={
@@ -544,6 +545,7 @@ const SettingsModal = ({ isOpen, onOpenChange }: SettingsModalProps) => {
                   Cancel
                 </Button>
                 <Button
+                  className="btn-plain"
                   color="danger"
                   onPress={handleConfirmDeleteAccount}
                   isDisabled={!isDeleteConfirmValid || isDeleting}

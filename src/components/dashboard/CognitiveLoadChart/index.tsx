@@ -296,7 +296,7 @@ const LazyChart = lazy(() =>
         <recharts.ResponsiveContainer width="100%" height="100%">
           <recharts.ComposedChart
             data={data}
-            margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+            margin={{ top: 5, right: 28, left: 0, bottom: 5 }}
           >
             <recharts.CartesianGrid
               strokeDasharray="3 3"
@@ -321,6 +321,7 @@ const LazyChart = lazy(() =>
               tick={{ fontSize: 12 }}
               axisLine={false}
               tickLine={false}
+              width={45}
             />
             <recharts.Tooltip content={<CustomTooltip />} />
             
@@ -696,13 +697,14 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
     <Card className="p-4 bg-content1 border border-white/10 hover:border-white/15 transition-colors">
       <CardBody className="pt-4">
         {chartHeader}
+        {/* SessionBars chartLeftMargin/Right must match chart Y-axis width (45) and margin.right (28) */}
         {sessions.length > 0 && xDomainStart > 0 && xDomainEnd > xDomainStart && (
           <SessionBars
             sessions={sessions}
             xDomainStart={xDomainStart}
             xDomainEnd={xDomainEnd}
-            chartLeftMargin={35}
-            chartRightMargin={10}
+            chartLeftMargin={45}
+            chartRightMargin={28}
           />
         )}
         <div className="h-64">
@@ -739,7 +741,7 @@ const CognitiveLoadChart: React.FC<CognitiveLoadChartProps> = ({
             size="sm"
             variant="bordered"
             onPress={() => setChartView(chartView === "total" ? "submetrics" : "total")}
-            className="min-w-0 px-2.5 py-1 h-7 text-xs text-foreground/60 hover:text-foreground border-white/10 hover:border-white/15"
+            className="btn-plain min-w-0 px-2.5 py-1 h-7 text-xs text-foreground/60 hover:text-foreground border-white/10 hover:border-white/15"
           >
             {chartView === "total" ? "Total score" : "Submetrics"}
           </Button>

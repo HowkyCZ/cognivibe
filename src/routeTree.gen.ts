@@ -10,10 +10,7 @@
 
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as TourRouteRouteImport } from "./routes/tour/route"
-import { Route as FocusTimerRouteRouteImport } from "./routes/focus-timer/route"
-import { Route as FocusNudgeRouteRouteImport } from "./routes/focus-nudge/route"
 import { Route as DashboardRouteRouteImport } from "./routes/dashboard/route"
-import { Route as BreakWarningRouteRouteImport } from "./routes/break-warning/route"
 import { Route as BreakRouteRouteImport } from "./routes/break/route"
 import { Route as R404RouteRouteImport } from "./routes/404/route"
 import { Route as IndexRouteImport } from "./routes/index"
@@ -27,24 +24,9 @@ const TourRouteRoute = TourRouteRouteImport.update({
   path: "/tour",
   getParentRoute: () => rootRouteImport,
 } as any)
-const FocusTimerRouteRoute = FocusTimerRouteRouteImport.update({
-  id: "/focus-timer",
-  path: "/focus-timer",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FocusNudgeRouteRoute = FocusNudgeRouteRouteImport.update({
-  id: "/focus-nudge",
-  path: "/focus-nudge",
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BreakWarningRouteRoute = BreakWarningRouteRouteImport.update({
-  id: "/break-warning",
-  path: "/break-warning",
   getParentRoute: () => rootRouteImport,
 } as any)
 const BreakRouteRoute = BreakRouteRouteImport.update({
@@ -87,10 +69,7 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
   "/break": typeof BreakRouteRoute
-  "/break-warning": typeof BreakWarningRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/focus-nudge": typeof FocusNudgeRouteRoute
-  "/focus-timer": typeof FocusTimerRouteRoute
   "/tour": typeof TourRouteRouteWithChildren
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
@@ -101,10 +80,7 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
   "/break": typeof BreakRouteRoute
-  "/break-warning": typeof BreakWarningRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/focus-nudge": typeof FocusNudgeRouteRoute
-  "/focus-timer": typeof FocusTimerRouteRoute
   "/tour": typeof TourRouteRouteWithChildren
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
@@ -116,10 +92,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/404": typeof R404RouteRoute
   "/break": typeof BreakRouteRoute
-  "/break-warning": typeof BreakWarningRouteRoute
   "/dashboard": typeof DashboardRouteRoute
-  "/focus-nudge": typeof FocusNudgeRouteRoute
-  "/focus-timer": typeof FocusTimerRouteRoute
   "/tour": typeof TourRouteRouteWithChildren
   "/auth/callback": typeof AuthCallbackRouteRoute
   "/auth/error": typeof AuthErrorRouteRoute
@@ -132,10 +105,7 @@ export interface FileRouteTypes {
     | "/"
     | "/404"
     | "/break"
-    | "/break-warning"
     | "/dashboard"
-    | "/focus-nudge"
-    | "/focus-timer"
     | "/tour"
     | "/auth/callback"
     | "/auth/error"
@@ -146,10 +116,7 @@ export interface FileRouteTypes {
     | "/"
     | "/404"
     | "/break"
-    | "/break-warning"
     | "/dashboard"
-    | "/focus-nudge"
-    | "/focus-timer"
     | "/tour"
     | "/auth/callback"
     | "/auth/error"
@@ -160,10 +127,7 @@ export interface FileRouteTypes {
     | "/"
     | "/404"
     | "/break"
-    | "/break-warning"
     | "/dashboard"
-    | "/focus-nudge"
-    | "/focus-timer"
     | "/tour"
     | "/auth/callback"
     | "/auth/error"
@@ -175,10 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   R404RouteRoute: typeof R404RouteRoute
   BreakRouteRoute: typeof BreakRouteRoute
-  BreakWarningRouteRoute: typeof BreakWarningRouteRoute
   DashboardRouteRoute: typeof DashboardRouteRoute
-  FocusNudgeRouteRoute: typeof FocusNudgeRouteRoute
-  FocusTimerRouteRoute: typeof FocusTimerRouteRoute
   TourRouteRoute: typeof TourRouteRouteWithChildren
   AuthCallbackRouteRoute: typeof AuthCallbackRouteRoute
   AuthErrorRouteRoute: typeof AuthErrorRouteRoute
@@ -194,32 +155,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof TourRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/focus-timer": {
-      id: "/focus-timer"
-      path: "/focus-timer"
-      fullPath: "/focus-timer"
-      preLoaderRoute: typeof FocusTimerRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/focus-nudge": {
-      id: "/focus-nudge"
-      path: "/focus-nudge"
-      fullPath: "/focus-nudge"
-      preLoaderRoute: typeof FocusNudgeRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     "/dashboard": {
       id: "/dashboard"
       path: "/dashboard"
       fullPath: "/dashboard"
       preLoaderRoute: typeof DashboardRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/break-warning": {
-      id: "/break-warning"
-      path: "/break-warning"
-      fullPath: "/break-warning"
-      preLoaderRoute: typeof BreakWarningRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/break": {
@@ -290,10 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R404RouteRoute: R404RouteRoute,
   BreakRouteRoute: BreakRouteRoute,
-  BreakWarningRouteRoute: BreakWarningRouteRoute,
   DashboardRouteRoute: DashboardRouteRoute,
-  FocusNudgeRouteRoute: FocusNudgeRouteRoute,
-  FocusTimerRouteRoute: FocusTimerRouteRoute,
   TourRouteRoute: TourRouteRouteWithChildren,
   AuthCallbackRouteRoute: AuthCallbackRouteRoute,
   AuthErrorRouteRoute: AuthErrorRouteRoute,

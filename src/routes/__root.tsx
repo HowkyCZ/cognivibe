@@ -15,7 +15,7 @@ import { invoke } from "@tauri-apps/api/core";
 const PERMISSIONS_ACKNOWLEDGED_KEY = "cognivibe_permissions_acknowledged";
 
 /** Routes that render in their own popup/overlay windows. */
-const POPUP_ROUTES = ["/break-warning", "/break", "/focus-nudge", "/focus-timer"];
+const POPUP_ROUTES = ["/break", "/tour"];
 
 export const Route = createRootRoute({
   component: () => {

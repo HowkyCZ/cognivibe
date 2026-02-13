@@ -22,9 +22,9 @@ use modules::tracker::{start_global_input_tracker, toggle_measuring};
 use modules::tracker::functions::session_management::end_session;
 
 #[cfg(not(debug_assertions))]
-use modules::utils::{capture_screen, focus_main_window, force_destroy_window};
+use modules::utils::{capture_screen, focus_main_window_impl, force_destroy_window};
 #[cfg(debug_assertions)]
-use modules::utils::{capture_screen, focus_main_window, force_destroy_window, get_init_prefix};
+use modules::utils::{capture_screen, focus_main_window_impl, force_destroy_window, get_init_prefix};
 
 pub fn run() -> () {
     let builder = tauri::Builder::default();
@@ -59,11 +59,15 @@ pub fn run() -> () {
             get_focus_session_state,
             stop_focus_session,
             capture_screen,
-            force_destroy_window
+            force_destroy_window,
+            modules::utils::functions::focus_main_window::focus_main_window,
+            modules::debug::trigger_debug_nudge::trigger_debug_break_nudge,
+            modules::debug::trigger_debug_nudge::trigger_debug_focus_nudge,
+            modules::utils::functions::open_notification_settings::open_notification_settings
         ])
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // Focus main window
-            focus_main_window(app);
+            focus_main_window_impl(&app);
 
             // On macOS (and sometimes other platforms), deep links can arrive as
             // command-line arguments to the already-running app instance.
@@ -189,7 +193,7 @@ pub fn run() -> () {
                 builder.on_menu_event(move |app, event: MenuEvent| {
                     match event.id.as_ref() {
                         "show" => {
-                            focus_main_window(app);
+                            focus_main_window_impl(app);
                         }
                         "quit" => {
                             let app_handle = app.clone();

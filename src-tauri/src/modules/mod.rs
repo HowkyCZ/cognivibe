@@ -1,4 +1,5 @@
 pub mod api;
+pub mod debug;
 pub mod deeplinks;
 pub mod settings;
 pub mod state;

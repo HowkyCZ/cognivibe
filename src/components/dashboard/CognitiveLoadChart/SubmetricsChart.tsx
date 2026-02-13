@@ -109,7 +109,7 @@ const LazySubmetricsChart = lazy(() =>
         <recharts.ResponsiveContainer width="100%" height="100%">
           <recharts.ComposedChart
             data={data}
-            margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+            margin={{ top: 5, right: 28, left: 0, bottom: 5 }}
           >
             <recharts.CartesianGrid
               strokeDasharray="3 3"
@@ -134,6 +134,7 @@ const LazySubmetricsChart = lazy(() =>
               tick={{ fontSize: 12 }}
               axisLine={false}
               tickLine={false}
+              width={45}
             />
             <recharts.Tooltip content={<SubmetricsTooltip />} />
 
